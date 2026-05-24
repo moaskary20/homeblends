@@ -1,0 +1,2 @@
+category_slug,category,name,slug,sku,barcode,short_description,full_description,regular_price,discount_price,cost_price,stock_quantity,low_stock_threshold,weight,dimensions,status,is_featured,meta_title,meta_description,main_image
+test-cat,تصنيف تجريبي,منتج تجريبي,test-product,TEST-IMPORT-001,,وصف قصير,وصف كامل,99,89,50,10,2,1,,published,1,,,

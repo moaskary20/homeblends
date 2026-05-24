@@ -1,0 +1,57 @@
+{
+  "collections": [
+    {
+      "post_title": "Carrara",
+      "image": "https://www.cleopatraceramics.store/wp-content/uploads/test/carrara.jpg",
+      "id": 30723,
+      "filters_data": {
+        "clp_product_type_tax": {
+          "label": "Floor and Wall",
+          "term_id": [616]
+        }
+      }
+    }
+  ],
+  "collection_data": {
+    "id": "30723",
+    "title": "Carrara",
+    "image": "https://www.cleopatraceramics.store/wp-content/uploads/test/carrara.jpg",
+    "products": [
+      {
+        "label": "Floor and Wall tiles",
+        "products": [
+          {
+            "product_id": 30724,
+            "title": "Carrara White",
+            "clp_product_size_tax": { "term_id": 566, "label": "60x120" },
+            "clp_product_type_tax": { "term_id": 616, "label": "Floor and Wall" },
+            "image": "https://www.cleopatraceramics.store/wp-content/uploads/test/carrara-white.jpg",
+            "features": {
+              "technology": { "label": "Technology", "value": "Porcelain" },
+              "finish": { "label": "Finish", "value": "Polished" }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "wc_product": {
+    "id": 30724,
+    "name": "Carrara White",
+    "permalink": "https://www.cleopatraceramics.store/product/carrara-white/",
+    "on_sale": false,
+    "is_in_stock": true,
+    "prices": {
+      "price": "594",
+      "regular_price": "594",
+      "sale_price": "594",
+      "price_range": { "min_amount": "594", "max_amount": "743" },
+      "on_sale": false
+    },
+    "images": [
+      {
+        "src": "https://www.cleopatraceramics.store/wp-content/uploads/test/carrara-white-large.jpg"
+      }
+    ]
+  }
+}

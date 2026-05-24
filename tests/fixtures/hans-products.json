@@ -1,0 +1,31 @@
+{
+  "products": [
+    {
+      "id": 6607940255930,
+      "title": "دي جي آي إس 850p | الفولاذ المقاوم للصدأ",
+      "handle": "djis-850p-stainless-steel-single-bowl-85-cm-inset",
+      "body_html": "<ul><li>85*51</li><li>وعاء كبير مع مصفاة</li></ul>",
+      "vendor": "HANS",
+      "product_type": "المصارف، هانز",
+      "tags": ["Sinks", "HANS"],
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0554/2821/9066/products/test-sink.jpg"
+        },
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0554/2821/9066/products/test-sink-2.jpg"
+        }
+      ],
+      "variants": [
+        {
+          "id": 39495733543098,
+          "sku": "DJIS 850p",
+          "available": true,
+          "price": "12590.00",
+          "compare_at_price": null,
+          "featured_image": null
+        }
+      ]
+    }
+  ]
+}

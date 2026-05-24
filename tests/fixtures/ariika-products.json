@@ -1,0 +1,31 @@
+{
+  "products": [
+    {
+      "id": 1001,
+      "title": "Test Sofa",
+      "handle": "test-sofa",
+      "body_html": "<p>Comfortable sofa</p>",
+      "vendor": "ariika furniture",
+      "product_type": "Indoor Sofa",
+      "tags": ["Furniture"],
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/test-sofa-1.jpg"
+        },
+        {
+          "src": "https://cdn.shopify.com/test-sofa-2.jpg"
+        }
+      ],
+      "variants": [
+        {
+          "id": 1,
+          "sku": "TEST-SKU-001",
+          "available": true,
+          "price": "50000.00",
+          "compare_at_price": "60000.00",
+          "featured_image": null
+        }
+      ]
+    }
+  ]
+}
