@@ -12,13 +12,26 @@ trait ResolvesGuestShopLists
      */
     protected function resolveCustomer(?User $user = null, ?string $sessionId = null): array
     {
-        $user ??= auth()->user();
+        $user ??= auth('web')->user();
 
         if ($sessionId === null && request()->hasSession()) {
             $sessionId = (string) request()->session()->getId();
         }
 
-        return [$user, $sessionId ?: null];
+        if (! $user) {
+            $sessionId = is_string($sessionId) && $sessionId !== '' ? $sessionId : null;
+        }
+
+        return [$user, $sessionId];
+    }
+
+    protected function assertGuestSessionId(?string $sessionId): string
+    {
+        if (! is_string($sessionId) || $sessionId === '') {
+            throw new \InvalidArgumentException('Guest wishlist/compare requires a browser session.');
+        }
+
+        return $sessionId;
     }
 
     /**

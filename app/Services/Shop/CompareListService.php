@@ -58,6 +58,10 @@ class CompareListService
     {
         [$user, $sessionId] = $this->resolveCustomer($user, $sessionId);
 
+        if (! $user) {
+            $sessionId = $this->assertGuestSessionId($sessionId);
+        }
+
         $existing = $this->customerQuery(CompareList::class, $user, $sessionId)
             ->where('product_id', $product->id)
             ->first();
@@ -90,6 +94,12 @@ class CompareListService
 
     public function clear(?User $user = null, ?string $sessionId = null): void
     {
+        [$user, $sessionId] = $this->resolveCustomer($user, $sessionId);
+
+        if (! $user) {
+            $sessionId = $this->assertGuestSessionId($sessionId);
+        }
+
         $this->customerQuery(CompareList::class, $user, $sessionId)->delete();
     }
 

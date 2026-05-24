@@ -52,6 +52,10 @@ class WishlistService
     {
         [$user, $sessionId] = $this->resolveCustomer($user, $sessionId);
 
+        if (! $user) {
+            $sessionId = $this->assertGuestSessionId($sessionId);
+        }
+
         $existing = $this->customerQuery(Wishlist::class, $user, $sessionId)
             ->where('product_id', $product->id)
             ->first();
@@ -80,6 +84,12 @@ class WishlistService
 
     public function remove(?User $user, ?string $sessionId, Product $product): void
     {
+        [$user, $sessionId] = $this->resolveCustomer($user, $sessionId);
+
+        if (! $user) {
+            $sessionId = $this->assertGuestSessionId($sessionId);
+        }
+
         $this->customerQuery(Wishlist::class, $user, $sessionId)
             ->where('product_id', $product->id)
             ->delete();

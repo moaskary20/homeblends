@@ -63,6 +63,7 @@ async function refreshMiniWishlist(expectedCount = null) {
             headers: {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': wishlistCsrfToken(),
             },
         });
 
@@ -93,6 +94,14 @@ async function refreshMiniWishlist(expectedCount = null) {
         }
 
         if (count < 1) {
+            if (typeof expectedCount === 'number' && expectedCount > 0) {
+                return;
+            }
+
+            if (body.querySelector('.hb-mini-wishlist-items')) {
+                return;
+            }
+
             body.innerHTML = `
                 <div class="hb-mini-wishlist-empty">
                     <p>${escapeWishlistHtml(root.dataset.emptyText)}</p>
