@@ -23,6 +23,10 @@
                     {{ __('ecommerce.free_shipping_notice', ['amount' => number_format($freeShippingMin, 0)]) }}
                 </p>
             @endif
+            <label class="block text-sm font-medium text-gray-700">{{ __('ecommerce.shipping_method') }}</label>
+            @if($shippingRates->isEmpty())
+                <p class="text-sm text-red-600">{{ __('ecommerce.shipping_unavailable') }}</p>
+            @else
             <select name="shipping_rate_id" id="shipping_rate_id" required class="w-full border rounded-lg px-3 py-2">
                 @foreach($shippingRates as $rate)
                     <option value="{{ $rate->id }}" data-rate="{{ $rate->rate }}" data-days="{{ $rate->estimated_days }}">
@@ -33,6 +37,7 @@
                     </option>
                 @endforeach
             </select>
+            @endif
             <p id="shipping-cost-preview" class="text-sm text-gray-600"></p>
             <label class="block text-sm font-medium text-gray-700">{{ __('ecommerce.payment_method') }}</label>
             @forelse($paymentGateways as $gateway)
@@ -69,7 +74,7 @@
                 <p id="loyalty-hint" class="text-xs text-gray-500">{{ __('ecommerce.loyalty_redeem_hint') }}</p>
             </div>
             <textarea name="notes" placeholder="ملاحظات الطلب" class="w-full border rounded-lg px-3 py-2" rows="3"></textarea>
-            <button type="submit" @disabled($paymentGateways->isEmpty())
+            <button type="submit" @disabled($paymentGateways->isEmpty() || $shippingRates->isEmpty())
                     class="w-full bg-amber-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
                 تأكيد الطلب
             </button>

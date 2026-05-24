@@ -12,6 +12,7 @@ class ProductionDeploySeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            TaxShippingSeeder::class,
             PaymentGatewaySeeder::class,
             MainCategoriesSeeder::class,
             HomepageContentSeeder::class,

@@ -218,6 +218,7 @@ return [
     'free_shipping_global_help' => 'اترك المنطقة فارغة لتطبيق القاعدة على كل المناطق',
     'min_order_amount' => 'الحد الأدنى للطلب',
     'shipping_not_available_country' => 'الشحن غير متاح لهذا البلد',
+    'shipping_unavailable' => 'لا توجد طرق شحن متاحة حالياً. يرجى التواصل مع الدعم.',
     'shipping_zone_inactive' => 'منطقة الشحن غير نشطة',
     'shipping_rate_not_applicable' => 'سعر الشحن المختار لا ينطبق على هذا الطلب',
     'free_shipping_notice' => 'شحن مجاني للطلبات من :amount ج.م فأكثر',
