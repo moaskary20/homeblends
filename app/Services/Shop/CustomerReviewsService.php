@@ -28,13 +28,23 @@ class CustomerReviewsService
 
         $items = $config['items'] ?? [];
         if (is_array($items) && count($items) > 0) {
-            return collect($items)
+            $manual = collect($items)
                 ->map(fn (array $item): array => $this->mapItem($item))
                 ->filter(fn (array $item): bool => filled($item['image']) && filled($item['comment']))
                 ->values();
+
+            if ($manual->isNotEmpty()) {
+                return $manual;
+            }
         }
 
-        return $this->autoCards((int) ($config['auto_limit'] ?? 10));
+        $auto = $this->autoCards((int) ($config['auto_limit'] ?? 10));
+
+        if ($auto->isNotEmpty()) {
+            return $auto;
+        }
+
+        return $this->defaultCards();
     }
 
     public function sectionTitle(): string
@@ -99,6 +109,19 @@ class CustomerReviewsService
                 ];
             })
             ->filter(fn (array $item): bool => filled($item['image']))
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    protected function defaultCards(): Collection
+    {
+        $defaults = config('homepage.customer_reviews.items', []);
+
+        return collect($defaults)
+            ->map(fn (array $item): array => $this->mapItem($item))
+            ->filter(fn (array $item): bool => filled($item['image']) && filled($item['comment']))
             ->values();
     }
 }

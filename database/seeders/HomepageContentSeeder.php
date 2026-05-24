@@ -15,6 +15,14 @@ class HomepageContentSeeder extends Seeder
             Setting::setValue('homepage_hero_slides', $heroSlides, 'homepage');
         }
 
+        $customerReviews = config('homepage.customer_reviews', []);
+        if ($customerReviews !== []) {
+            Setting::setValue('homepage_customer_reviews', $customerReviews, 'homepage');
+        }
+
+        \Illuminate\Support\Facades\Cache::forget('shop.customer_reviews');
+
         $this->command?->info('Homepage hero slides seeded ('.count($heroSlides).' slides).');
+        $this->command?->info('Homepage customer reviews seeded ('.count($customerReviews['items'] ?? []).' items).');
     }
 }
