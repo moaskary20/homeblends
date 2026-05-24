@@ -11,10 +11,12 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolePermissionSeeder::class,
             SettingsSeeder::class,
+            HomepageContentSeeder::class,
             VipLevelSeeder::class,
             TaxShippingSeeder::class,
             PaymentGatewaySeeder::class,
             CategorySeeder::class,
+            CatalogProductsSeeder::class,
             ProductSeeder::class,
             AdminUserSeeder::class,
         ]);
