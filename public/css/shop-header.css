@@ -180,6 +180,32 @@ body {
     font-size: 0.95rem;
 }
 
+.hb-search svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: #9ca3af;
+}
+
+.hb-icon-btn svg,
+.hb-user-menu-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+.hb-mobile-menu-btn svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+}
+
+.hb-header-top-social a svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
+
 .hb-logo {
     display: inline-flex;
     align-items: center;
