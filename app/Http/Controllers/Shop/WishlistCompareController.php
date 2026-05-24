@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\Shop\CompareListService;
-use App\Services\Shop\ProductCompareBuilder;
+use App\Support\ProductCompareBuilder;
 use App\Services\Shop\WishlistService;
 use App\Support\ProductMedia;
 use Illuminate\Http\Request;
