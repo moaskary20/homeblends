@@ -133,21 +133,30 @@ function renderMiniCartBody(root, body, { items, itemsCount, subtotal }) {
     `;
 }
 
+function miniCartCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
 async function refreshSingleMiniCart(root, expectedCount = null) {
     const body = root.querySelector('[data-mini-cart-body]');
     if (!body) {
         return;
     }
 
-    const previewUrl = root.dataset.previewUrl || `${root.dataset.api}/cart`;
+    const apiBase = root.dataset.api;
+    if (!apiBase) {
+        return;
+    }
+
     const token = typeof window.shopAuthToken === 'function' ? window.shopAuthToken() : null;
 
     try {
-        const res = await fetch(previewUrl, {
+        const res = await fetch(`${apiBase}/cart`, {
             credentials: 'same-origin',
             headers: {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': miniCartCsrfToken(),
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
         });
@@ -218,15 +227,4 @@ window.scheduleMiniCartRefresh = scheduleMiniCartRefresh;
 window.addEventListener('cart:updated', (e) => {
     const count = typeof e.detail?.count === 'number' ? e.detail.count : null;
     scheduleMiniCartRefresh(count);
-});
-
-document.querySelectorAll('[data-mini-cart]').forEach((root) => {
-    root.addEventListener('mouseenter', () => {
-        if (root.dataset.cartHoverLoaded === '1') {
-            return;
-        }
-
-        root.dataset.cartHoverLoaded = '1';
-        refreshSingleMiniCart(root);
-    });
 });

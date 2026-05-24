@@ -19,10 +19,7 @@ class ShopHeaderComposer
         if (request()->hasSession()) {
             try {
                 $cartService = app(CartService::class);
-                $cart = $cartService->resolveCart(
-                    auth()->id(),
-                    session()->getId()
-                );
+                $cart = $cartService->resolveForRequest(request());
                 $cart->load(['items.product.images', 'items.variant', 'items.bundle']);
                 $totals = $cartService->getTotals($cart);
                 $count = (int) $totals['items_count'];
@@ -42,8 +39,8 @@ class ShopHeaderComposer
 
         if (request()->hasSession()) {
             try {
-                $user = auth()->user();
-                $sessionId = session()->getId();
+                $user = auth('web')->user();
+                $sessionId = request()->session()->getId();
                 $wishlist = app(WishlistService::class);
                 $wishlistCount = $wishlist->count($user, $sessionId);
                 $wishlistPreviewItems = $wishlist->previewProducts($user, $sessionId, 5);

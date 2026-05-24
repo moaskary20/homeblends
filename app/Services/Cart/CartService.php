@@ -7,10 +7,28 @@ use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\FlashSale\FlashSaleService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CartService
 {
+    public function resolveForRequest(Request $request): Cart
+    {
+        $userId = $request->hasSession()
+            ? auth('web')->id()
+            : $request->user()?->id;
+
+        $sessionId = $request->hasSession()
+            ? $request->session()->getId()
+            : $request->header('X-Session-Id');
+
+        if (! is_string($sessionId) || $sessionId === '') {
+            $sessionId = null;
+        }
+
+        return $this->resolveCart($userId, $sessionId);
+    }
+
     public function resolveCart(?int $userId, ?string $sessionId): Cart
     {
         if ($userId && $sessionId) {

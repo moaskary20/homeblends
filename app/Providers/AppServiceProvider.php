@@ -37,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
         $sessionDomain = env('SESSION_DOMAIN');
         if (is_string($sessionDomain) && $sessionDomain !== '') {
             $sessionDomain = preg_replace('#^https?://#i', '', rtrim($sessionDomain, '/'));
+            if ($sessionDomain !== '' && ! str_starts_with($sessionDomain, '.')) {
+                $sessionDomain = '.'.$sessionDomain;
+            }
             config(['session.domain' => $sessionDomain !== '' ? $sessionDomain : null]);
         }
 

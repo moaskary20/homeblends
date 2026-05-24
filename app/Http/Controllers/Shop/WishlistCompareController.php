@@ -14,26 +14,30 @@ class WishlistCompareController extends Controller
 {
     public function toggleWishlist(Request $request, Product $product, WishlistService $wishlist)
     {
-        $added = $wishlist->toggle($request->user(), $request->session()->getId(), $product);
+        $user = auth('web')->user();
+        $sessionId = $request->session()->getId();
+        $added = $wishlist->toggle($user, $sessionId, $product);
 
         return response()->json([
             'added' => $added,
-            'count' => $wishlist->count($request->user(), $request->session()->getId()),
+            'count' => $wishlist->count($user, $sessionId),
         ]);
     }
 
     public function removeWishlist(Request $request, Product $product, WishlistService $wishlist)
     {
-        $wishlist->remove($request->user(), $request->session()->getId(), $product);
+        $user = auth('web')->user();
+        $sessionId = $request->session()->getId();
+        $wishlist->remove($user, $sessionId, $product);
 
         return response()->json([
-            'count' => $wishlist->count($request->user(), $request->session()->getId()),
+            'count' => $wishlist->count($user, $sessionId),
         ]);
     }
 
     public function wishlistPreview(Request $request, WishlistService $wishlist)
     {
-        $user = $request->user();
+        $user = auth('web')->user();
         $sessionId = $request->session()->getId();
         $preview = $wishlist->previewProducts($user, $sessionId, 5);
         $count = $wishlist->count($user, $sessionId);
@@ -56,29 +60,33 @@ class WishlistCompareController extends Controller
     public function toggleCompare(Request $request, Product $product, CompareListService $compare)
     {
         try {
-            $added = $compare->toggle($request->user(), $request->session()->getId(), $product);
+            $user = auth('web')->user();
+            $sessionId = $request->session()->getId();
+            $added = $compare->toggle($user, $sessionId, $product);
         } catch (\RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
         return response()->json([
             'added' => $added,
-            'count' => $compare->count($request->user(), $request->session()->getId()),
+            'count' => $compare->count($user, $sessionId),
         ]);
     }
 
     public function removeCompare(Request $request, Product $product, CompareListService $compare)
     {
-        $compare->remove($request->user(), $request->session()->getId(), $product);
+        $user = auth('web')->user();
+        $sessionId = $request->session()->getId();
+        $compare->remove($user, $sessionId, $product);
 
         return response()->json([
-            'count' => $compare->count($request->user(), $request->session()->getId()),
+            'count' => $compare->count($user, $sessionId),
         ]);
     }
 
     public function comparePage(Request $request, CompareListService $compare, ProductCompareBuilder $builder)
     {
-        $built = $builder->build($compare->products($request->user(), $request->session()->getId()));
+        $built = $builder->build($compare->products(auth('web')->user(), $request->session()->getId()));
 
         return view('shop.compare', [
             'products' => $built['products'],
@@ -90,7 +98,7 @@ class WishlistCompareController extends Controller
 
     public function clearCompare(Request $request, CompareListService $compare)
     {
-        $compare->clear($request->user(), $request->session()->getId());
+        $compare->clear(auth('web')->user(), $request->session()->getId());
 
         return redirect()->route('shop.compare')->with('success', __('ecommerce.compare_cleared'));
     }

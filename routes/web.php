@@ -24,6 +24,18 @@ Route::get('/media/{width}/{path}', ImageThumbController::class)
     ->whereNumber('width')
     ->name('media.thumb');
 
+/*
+ * JSON / AJAX shop endpoints stay outside the locale redirect stack so the
+ * session cookie is not replaced on every request (fixes guest cart / wishlist).
+ */
+Route::get('/cart/preview', [CartController::class, 'preview'])->name('shop.cart.preview');
+Route::get('/wishlist/preview', [WishlistCompareController::class, 'wishlistPreview'])->name('shop.wishlist.preview');
+Route::post('/wishlist/{product}/toggle', [WishlistCompareController::class, 'toggleWishlist'])->name('shop.wishlist.toggle');
+Route::delete('/wishlist/{product}', [WishlistCompareController::class, 'removeWishlist'])->name('shop.wishlist.remove');
+Route::post('/compare/{product}/toggle', [WishlistCompareController::class, 'toggleCompare'])->name('shop.compare.toggle');
+Route::delete('/compare/{product}', [WishlistCompareController::class, 'removeCompare'])->name('shop.compare.remove');
+Route::delete('/compare', [WishlistCompareController::class, 'clearCompare'])->name('shop.compare.clear');
+
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),
     'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
@@ -36,15 +48,8 @@ Route::group([
     Route::get('/products', [ProductController::class, 'index'])->name('shop.products.index');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('shop.products.show');
     Route::get('/cart', [CartController::class, 'index'])->name('shop.cart');
-    Route::get('/cart/preview', [CartController::class, 'preview'])->name('shop.cart.preview');
     Route::get('/checkout', CheckoutController::class)->name('shop.checkout');
     Route::get('/compare', [WishlistCompareController::class, 'comparePage'])->name('shop.compare');
-    Route::get('/wishlist/preview', [WishlistCompareController::class, 'wishlistPreview'])->name('shop.wishlist.preview');
-    Route::post('/wishlist/{product}/toggle', [WishlistCompareController::class, 'toggleWishlist'])->name('shop.wishlist.toggle');
-    Route::delete('/wishlist/{product}', [WishlistCompareController::class, 'removeWishlist'])->name('shop.wishlist.remove');
-    Route::post('/compare/{product}/toggle', [WishlistCompareController::class, 'toggleCompare'])->name('shop.compare.toggle');
-    Route::delete('/compare/{product}', [WishlistCompareController::class, 'removeCompare'])->name('shop.compare.remove');
-    Route::delete('/compare', [WishlistCompareController::class, 'clearCompare'])->name('shop.compare.clear');
     Route::get('/orders', [ShopOrderController::class, 'index'])->name('shop.orders.index');
     Route::get('/orders/{orderNumber}', [ShopOrderController::class, 'show'])->name('shop.orders.show');
 

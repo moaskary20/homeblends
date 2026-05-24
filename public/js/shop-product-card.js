@@ -166,12 +166,15 @@ document.addEventListener('click', async (e) => {
     cartBtn.disabled = true;
 
     try {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         const res = await fetch(`${apiBase}/cart/items`, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrf,
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: JSON.stringify({ product_id: productId, quantity: 1 }),
