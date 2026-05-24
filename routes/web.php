@@ -36,6 +36,7 @@ Route::group([
     Route::get('/products', [ProductController::class, 'index'])->name('shop.products.index');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('shop.products.show');
     Route::get('/cart', [CartController::class, 'index'])->name('shop.cart');
+    Route::get('/cart/preview', [CartController::class, 'preview'])->name('shop.cart.preview');
     Route::get('/checkout', CheckoutController::class)->name('shop.checkout');
     Route::get('/compare', [WishlistCompareController::class, 'comparePage'])->name('shop.compare');
     Route::get('/wishlist/preview', [WishlistCompareController::class, 'wishlistPreview'])->name('shop.wishlist.preview');

@@ -16,7 +16,8 @@
     @stack('head')
     <style>body { font-family: 'Cairo', sans-serif; }</style>
 </head>
-<body class="@yield('body_class', 'bg-[#f5f0e6]') text-gray-900 min-h-screen flex flex-col hb-shop-has-mobile-nav">
+<body class="@yield('body_class', 'bg-[#f5f0e6]') text-gray-900 min-h-screen flex flex-col hb-shop-has-mobile-nav"
+      data-user-authenticated="{{ auth()->check() ? '1' : '0' }}">
     @php
         $navCategories = $navCategories ?? \Illuminate\Support\Facades\Cache::remember(
             'shop.nav.categories',
@@ -52,6 +53,13 @@
 
     @include('shop.partials.flash-countdown-script')
     @stack('scripts')
+    <script>
+        window.shopAuthToken = () => (
+            document.body?.dataset.userAuthenticated === '1'
+                ? localStorage.getItem('api_token')
+                : null
+        );
+    </script>
     <script>
         document.querySelectorAll('[data-user-menu-toggle]').forEach((btn) => {
             btn.addEventListener('click', (e) => {

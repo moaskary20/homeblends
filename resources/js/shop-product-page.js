@@ -59,7 +59,7 @@
             body.product_variant_id = parseInt(variantSelect.value, 10);
         }
 
-        const token = localStorage.getItem('api_token');
+        const token = typeof window.shopAuthToken === 'function' ? window.shopAuthToken() : null;
         const originalHtml = btn.innerHTML;
 
         document.querySelectorAll('[data-pdp-add-cart]').forEach((b) => {

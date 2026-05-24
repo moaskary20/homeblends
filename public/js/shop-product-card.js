@@ -159,7 +159,7 @@ document.addEventListener('click', async (e) => {
 
     const apiBase = cartBtn.dataset.api;
     const productId = parseInt(cartBtn.dataset.productId, 10);
-    const token = localStorage.getItem('api_token');
+    const token = typeof window.shopAuthToken === 'function' ? window.shopAuthToken() : null;
     const originalHtml = cartBtn.innerHTML;
 
     cartBtn.classList.add('is-loading');

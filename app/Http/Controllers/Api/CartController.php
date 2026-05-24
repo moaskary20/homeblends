@@ -117,8 +117,12 @@ class CartController extends Controller
 
     protected function resolveCart(Request $request)
     {
+        $userId = $request->hasSession()
+            ? auth('web')->id()
+            : $request->user()?->id;
+
         return $this->cartService->resolveCart(
-            $request->user()?->id,
+            $userId,
             $this->resolveCartSessionId($request)
         );
     }

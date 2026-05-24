@@ -42,7 +42,7 @@ function setCartViewState(hasItems, { loading = false } = {}) {
 
 if (app) {
     const apiBase = app.dataset.api;
-    const token = localStorage.getItem('api_token');
+    const token = typeof window.shopAuthToken === 'function' ? window.shopAuthToken() : null;
     const initialHasItems = app.dataset.hasItems === '1';
 
     const headers = () => ({

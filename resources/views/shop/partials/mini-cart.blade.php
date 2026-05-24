@@ -8,7 +8,8 @@
 <div class="hb-mini-cart"
      data-mini-cart
      data-api="{{ url('/api/v1') }}"
-     data-session-id="{{ session()->getId() }}"
+     data-preview-url="{{ route('shop.cart.preview') }}"
+     data-authenticated="{{ auth()->check() ? '1' : '0' }}"
      data-currency="{{ __('ecommerce.currency') }}"
      data-empty-text="{{ __('ecommerce.cart_empty') }}"
      data-more-template="{{ __('ecommerce.cart_more_items', ['count' => ':count']) }}"

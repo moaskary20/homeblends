@@ -1,9 +1,14 @@
 function normalizeCartItems(cart) {
-    if (!cart?.items) {
+    if (!cart) {
         return [];
     }
 
-    const raw = cart.items;
+    const payload = cart.data ?? cart;
+    const raw = payload.items;
+
+    if (!raw) {
+        return [];
+    }
 
     if (Array.isArray(raw)) {
         return raw;
@@ -24,11 +29,16 @@ function escapeHtml(text) {
 
 function productImage(item) {
     const p = item.product;
-    if (!p) return null;
-    if (p.main_image) return p.main_image;
+    if (!p) {
+        return null;
+    }
+    if (p.main_image) {
+        return p.main_image;
+    }
     if (Array.isArray(p.images) && p.images.length) {
         return p.images[0].url || p.images[0].path;
     }
+
     return null;
 }
 
@@ -41,6 +51,7 @@ function productUrl(item, root) {
     if (!slug || !template) {
         return root.dataset.bundlesUrl || '#';
     }
+
     return template.replace('__SLUG__', slug);
 }
 
@@ -68,33 +79,82 @@ function renderMiniCartItem(item, root) {
     `;
 }
 
-async function refreshMiniCart(expectedCount = null) {
-    const root = document.querySelector('[data-mini-cart]');
-    const body = root?.querySelector('[data-mini-cart-body]');
-    if (!root || !body) {
+function miniCartBodyHasItems(body) {
+    return Boolean(body?.querySelector('.hb-mini-cart-items'));
+}
+
+function updateCartCountBadges(itemsCount) {
+    document.querySelectorAll('[data-cart-count]').forEach((el) => {
+        el.textContent = itemsCount > 99 ? '99+' : String(itemsCount);
+        el.classList.toggle('hidden', itemsCount < 1);
+        el.classList.toggle('hb-cart-hidden', itemsCount < 1);
+    });
+}
+
+function renderMiniCartBody(root, body, { items, itemsCount, subtotal }) {
+    const currency = root.dataset.currency || 'ج.م';
+    const preview = items.slice(0, 5);
+    const moreCount = Math.max(0, itemsCount - preview.length);
+
+    const countEl = root.querySelector('[data-mini-cart-count]');
+    if (countEl) {
+        countEl.textContent = itemsCount > 0
+            ? `${itemsCount} ${root.dataset.itemsLabel || ''}`
+            : '';
+        countEl.classList.toggle('hb-cart-hidden', itemsCount < 1);
+    }
+
+    if (itemsCount < 1) {
+        body.innerHTML = `
+            <div class="hb-mini-cart-empty">
+                <p>${escapeHtml(root.dataset.emptyText)}</p>
+                <a href="${root.dataset.continueUrl}" class="hb-mini-cart-link">${escapeHtml(root.dataset.continueLabel)}</a>
+            </div>
+        `;
+
         return;
     }
 
-    const apiBase = root.dataset.api;
-    const token = localStorage.getItem('api_token');
-    const currency = root.dataset.currency || 'ج.م';
+    const moreHtml = moreCount > 0
+        ? `<p class="hb-mini-cart-more text-xs text-gray-500 px-4 py-2 border-t border-gray-100">${escapeHtml((root.dataset.moreTemplate || '').replace(':count', String(moreCount)))}</p>`
+        : '';
+
+    body.innerHTML = `
+        <ul class="hb-mini-cart-items">${preview.map((item) => renderMiniCartItem(item, root)).join('')}</ul>
+        ${moreHtml}
+        <div class="hb-mini-cart-footer">
+            <div class="hb-mini-cart-subtotal">
+                <span>${escapeHtml(root.dataset.subtotalLabel || '')}</span>
+                <strong data-mini-cart-subtotal>${subtotal.toFixed(2)} ${currency}</strong>
+            </div>
+            <a href="${root.dataset.cartUrl}" class="hb-mini-cart-btn hb-mini-cart-btn-secondary">${escapeHtml(root.dataset.cartLabel)}</a>
+            <a href="${root.dataset.checkoutUrl}" class="hb-mini-cart-btn hb-mini-cart-btn-primary">${escapeHtml(root.dataset.checkoutLabel)}</a>
+        </div>
+    `;
+}
+
+async function refreshSingleMiniCart(root, expectedCount = null) {
+    const body = root.querySelector('[data-mini-cart-body]');
+    if (!body) {
+        return;
+    }
+
+    const previewUrl = root.dataset.previewUrl || `${root.dataset.api}/cart`;
+    const token = typeof window.shopAuthToken === 'function' ? window.shopAuthToken() : null;
 
     try {
-        const res = await fetch(`${apiBase}/cart`, {
+        const res = await fetch(previewUrl, {
             credentials: 'same-origin',
             headers: {
                 Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
         });
 
         if (!res.ok) {
             if (typeof expectedCount === 'number') {
-                document.querySelectorAll('[data-cart-count]').forEach((el) => {
-                    el.textContent = expectedCount > 99 ? '99+' : String(expectedCount);
-                    el.classList.toggle('hidden', expectedCount < 1);
-                    el.classList.toggle('hb-cart-hidden', expectedCount < 1);
-                });
+                updateCartCountBadges(expectedCount);
             }
 
             return;
@@ -103,64 +163,66 @@ async function refreshMiniCart(expectedCount = null) {
         const data = await res.json();
         const items = normalizeCartItems(data.cart);
         const itemsCount = data.totals?.items_count ?? 0;
+        const subtotal = Number(data.totals?.subtotal || 0);
 
         if (typeof expectedCount === 'number' && itemsCount < 1 && expectedCount > 0) {
-            document.querySelectorAll('[data-cart-count]').forEach((el) => {
-                el.textContent = expectedCount > 99 ? '99+' : String(expectedCount);
-                el.classList.toggle('hidden', expectedCount < 1);
-                el.classList.toggle('hb-cart-hidden', expectedCount < 1);
-            });
+            updateCartCountBadges(expectedCount);
 
             return;
         }
-        const subtotal = Number(data.totals?.subtotal || 0);
-        const preview = items.slice(0, 5);
-        const moreCount = Math.max(0, itemsCount - preview.length);
 
-        document.querySelectorAll('[data-cart-count]').forEach((el) => {
-            el.textContent = itemsCount > 99 ? '99+' : String(itemsCount);
-            el.classList.toggle('hidden', itemsCount < 1);
-            el.classList.toggle('hb-cart-hidden', itemsCount < 1);
-        });
+        if (itemsCount > 0 && items.length === 0 && miniCartBodyHasItems(body)) {
+            updateCartCountBadges(itemsCount);
 
-        const countEl = root.querySelector('[data-mini-cart-count]');
-        if (countEl) {
-            countEl.textContent = itemsCount > 0
-                ? `${itemsCount} ${root.dataset.itemsLabel || ''}`
-                : '';
-            countEl.classList.toggle('hb-cart-hidden', itemsCount < 1);
-        }
-
-        if (!items.length) {
-            body.innerHTML = `
-                <div class="hb-mini-cart-empty">
-                    <p>${escapeHtml(root.dataset.emptyText)}</p>
-                    <a href="${root.dataset.continueUrl}" class="hb-mini-cart-link">${escapeHtml(root.dataset.continueLabel)}</a>
-                </div>
-            `;
             return;
         }
 
-        const moreHtml = moreCount > 0
-            ? `<p class="hb-mini-cart-more text-xs text-gray-500 px-4 py-2 border-t border-gray-100">${escapeHtml((root.dataset.moreTemplate || '').replace(':count', String(moreCount)))}</p>`
-            : '';
-
-        body.innerHTML = `
-            <ul class="hb-mini-cart-items">${preview.map((item) => renderMiniCartItem(item, root)).join('')}</ul>
-            ${moreHtml}
-            <div class="hb-mini-cart-footer">
-                <div class="hb-mini-cart-subtotal">
-                    <span>${escapeHtml(root.dataset.subtotalLabel || '')}</span>
-                    <strong data-mini-cart-subtotal>${subtotal.toFixed(2)} ${currency}</strong>
-                </div>
-                <a href="${root.dataset.cartUrl}" class="hb-mini-cart-btn hb-mini-cart-btn-secondary">${escapeHtml(root.dataset.cartLabel)}</a>
-                <a href="${root.dataset.checkoutUrl}" class="hb-mini-cart-btn hb-mini-cart-btn-primary">${escapeHtml(root.dataset.checkoutLabel)}</a>
-            </div>
-        `;
+        updateCartCountBadges(itemsCount);
+        renderMiniCartBody(root, body, { items, itemsCount, subtotal });
     } catch {
-        //
+        if (typeof expectedCount === 'number') {
+            updateCartCountBadges(expectedCount);
+        }
     }
 }
 
+async function refreshMiniCart(expectedCount = null) {
+    const roots = document.querySelectorAll('[data-mini-cart]');
+    if (!roots.length) {
+        return;
+    }
+
+    await Promise.all([...roots].map((root) => refreshSingleMiniCart(root, expectedCount)));
+}
+
+let cartRefreshTimer = null;
+
+function scheduleMiniCartRefresh(expectedCount = null) {
+    if (cartRefreshTimer) {
+        clearTimeout(cartRefreshTimer);
+    }
+
+    cartRefreshTimer = setTimeout(() => {
+        cartRefreshTimer = null;
+        refreshMiniCart(expectedCount);
+    }, 120);
+}
+
 window.refreshMiniCart = refreshMiniCart;
-window.addEventListener('cart:updated', () => refreshMiniCart());
+window.scheduleMiniCartRefresh = scheduleMiniCartRefresh;
+
+window.addEventListener('cart:updated', (e) => {
+    const count = typeof e.detail?.count === 'number' ? e.detail.count : null;
+    scheduleMiniCartRefresh(count);
+});
+
+document.querySelectorAll('[data-mini-cart]').forEach((root) => {
+    root.addEventListener('mouseenter', () => {
+        if (root.dataset.cartHoverLoaded === '1') {
+            return;
+        }
+
+        root.dataset.cartHoverLoaded = '1';
+        refreshSingleMiniCart(root);
+    });
+});

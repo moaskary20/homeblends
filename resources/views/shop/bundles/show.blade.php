@@ -77,7 +77,7 @@
 <script>
 document.getElementById('add-bundle-to-cart')?.addEventListener('click', async () => {
     const btn = document.getElementById('add-bundle-to-cart');
-    const token = localStorage.getItem('api_token');
+    const token = typeof window.shopAuthToken === 'function' ? window.shopAuthToken() : null;
     const res = await fetch(`${btn.dataset.api}/cart/bundles`, {
         method: 'POST',
         credentials: 'same-origin',
