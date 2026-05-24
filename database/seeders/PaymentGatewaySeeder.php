@@ -46,5 +46,7 @@ class PaymentGatewaySeeder extends Seeder
                 $gateway
             );
         }
+
+        app(\App\Services\Payment\PaymentGatewayService::class)->clearCache();
     }
 }

@@ -15,8 +15,8 @@ class DatabaseSeeder extends Seeder
             VipLevelSeeder::class,
             TaxShippingSeeder::class,
             PaymentGatewaySeeder::class,
-            CategorySeeder::class,
             CatalogProductsSeeder::class,
+            CategorySeeder::class,
             ProductSeeder::class,
             AdminUserSeeder::class,
         ]);
