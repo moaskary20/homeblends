@@ -23,6 +23,75 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('shipping_zones', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->json('countries')->nullable();
+            $table->json('regions')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('shipping_rates', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipping_zone_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->enum('type', ['flat', 'weight', 'price']);
+            $table->decimal('min_value', 12, 2)->nullable();
+            $table->decimal('max_value', 12, 2)->nullable();
+            $table->decimal('rate', 12, 2);
+            $table->unsignedInteger('estimated_days')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('free_shipping_rules', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipping_zone_id')->nullable()->constrained()->nullOnDelete();
+            $table->decimal('min_order_amount', 12, 2);
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('tax_rates', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('country', 2)->default('EG');
+            $table->decimal('rate', 5, 2);
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('orders', function (Blueprint $table) {
+            $table->id();
+            $table->string('order_number')->unique();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->enum('status', [
+                'pending', 'confirmed', 'processing', 'shipped',
+                'delivered', 'cancelled', 'refunded',
+            ])->default('pending')->index();
+            $table->json('billing_address');
+            $table->json('shipping_address');
+            $table->foreignId('shipping_rate_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('shipping_method')->nullable();
+            $table->decimal('subtotal', 12, 2);
+            $table->decimal('discount_amount', 12, 2)->default(0);
+            $table->decimal('shipping_amount', 12, 2)->default(0);
+            $table->decimal('tax_amount', 12, 2)->default(0);
+            $table->decimal('total', 12, 2);
+            $table->string('currency', 3)->default('EGP');
+            $table->foreignId('coupon_id')->nullable()->constrained()->nullOnDelete();
+            $table->integer('loyalty_points_earned')->default(0);
+            $table->integer('loyalty_points_redeemed')->default(0);
+            $table->text('notes')->nullable();
+            $table->string('tracking_number')->nullable();
+            $table->string('payment_method')->nullable();
+            $table->enum('payment_status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
+            $table->timestamp('paid_at')->nullable();
+            $table->timestamps();
+            $table->index(['user_id', 'status', 'created_at']);
+        });
+
         Schema::create('coupon_usages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('coupon_id')->constrained()->cascadeOnDelete();
@@ -105,75 +174,6 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->timestamp('viewed_at');
             $table->index(['user_id', 'viewed_at']);
-        });
-
-        Schema::create('shipping_zones', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->json('countries')->nullable();
-            $table->json('regions')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('shipping_rates', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('shipping_zone_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->enum('type', ['flat', 'weight', 'price']);
-            $table->decimal('min_value', 12, 2)->nullable();
-            $table->decimal('max_value', 12, 2)->nullable();
-            $table->decimal('rate', 12, 2);
-            $table->unsignedInteger('estimated_days')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('free_shipping_rules', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('shipping_zone_id')->nullable()->constrained()->nullOnDelete();
-            $table->decimal('min_order_amount', 12, 2);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('tax_rates', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('country', 2)->default('EG');
-            $table->decimal('rate', 5, 2);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('orders', function (Blueprint $table) {
-            $table->id();
-            $table->string('order_number')->unique();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->enum('status', [
-                'pending', 'confirmed', 'processing', 'shipped',
-                'delivered', 'cancelled', 'refunded',
-            ])->default('pending')->index();
-            $table->json('billing_address');
-            $table->json('shipping_address');
-            $table->foreignId('shipping_rate_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('shipping_method')->nullable();
-            $table->decimal('subtotal', 12, 2);
-            $table->decimal('discount_amount', 12, 2)->default(0);
-            $table->decimal('shipping_amount', 12, 2)->default(0);
-            $table->decimal('tax_amount', 12, 2)->default(0);
-            $table->decimal('total', 12, 2);
-            $table->string('currency', 3)->default('EGP');
-            $table->foreignId('coupon_id')->nullable()->constrained()->nullOnDelete();
-            $table->integer('loyalty_points_earned')->default(0);
-            $table->integer('loyalty_points_redeemed')->default(0);
-            $table->text('notes')->nullable();
-            $table->string('tracking_number')->nullable();
-            $table->string('payment_method')->nullable();
-            $table->enum('payment_status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
-            $table->timestamp('paid_at')->nullable();
-            $table->timestamps();
-            $table->index(['user_id', 'status', 'created_at']);
         });
 
         Schema::create('order_items', function (Blueprint $table) {
