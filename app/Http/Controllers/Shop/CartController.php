@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Shop;
 
+use App\Http\Concerns\ResolvesShopCustomer;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CartResource;
 use App\Services\Cart\CartService;
@@ -10,10 +11,12 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    use ResolvesShopCustomer;
+
     public function index(Request $request, CartService $cartService)
     {
         $cart = $cartService->resolveCart(
-            $request->user()?->id,
+            $this->resolveShopUserId($request),
             $request->session()->getId()
         );
 
@@ -30,7 +33,7 @@ class CartController extends Controller
     public function preview(Request $request, CartService $cartService)
     {
         $cart = $cartService->resolveCart(
-            $request->user()?->id,
+            $this->resolveShopUserId($request),
             $request->session()->getId()
         );
         $cart->load(['items.product.images', 'items.variant', 'items.bundle']);

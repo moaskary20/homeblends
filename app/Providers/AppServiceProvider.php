@@ -34,6 +34,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $sessionDomain = env('SESSION_DOMAIN');
+        if (is_string($sessionDomain) && $sessionDomain !== '') {
+            $sessionDomain = preg_replace('#^https?://#i', '', rtrim($sessionDomain, '/'));
+            config(['session.domain' => $sessionDomain !== '' ? $sessionDomain : null]);
+        }
+
         App::setLocale('ar');
         Carbon::setLocale('ar_EG');
 

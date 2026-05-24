@@ -171,6 +171,10 @@ async function refreshSingleMiniCart(root, expectedCount = null) {
             return;
         }
 
+        if (itemsCount < 1 && miniCartBodyHasItems(body)) {
+            return;
+        }
+
         if (itemsCount > 0 && items.length === 0 && miniCartBodyHasItems(body)) {
             updateCartCountBadges(itemsCount);
 
