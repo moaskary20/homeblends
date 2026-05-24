@@ -15,6 +15,7 @@ use App\Http\Controllers\Shop\BundleController;
 use App\Http\Controllers\Shop\AccountController;
 use App\Http\Controllers\Shop\CategoryController;
 use App\Http\Controllers\Shop\ProductController;
+use App\Http\Controllers\Shop\WishlistCompareController;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -36,6 +37,13 @@ Route::group([
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('shop.products.show');
     Route::get('/cart', [CartController::class, 'index'])->name('shop.cart');
     Route::get('/checkout', CheckoutController::class)->name('shop.checkout');
+    Route::get('/compare', [WishlistCompareController::class, 'comparePage'])->name('shop.compare');
+    Route::get('/wishlist/preview', [WishlistCompareController::class, 'wishlistPreview'])->name('shop.wishlist.preview');
+    Route::post('/wishlist/{product}/toggle', [WishlistCompareController::class, 'toggleWishlist'])->name('shop.wishlist.toggle');
+    Route::delete('/wishlist/{product}', [WishlistCompareController::class, 'removeWishlist'])->name('shop.wishlist.remove');
+    Route::post('/compare/{product}/toggle', [WishlistCompareController::class, 'toggleCompare'])->name('shop.compare.toggle');
+    Route::delete('/compare/{product}', [WishlistCompareController::class, 'removeCompare'])->name('shop.compare.remove');
+    Route::delete('/compare', [WishlistCompareController::class, 'clearCompare'])->name('shop.compare.clear');
     Route::get('/orders', [ShopOrderController::class, 'index'])->name('shop.orders.index');
     Route::get('/orders/{orderNumber}', [ShopOrderController::class, 'show'])->name('shop.orders.show');
 

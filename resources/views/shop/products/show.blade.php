@@ -153,7 +153,7 @@
                                 class="hb-pdp-btn-icon is-wishlist {{ $inWishlist ? 'is-active' : '' }}"
                                 data-product-wishlist
                                 data-product-id="{{ $product->id }}"
-                                data-favorite-url="{{ auth()->check() ? route('shop.account.favorites.toggle', $product) : '' }}"
+                                data-favorite-url="{{ route('shop.wishlist.toggle', $product) }}"
                                 data-login-url="{{ route('login') }}"
                                 data-add-label="{{ __('ecommerce.add_to_favorites') }}"
                                 data-remove-label="{{ __('ecommerce.remove_from_favorites') }}">
@@ -166,7 +166,7 @@
                                 class="hb-pdp-btn-icon is-compare {{ $inCompare ? 'is-active' : '' }}"
                                 data-product-compare
                                 data-product-id="{{ $product->id }}"
-                                data-compare-url="{{ auth()->check() ? route('shop.account.compare.toggle', $product) : '' }}"
+                                data-compare-url="{{ route('shop.compare.toggle', $product) }}"
                                 data-login-url="{{ route('login') }}"
                                 data-add-label="{{ __('ecommerce.add_to_compare') }}"
                                 data-remove-label="{{ __('ecommerce.remove_from_compare') }}">
@@ -232,7 +232,7 @@
                     class="hb-pdp-btn-icon is-wishlist {{ $inWishlist ? 'is-active' : '' }}"
                     data-product-wishlist
                     data-product-id="{{ $product->id }}"
-                    data-favorite-url="{{ auth()->check() ? route('shop.account.favorites.toggle', $product) : '' }}"
+                    data-favorite-url="{{ route('shop.wishlist.toggle', $product) }}"
                     data-login-url="{{ route('login') }}"
                     aria-label="{{ __('ecommerce.my_favorites') }}">
                 <svg fill="{{ $inWishlist ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +243,7 @@
                     class="hb-pdp-btn-icon is-compare {{ $inCompare ? 'is-active' : '' }}"
                     data-product-compare
                     data-product-id="{{ $product->id }}"
-                    data-compare-url="{{ auth()->check() ? route('shop.account.compare.toggle', $product) : '' }}"
+                    data-compare-url="{{ route('shop.compare.toggle', $product) }}"
                     data-login-url="{{ route('login') }}"
                     aria-label="{{ __('ecommerce.my_compare') }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

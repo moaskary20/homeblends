@@ -40,16 +40,17 @@ class ShopHeaderComposer
         $compareCount = 0;
         $comparePreviewItems = collect();
 
-        if (auth()->check()) {
+        if (request()->hasSession()) {
             try {
                 $user = auth()->user();
+                $sessionId = session()->getId();
                 $wishlist = app(WishlistService::class);
-                $wishlistCount = $wishlist->count($user);
-                $wishlistPreviewItems = $wishlist->previewProducts($user, 5);
+                $wishlistCount = $wishlist->count($user, $sessionId);
+                $wishlistPreviewItems = $wishlist->previewProducts($user, $sessionId, 5);
                 $wishlistHasMore = $wishlistCount > $wishlistPreviewItems->count();
                 $compare = app(CompareListService::class);
-                $compareCount = $compare->count($user);
-                $comparePreviewItems = $compare->products($user);
+                $compareCount = $compare->count($user, $sessionId);
+                $comparePreviewItems = $compare->products($user, $sessionId);
             } catch (\Throwable) {
                 //
             }

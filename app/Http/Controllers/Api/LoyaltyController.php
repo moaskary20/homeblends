@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Concerns\ResolvesCartSession;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\LoyaltyTransactionResource;
 use App\Models\LoyaltyTransaction;
@@ -41,7 +42,7 @@ class LoyaltyController extends Controller
         ]);
 
         $user = $request->user();
-        $cart = $this->cartService->resolveCart($user->id, $request->header('X-Session-Id'));
+        $cart = $this->cartService->resolveCart($user->id, $this->resolveCartSessionId($request));
         $totals = $this->cartService->getTotals($cart);
 
         $couponDiscount = $request->coupon_code

@@ -74,8 +74,10 @@
                 el.classList.toggle('hidden', count < 1);
                 el.classList.toggle('hb-cart-hidden', count < 1);
             });
-            if (typeof window.refreshMiniCart === 'function') {
-                window.refreshMiniCart();
+            if (typeof window.scheduleMiniCartRefresh === 'function') {
+                window.scheduleMiniCartRefresh(count);
+            } else if (typeof window.refreshMiniCart === 'function') {
+                window.refreshMiniCart(count);
             }
         });
     </script>

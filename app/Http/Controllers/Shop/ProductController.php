@@ -37,11 +37,9 @@ class ProductController extends Controller
         $inWishlist = false;
         $inCompare = false;
 
-        if (auth()->check()) {
-            $user = auth()->user();
-            $inWishlist = app(WishlistService::class)->has($user, $product);
-            $inCompare = app(CompareListService::class)->has($user, $product);
-        }
+        $sessionId = request()->session()->getId();
+        $inWishlist = app(WishlistService::class)->has(auth()->user(), $sessionId, $product);
+        $inCompare = app(CompareListService::class)->has(auth()->user(), $sessionId, $product);
 
         return view('shop.products.show', compact(
             'product',

@@ -42,14 +42,12 @@ function setCartViewState(hasItems, { loading = false } = {}) {
 
 if (app) {
     const apiBase = app.dataset.api;
-    const sessionId = app.dataset.sessionId;
     const token = localStorage.getItem('api_token');
     const initialHasItems = app.dataset.hasItems === '1';
 
     const headers = () => ({
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        'X-Session-Id': sessionId,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
     });
 

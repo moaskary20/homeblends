@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Concerns\ResolvesCartSession;
 use App\Enums\PaymentGateway as PaymentGatewayDriver;
 use App\Services\Payment\PaymentGatewayService;
 use App\Http\Controllers\Controller;
@@ -13,6 +14,8 @@ use Illuminate\Http\Request;
 
 class CheckoutController extends Controller
 {
+    use ResolvesCartSession;
+
     public function __construct(
         protected CartService $cartService,
         protected CheckoutService $checkoutService,
@@ -22,7 +25,7 @@ class CheckoutController extends Controller
     {
         $cart = $this->cartService->resolveCart(
             $request->user()->id,
-            $request->header('X-Session-Id')
+            $this->resolveCartSessionId($request)
         );
 
         try {

@@ -38,7 +38,7 @@
             class="hb-product-card-compare {{ $inCompare ? 'is-active' : '' }}"
             data-product-compare
             data-product-id="{{ $product->id }}"
-            data-compare-url="{{ auth()->check() ? route('shop.account.compare.toggle', $product) : '' }}"
+            data-compare-url="{{ route('shop.compare.toggle', $product) }}"
             data-login-url="{{ route('login') }}"
             aria-label="{{ $inCompare ? __('ecommerce.remove_from_compare') : __('ecommerce.add_to_compare') }}"
             title="{{ $inCompare ? __('ecommerce.remove_from_compare') : __('ecommerce.add_to_compare') }}">
@@ -52,7 +52,7 @@
             class="hb-product-card-wishlist {{ $inWishlist ? 'is-active' : '' }}"
             data-product-wishlist
             data-product-id="{{ $product->id }}"
-            data-favorite-url="{{ auth()->check() ? route('shop.account.favorites.toggle', $product) : '' }}"
+            data-favorite-url="{{ route('shop.wishlist.toggle', $product) }}"
             data-login-url="{{ route('login') }}"
             aria-label="{{ $inWishlist ? __('ecommerce.remove_from_favorites') : __('ecommerce.add_to_favorites') }}"
             title="{{ $inWishlist ? __('ecommerce.remove_from_favorites') : __('ecommerce.add_to_favorites') }}">

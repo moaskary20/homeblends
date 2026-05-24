@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Concerns\ResolvesCartSession;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cart\AddToCartRequest;
 use App\Http\Requests\Cart\UpdateCartItemRequest;
@@ -16,6 +17,8 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    use ResolvesCartSession;
+
     public function __construct(protected CartService $cartService) {}
 
     public function show(Request $request)
@@ -114,15 +117,9 @@ class CartController extends Controller
 
     protected function resolveCart(Request $request)
     {
-        $sessionId = $request->header('X-Session-Id');
-
-        if (! $sessionId && $request->hasSession()) {
-            $sessionId = $request->session()->getId();
-        }
-
         return $this->cartService->resolveCart(
             $request->user()?->id,
-            $sessionId
+            $this->resolveCartSessionId($request)
         );
     }
 
@@ -130,11 +127,7 @@ class CartController extends Controller
     {
         $cart = $item->cart;
         $userId = $request->user()?->id;
-        $sessionId = $request->header('X-Session-Id');
-
-        if (! $sessionId && $request->hasSession()) {
-            $sessionId = $request->session()->getId();
-        }
+        $sessionId = $this->resolveCartSessionId($request);
 
         if ($cart->user_id && $cart->user_id !== $userId) {
             abort(403);

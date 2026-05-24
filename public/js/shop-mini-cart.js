@@ -68,7 +68,7 @@ function renderMiniCartItem(item, root) {
     `;
 }
 
-async function refreshMiniCart() {
+async function refreshMiniCart(expectedCount = null) {
     const root = document.querySelector('[data-mini-cart]');
     const body = root?.querySelector('[data-mini-cart-body]');
     if (!root || !body) {
@@ -76,7 +76,6 @@ async function refreshMiniCart() {
     }
 
     const apiBase = root.dataset.api;
-    const sessionId = root.dataset.sessionId;
     const token = localStorage.getItem('api_token');
     const currency = root.dataset.currency || 'ج.م';
 
@@ -85,18 +84,35 @@ async function refreshMiniCart() {
             credentials: 'same-origin',
             headers: {
                 Accept: 'application/json',
-                'X-Session-Id': sessionId,
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
         });
 
         if (!res.ok) {
+            if (typeof expectedCount === 'number') {
+                document.querySelectorAll('[data-cart-count]').forEach((el) => {
+                    el.textContent = expectedCount > 99 ? '99+' : String(expectedCount);
+                    el.classList.toggle('hidden', expectedCount < 1);
+                    el.classList.toggle('hb-cart-hidden', expectedCount < 1);
+                });
+            }
+
             return;
         }
 
         const data = await res.json();
         const items = normalizeCartItems(data.cart);
         const itemsCount = data.totals?.items_count ?? 0;
+
+        if (typeof expectedCount === 'number' && itemsCount < 1 && expectedCount > 0) {
+            document.querySelectorAll('[data-cart-count]').forEach((el) => {
+                el.textContent = expectedCount > 99 ? '99+' : String(expectedCount);
+                el.classList.toggle('hidden', expectedCount < 1);
+                el.classList.toggle('hb-cart-hidden', expectedCount < 1);
+            });
+
+            return;
+        }
         const subtotal = Number(data.totals?.subtotal || 0);
         const preview = items.slice(0, 5);
         const moreCount = Math.max(0, itemsCount - preview.length);

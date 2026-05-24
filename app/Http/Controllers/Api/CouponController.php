@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Concerns\ResolvesCartSession;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Coupon\ApplyCouponRequest;
 use App\Services\Cart\CartService;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 
 class CouponController extends Controller
 {
+    use ResolvesCartSession;
+
     public function __construct(
         protected CartService $cartService,
         protected CouponService $couponService,
@@ -19,7 +22,7 @@ class CouponController extends Controller
     {
         $cart = $this->cartService->resolveCart(
             $request->user()?->id,
-            $request->header('X-Session-Id')
+            $this->resolveCartSessionId($request)
         );
 
         $totals = $this->cartService->getTotals($cart);

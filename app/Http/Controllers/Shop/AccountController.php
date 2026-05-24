@@ -150,8 +150,10 @@ class AccountController extends Controller
 
     public function favorites(Request $request, WishlistService $wishlist)
     {
+        $sessionId = $request->session()->getId();
+
         return view('shop.account.favorites', [
-            'products' => $wishlist->products($request->user()),
+            'products' => $wishlist->products($request->user(), $sessionId),
             'seo' => app(SeoService::class)->forPrivatePage(__('ecommerce.my_favorites')),
         ]);
     }
@@ -159,8 +161,9 @@ class AccountController extends Controller
     public function favoritesPreview(Request $request, WishlistService $wishlist)
     {
         $user = $request->user();
-        $preview = $wishlist->previewProducts($user, 5);
-        $count = $wishlist->count($user);
+        $sessionId = $request->session()->getId();
+        $preview = $wishlist->previewProducts($user, $sessionId, 5);
+        $count = $wishlist->count($user, $sessionId);
 
         return response()->json([
             'count' => $count,
@@ -179,12 +182,12 @@ class AccountController extends Controller
 
     public function toggleFavorite(Request $request, Product $product, WishlistService $wishlist)
     {
-        $added = $wishlist->toggle($request->user(), $product);
+        $added = $wishlist->toggle($request->user(), $request->session()->getId(), $product);
 
         if ($request->expectsJson()) {
             return response()->json([
                 'added' => $added,
-                'count' => $wishlist->count($request->user()),
+                'count' => $wishlist->count($request->user(), $request->session()->getId()),
             ]);
         }
 
@@ -195,11 +198,11 @@ class AccountController extends Controller
 
     public function removeFavorite(Request $request, Product $product, WishlistService $wishlist)
     {
-        $wishlist->remove($request->user(), $product);
+        $wishlist->remove($request->user(), $request->session()->getId(), $product);
 
         if ($request->expectsJson()) {
             return response()->json([
-                'count' => $wishlist->count($request->user()),
+                'count' => $wishlist->count($request->user(), $request->session()->getId()),
             ]);
         }
 
@@ -208,7 +211,8 @@ class AccountController extends Controller
 
     public function compare(Request $request, CompareListService $compare, ProductCompareBuilder $builder)
     {
-        $built = $builder->build($compare->products($request->user()));
+        $sessionId = $request->session()->getId();
+        $built = $builder->build($compare->products($request->user(), $sessionId));
 
         return view('shop.account.compare', [
             'products' => $built['products'],
@@ -220,11 +224,11 @@ class AccountController extends Controller
 
     public function removeCompare(Request $request, Product $product, CompareListService $compare)
     {
-        $compare->remove($request->user(), $product);
+        $compare->remove($request->user(), $request->session()->getId(), $product);
 
         if ($request->expectsJson()) {
             return response()->json([
-                'count' => $compare->count($request->user()),
+                'count' => $compare->count($request->user(), $request->session()->getId()),
             ]);
         }
 
@@ -234,7 +238,7 @@ class AccountController extends Controller
     public function toggleCompare(Request $request, Product $product, CompareListService $compare)
     {
         try {
-            $added = $compare->toggle($request->user(), $product);
+            $added = $compare->toggle($request->user(), $request->session()->getId(), $product);
         } catch (\RuntimeException $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $e->getMessage()], 422);
@@ -246,7 +250,7 @@ class AccountController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'added' => $added,
-                'count' => $compare->count($request->user()),
+                'count' => $compare->count($request->user(), $request->session()->getId()),
             ]);
         }
 
@@ -257,7 +261,7 @@ class AccountController extends Controller
 
     public function clearCompare(Request $request, CompareListService $compare)
     {
-        $compare->clear($request->user());
+        $compare->clear($request->user(), $request->session()->getId());
 
         return back()->with('success', __('ecommerce.compare_cleared'));
     }

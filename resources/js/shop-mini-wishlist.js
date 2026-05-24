@@ -45,7 +45,10 @@ function renderMiniWishlistItem(item, root) {
     `;
 }
 
-async function refreshMiniWishlist() {
+let wishlistRefreshTimer = null;
+let lastKnownWishlistCount = null;
+
+async function refreshMiniWishlist(expectedCount = null) {
     const root = document.querySelector('[data-mini-wishlist]');
     const body = root?.querySelector('[data-mini-wishlist-body]');
     const previewUrl = root?.dataset.previewUrl;
@@ -64,6 +67,10 @@ async function refreshMiniWishlist() {
         });
 
         if (!res.ok) {
+            if (typeof expectedCount === 'number') {
+                updateWishlistCountBadge(expectedCount);
+            }
+
             return;
         }
 
@@ -71,6 +78,12 @@ async function refreshMiniWishlist() {
         const count = data.count ?? 0;
         const items = data.items ?? [];
 
+        if (typeof expectedCount === 'number' && count < 1 && expectedCount > 0) {
+            updateWishlistCountBadge(expectedCount);
+            return;
+        }
+
+        lastKnownWishlistCount = count;
         updateWishlistCountBadge(count);
 
         const countEl = root.querySelector('[data-mini-wishlist-count]');
@@ -102,8 +115,21 @@ async function refreshMiniWishlist() {
             </div>
         `;
     } catch {
-        //
+        if (typeof expectedCount === 'number') {
+            updateWishlistCountBadge(expectedCount);
+        }
     }
+}
+
+function scheduleMiniWishlistRefresh(expectedCount = null) {
+    if (wishlistRefreshTimer) {
+        clearTimeout(wishlistRefreshTimer);
+    }
+
+    wishlistRefreshTimer = setTimeout(() => {
+        wishlistRefreshTimer = null;
+        refreshMiniWishlist(expectedCount);
+    }, 120);
 }
 
 window.refreshMiniWishlist = refreshMiniWishlist;
@@ -152,9 +178,11 @@ document.addEventListener('click', async (e) => {
             });
         }
 
-        updateWishlistCountBadge(data.count ?? 0);
-        await refreshMiniWishlist();
-        window.dispatchEvent(new CustomEvent('wishlist:updated', { detail: { count: data.count ?? 0 } }));
+        const count = data.count ?? 0;
+        lastKnownWishlistCount = count;
+        updateWishlistCountBadge(count);
+        scheduleMiniWishlistRefresh(count);
+        window.dispatchEvent(new CustomEvent('wishlist:updated', { detail: { count } }));
     } catch {
         //
     } finally {
@@ -163,8 +191,12 @@ document.addEventListener('click', async (e) => {
 });
 
 window.addEventListener('wishlist:updated', (e) => {
-    if (typeof e.detail?.count === 'number') {
-        updateWishlistCountBadge(e.detail.count);
+    const count = typeof e.detail?.count === 'number' ? e.detail.count : lastKnownWishlistCount;
+
+    if (typeof count === 'number') {
+        updateWishlistCountBadge(count);
+        scheduleMiniWishlistRefresh(count);
+    } else {
+        scheduleMiniWishlistRefresh();
     }
-    refreshMiniWishlist();
 });

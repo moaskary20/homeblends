@@ -3,12 +3,12 @@
     $wishlistPreviewItems = $wishlistPreviewItems ?? collect();
     $wishlistCount = (int) ($wishlistCount ?? 0);
     $wishlistHasMore = (bool) ($wishlistHasMore ?? false);
+    $favoritesPageUrl = auth()->check() ? route('shop.account.favorites') : route('shop.products.index');
 @endphp
 <div class="hb-mini-wishlist"
      data-mini-wishlist
-     @auth
-     data-preview-url="{{ route('shop.account.favorites.preview') }}"
-     data-favorites-url="{{ route('shop.account.favorites') }}"
+     data-preview-url="{{ route('shop.wishlist.preview') }}"
+     data-favorites-url="{{ $favoritesPageUrl }}"
      data-remove-label="{{ __('ecommerce.remove_from_favorites') }}"
      data-empty-text="{{ __('ecommerce.favorites_empty') }}"
      data-login-text="{{ __('ecommerce.login_for_favorites') }}"
@@ -16,11 +16,8 @@
      data-view-label="{{ __('ecommerce.view_favorites') }}"
      data-continue-url="{{ route('shop.products.index') }}"
      data-continue-label="{{ __('ecommerce.continue_shopping') }}"
-     data-currency="{{ __('ecommerce.currency') }}"
-     @else
-     data-login-url="{{ route('login') }}"
-     @endauth>
-    <a href="{{ auth()->check() ? route('shop.account.favorites') : route('login') }}"
+     data-currency="{{ __('ecommerce.currency') }}">
+    <a href="{{ $favoritesPageUrl }}"
        class="hb-icon-btn hb-wishlist-icon-wrap"
        title="{{ __('ecommerce.my_favorites') }}"
        aria-label="{{ __('ecommerce.my_favorites') }}">
@@ -36,22 +33,15 @@
     <div class="hb-mini-wishlist-dropdown" data-mini-wishlist-panel role="region" aria-label="{{ __('ecommerce.my_favorites') }}">
         <div class="hb-mini-wishlist-dropdown-header">
             <strong>{{ __('ecommerce.my_favorites') }}</strong>
-            @auth
-                <span data-mini-wishlist-count class="text-gray-500 text-xs {{ $wishlistCount < 1 ? 'hb-cart-hidden' : '' }}">
-                    @if($wishlistCount > 0)
-                        {{ $wishlistCount }} {{ __('ecommerce.items_count_label') }}
-                    @endif
-                </span>
-            @endauth
+            <span data-mini-wishlist-count class="text-gray-500 text-xs {{ $wishlistCount < 1 ? 'hb-cart-hidden' : '' }}">
+                @if($wishlistCount > 0)
+                    {{ $wishlistCount }} {{ __('ecommerce.items_count_label') }}
+                @endif
+            </span>
         </div>
 
         <div data-mini-wishlist-body>
-            @guest
-                <div class="hb-mini-wishlist-empty">
-                    <p>{{ __('ecommerce.login_for_favorites') }}</p>
-                    <a href="{{ route('login') }}" class="hb-mini-wishlist-link">{{ __('ecommerce.login') }}</a>
-                </div>
-            @elseif($wishlistPreviewItems->isEmpty())
+            @if($wishlistPreviewItems->isEmpty())
                 <div class="hb-mini-wishlist-empty">
                     <p>{{ __('ecommerce.favorites_empty') }}</p>
                     <a href="{{ route('shop.products.index') }}" class="hb-mini-wishlist-link">{{ __('ecommerce.continue_shopping') }}</a>
@@ -78,7 +68,7 @@
                             <button type="button"
                                     class="hb-mini-wishlist-remove"
                                     data-wishlist-remove
-                                    data-remove-url="{{ route('shop.account.favorites.remove', $product) }}"
+                                    data-remove-url="{{ route('shop.wishlist.remove', $product) }}"
                                     title="{{ __('ecommerce.remove_from_favorites') }}"
                                     aria-label="{{ __('ecommerce.remove_from_favorites') }}">✕</button>
                         </li>
@@ -90,7 +80,7 @@
                     </p>
                 @endif
                 <div class="hb-mini-wishlist-footer">
-                    <a href="{{ route('shop.account.favorites') }}" class="hb-mini-wishlist-btn">{{ __('ecommerce.view_favorites') }}</a>
+                    <a href="{{ $favoritesPageUrl }}" class="hb-mini-wishlist-btn">{{ __('ecommerce.view_favorites') }}</a>
                 </div>
             @endif
         </div>

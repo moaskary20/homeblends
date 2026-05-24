@@ -84,7 +84,6 @@ document.getElementById('add-bundle-to-cart')?.addEventListener('click', async (
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'X-Session-Id': btn.dataset.sessionId,
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ product_bundle_id: parseInt(btn.dataset.bundleId, 10), quantity: 1 }),

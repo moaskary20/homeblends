@@ -74,7 +74,6 @@
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
-                    'X-Session-Id': page.dataset.sessionId,
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify(body),
@@ -90,8 +89,10 @@
             const count = data.totals?.items_count ?? 0;
             window.dispatchEvent(new CustomEvent('cart:updated', { detail: { count } }));
 
-            if (typeof window.refreshMiniCart === 'function') {
-                window.refreshMiniCart();
+            if (typeof window.scheduleMiniCartRefresh === 'function') {
+                window.scheduleMiniCartRefresh(count);
+            } else if (typeof window.refreshMiniCart === 'function') {
+                window.refreshMiniCart(count);
             }
 
             document.querySelectorAll('[data-pdp-add-cart]').forEach((b) => {

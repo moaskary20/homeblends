@@ -9,7 +9,7 @@ class Wishlist extends Model
 {
     protected $table = 'wishlists';
 
-    protected $fillable = ['user_id', 'product_id'];
+    protected $fillable = ['user_id', 'session_id', 'product_id'];
 
     public function user(): BelongsTo
     {

@@ -5,7 +5,7 @@
     $maxCompare = (int) config('ecommerce.compare.max_items', 4);
 @endphp
 <div class="hb-mini-compare" data-mini-compare>
-    <a href="{{ auth()->check() ? route('shop.account.compare') : route('login') }}"
+    <a href="{{ route('shop.compare') }}"
        class="hb-icon-btn hb-compare-icon-wrap"
        title="{{ __('ecommerce.my_compare') }}"
        aria-label="{{ __('ecommerce.my_compare') }}">
@@ -21,17 +21,10 @@
     <div class="hb-mini-compare-dropdown" role="region" aria-label="{{ __('ecommerce.my_compare') }}">
         <div class="hb-mini-compare-dropdown-header">
             <strong>{{ __('ecommerce.my_compare') }}</strong>
-            @auth
-                <span class="text-gray-500 text-xs">{{ $compareCount }}/{{ $maxCompare }}</span>
-            @endauth
+            <span class="text-gray-500 text-xs">{{ $compareCount }}/{{ $maxCompare }}</span>
         </div>
         <div class="hb-mini-compare-body">
-            @guest
-                <div class="hb-mini-compare-empty">
-                    <p>{{ __('ecommerce.login_for_compare') }}</p>
-                    <a href="{{ route('login') }}" class="hb-mini-compare-link">{{ __('ecommerce.login') }}</a>
-                </div>
-            @elseif($comparePreviewItems->isEmpty())
+            @if($comparePreviewItems->isEmpty())
                 <div class="hb-mini-compare-empty">
                     <p>{{ __('ecommerce.compare_empty') }}</p>
                     <a href="{{ route('shop.products.index') }}" class="hb-mini-compare-link">{{ __('ecommerce.explore_now') }}</a>
@@ -54,7 +47,7 @@
                         </li>
                     @endforeach
                 </ul>
-                <a href="{{ route('shop.account.compare') }}" class="hb-mini-compare-btn">{{ __('ecommerce.view_compare') }}</a>
+                <a href="{{ route('shop.compare') }}" class="hb-mini-compare-btn">{{ __('ecommerce.view_compare') }}</a>
             @endif
         </div>
     </div>

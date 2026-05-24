@@ -9,7 +9,7 @@ class CompareList extends Model
 {
     protected $table = 'compare_lists';
 
-    protected $fillable = ['user_id', 'product_id'];
+    protected $fillable = ['user_id', 'session_id', 'product_id'];
 
     public function user(): BelongsTo
     {

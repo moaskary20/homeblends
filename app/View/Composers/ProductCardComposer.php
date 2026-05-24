@@ -8,32 +8,34 @@ use Illuminate\View\View;
 
 class ProductCardComposer
 {
-    /** @var array<int, int>|null */
-    protected static ?array $wishlistProductIds = null;
+    /** @var array<string, array<int, int>> */
+    protected static array $wishlistProductIdsByKey = [];
 
-    /** @var array<int, int>|null */
-    protected static ?array $compareProductIds = null;
+    /** @var array<string, array<int, int>> */
+    protected static array $compareProductIdsByKey = [];
 
     public function compose(View $view): void
     {
+        $sessionId = request()->hasSession() ? request()->session()->getId() : null;
+        $userId = auth()->id();
+        $cacheKey = ($userId ? 'u:'.$userId : 'g:').($sessionId ?? '');
+
         if (! array_key_exists('wishlistProductIds', $view->getData())) {
-            if (static::$wishlistProductIds === null) {
-                static::$wishlistProductIds = auth()->check()
-                    ? app(WishlistService::class)->productIds(auth()->user())
-                    : [];
+            if (! isset(static::$wishlistProductIdsByKey[$cacheKey])) {
+                static::$wishlistProductIdsByKey[$cacheKey] = app(WishlistService::class)
+                    ->productIds(auth()->user(), $sessionId);
             }
 
-            $view->with('wishlistProductIds', static::$wishlistProductIds);
+            $view->with('wishlistProductIds', static::$wishlistProductIdsByKey[$cacheKey]);
         }
 
         if (! array_key_exists('compareProductIds', $view->getData())) {
-            if (static::$compareProductIds === null) {
-                static::$compareProductIds = auth()->check()
-                    ? app(CompareListService::class)->productIds(auth()->user())
-                    : [];
+            if (! isset(static::$compareProductIdsByKey[$cacheKey])) {
+                static::$compareProductIdsByKey[$cacheKey] = app(CompareListService::class)
+                    ->productIds(auth()->user(), $sessionId);
             }
 
-            $view->with('compareProductIds', static::$compareProductIds);
+            $view->with('compareProductIds', static::$compareProductIdsByKey[$cacheKey]);
         }
     }
 }

@@ -15,6 +15,8 @@ use App\Observers\ProductBundleObserver;
 use App\Observers\FlashSaleObserver;
 use App\Observers\FlashSaleProductObserver;
 use App\Services\Cart\CartService;
+use App\Services\Shop\CompareListService;
+use App\Services\Shop\WishlistService;
 use App\Services\Settings\SettingsService;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Carbon;
@@ -55,10 +57,12 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
-            app(CartService::class)->mergeGuestCart(
-                request()->session()->getId(),
-                $event->user->id
-            );
+            $sessionId = request()->session()->getId();
+            $userId = $event->user->id;
+
+            app(CartService::class)->mergeGuestCart($sessionId, $userId);
+            app(WishlistService::class)->mergeGuestToUser($sessionId, $userId);
+            app(CompareListService::class)->mergeGuestToUser($sessionId, $userId);
         });
     }
 }

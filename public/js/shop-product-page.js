@@ -18,10 +18,6 @@
         showToast._timer = setTimeout(() => toast.classList.remove('is-visible'), 2800);
     }
 
-    function csrfToken() {
-        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    }
-
     page.querySelector('[data-qty-minus]')?.addEventListener('click', () => {
         if (!qtyInput) {
             return;
@@ -78,7 +74,6 @@
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
-                    'X-Session-Id': page.dataset.sessionId,
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify(body),
@@ -94,8 +89,10 @@
             const count = data.totals?.items_count ?? 0;
             window.dispatchEvent(new CustomEvent('cart:updated', { detail: { count } }));
 
-            if (typeof window.refreshMiniCart === 'function') {
-                window.refreshMiniCart();
+            if (typeof window.scheduleMiniCartRefresh === 'function') {
+                window.scheduleMiniCartRefresh(count);
+            } else if (typeof window.refreshMiniCart === 'function') {
+                window.refreshMiniCart(count);
             }
 
             document.querySelectorAll('[data-pdp-add-cart]').forEach((b) => {
@@ -110,7 +107,7 @@
             setTimeout(() => {
                 document.querySelectorAll('[data-pdp-add-cart]').forEach((b) => {
                     b.classList.remove('is-success');
-                    if (b === btn || b.matches('.hb-pdp-mobile-bar .hb-pdp-btn-cart')) {
+                    if (b.classList.contains('hb-pdp-btn-cart')) {
                         b.innerHTML = originalHtml;
                     }
                 });
@@ -143,7 +140,8 @@
                     main.style.opacity = '1';
                 }, 120);
                 root.querySelectorAll('[data-gallery-thumb]').forEach((t) => {
-                    t.classList.toggle('is-active', t === btn);
+                    t.classList.toggle('border-amber-600', t === btn);
+                    t.classList.toggle('border-transparent', t !== btn);
                 });
             });
         });

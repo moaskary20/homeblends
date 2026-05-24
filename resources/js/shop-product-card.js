@@ -138,10 +138,6 @@ document.addEventListener('click', async (e) => {
                 updateWishlistBadge(data.count);
                 window.dispatchEvent(new CustomEvent('wishlist:updated', { detail: { count: data.count } }));
             }
-
-            if (typeof window.refreshMiniWishlist === 'function') {
-                window.refreshMiniWishlist();
-            }
         } catch {
             //
         } finally {
@@ -162,7 +158,6 @@ document.addEventListener('click', async (e) => {
     e.stopPropagation();
 
     const apiBase = cartBtn.dataset.api;
-    const sessionId = cartBtn.dataset.sessionId;
     const productId = parseInt(cartBtn.dataset.productId, 10);
     const token = localStorage.getItem('api_token');
     const originalHtml = cartBtn.innerHTML;
@@ -177,7 +172,6 @@ document.addEventListener('click', async (e) => {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
-                'X-Session-Id': sessionId,
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: JSON.stringify({ product_id: productId, quantity: 1 }),
@@ -197,8 +191,10 @@ document.addEventListener('click', async (e) => {
 
         window.dispatchEvent(new CustomEvent('cart:updated', { detail: { count } }));
 
-        if (typeof window.refreshMiniCart === 'function') {
-            window.refreshMiniCart();
+        if (typeof window.scheduleMiniCartRefresh === 'function') {
+            window.scheduleMiniCartRefresh(count);
+        } else if (typeof window.refreshMiniCart === 'function') {
+            window.refreshMiniCart(count);
         }
     } catch {
         alert('تعذّرت الإضافة إلى السلة');
