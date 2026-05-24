@@ -20,10 +20,7 @@ class CouponController extends Controller
 
     public function apply(ApplyCouponRequest $request)
     {
-        $cart = $this->cartService->resolveCart(
-            $request->user()?->id,
-            $this->resolveCartSessionId($request)
-        );
+        $cart = $this->cartService->resolveForRequest($request);
 
         $totals = $this->cartService->getTotals($cart);
         $discount = $this->couponService->calculateDiscount(

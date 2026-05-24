@@ -47,12 +47,14 @@ Route::prefix('v1')->group(function () {
     Route::get('shipping-rates', [ShippingController::class, 'index']);
     Route::post('shipping/calculate', [ShippingController::class, 'calculate']);
 
-    Route::get('cart', [CartController::class, 'show']);
-    Route::post('cart/bundles', [CartController::class, 'storeBundle']);
-    Route::post('cart/items', [CartController::class, 'store']);
-    Route::patch('cart/items/{cartItem}', [CartController::class, 'update']);
-    Route::delete('cart/items/{cartItem}', [CartController::class, 'destroy']);
-    Route::post('cart/coupon', [CouponController::class, 'apply']);
+    Route::middleware('shopApiSession')->group(function () {
+        Route::get('cart', [CartController::class, 'show']);
+        Route::post('cart/bundles', [CartController::class, 'storeBundle']);
+        Route::post('cart/items', [CartController::class, 'store']);
+        Route::patch('cart/items/{cartItem}', [CartController::class, 'update']);
+        Route::delete('cart/items/{cartItem}', [CartController::class, 'destroy']);
+        Route::post('cart/coupon', [CouponController::class, 'apply']);
+    });
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);

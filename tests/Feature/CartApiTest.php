@@ -66,6 +66,32 @@ class CartApiTest extends TestCase
             ->assertSee('منتج موحّد', false);
     }
 
+    public function test_guests_with_different_sessions_do_not_share_a_cart(): void
+    {
+        $category = Category::create(['name' => 'Cat', 'slug' => 'cat', 'is_active' => true]);
+        $product = Product::create([
+            'category_id' => $category->id,
+            'name' => 'معزول',
+            'slug' => 'isolated-product',
+            'sku' => 'SKU-ISO',
+            'regular_price' => 25,
+            'stock_quantity' => 5,
+            'status' => ProductStatus::Published,
+        ]);
+
+        $this->withHeader('X-Session-Id', 'guest-a')
+            ->postJson('/api/v1/cart/items', [
+                'product_id' => $product->id,
+                'quantity' => 1,
+            ])
+            ->assertOk();
+
+        $this->withHeader('X-Session-Id', 'guest-b')
+            ->getJson('/api/v1/cart')
+            ->assertOk()
+            ->assertJsonPath('totals.items_count', 0);
+    }
+
     public function test_resolve_cart_merges_guest_items_for_logged_in_user(): void
     {
         $user = User::factory()->create();

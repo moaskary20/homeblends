@@ -26,6 +26,13 @@ class CartService
             $sessionId = null;
         }
 
+        if (! $userId && $sessionId === null) {
+            $header = $request->header('X-Session-Id');
+            if (is_string($header) && $header !== '') {
+                $sessionId = $header;
+            }
+        }
+
         return $this->resolveCart($userId, $sessionId);
     }
 
@@ -50,6 +57,10 @@ class CartService
                 ->where('saved_for_later', false)
                 ->first();
         } else {
+            if (! is_string($sessionId) || $sessionId === '') {
+                throw new \InvalidArgumentException('Guest cart requires a browser session.');
+            }
+
             $cart = Cart::query()
                 ->where('session_id', $sessionId)
                 ->whereNull('user_id')
