@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\ReturnController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ShippingController;
 use App\Http\Controllers\Api\SocialAuthController;
+use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -54,6 +55,10 @@ Route::prefix('v1')->group(function () {
         Route::patch('cart/items/{cartItem}', [CartController::class, 'update']);
         Route::delete('cart/items/{cartItem}', [CartController::class, 'destroy']);
         Route::post('cart/coupon', [CouponController::class, 'apply']);
+
+        Route::get('wishlist', [WishlistController::class, 'show']);
+        Route::post('wishlist/{product}/toggle', [WishlistController::class, 'toggle']);
+        Route::delete('wishlist/{product}', [WishlistController::class, 'destroy']);
     });
 
     Route::middleware('auth:sanctum')->group(function () {

@@ -66,6 +66,21 @@ class GuestWishlistCompareTest extends TestCase
         $this->assertSame(0, app(WishlistService::class)->count(null, 'brand-new-session'));
     }
 
+    public function test_api_wishlist_toggle_respects_session_header(): void
+    {
+        $product = $this->product();
+
+        $this->withHeader('X-Shop-Session-Id', 'api-guest-session')
+            ->postJson('/api/v1/wishlist/'.$product->id.'/toggle')
+            ->assertOk()
+            ->assertJsonPath('count', 1);
+
+        $this->withHeader('X-Shop-Session-Id', 'other-guest-session')
+            ->getJson('/api/v1/wishlist')
+            ->assertOk()
+            ->assertJsonPath('count', 0);
+    }
+
     public function test_orphan_null_session_compare_rows_are_not_visible_to_guests(): void
     {
         $product = $this->product();

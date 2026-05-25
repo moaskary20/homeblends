@@ -52,7 +52,7 @@
             class="hb-product-card-wishlist {{ $inWishlist ? 'is-active' : '' }}"
             data-product-wishlist
             data-product-id="{{ $product->id }}"
-            data-favorite-url="{{ route('shop.wishlist.toggle', $product) }}"
+            data-favorite-url="{{ url('/api/v1/wishlist/'.$product->id.'/toggle') }}"
             data-login-url="{{ route('login') }}"
             aria-label="{{ $inWishlist ? __('ecommerce.remove_from_favorites') : __('ecommerce.add_to_favorites') }}"
             title="{{ $inWishlist ? __('ecommerce.remove_from_favorites') : __('ecommerce.add_to_favorites') }}">

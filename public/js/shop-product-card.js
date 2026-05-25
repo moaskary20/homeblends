@@ -104,14 +104,18 @@ document.addEventListener('click', async (e) => {
         });
 
         try {
-            const res = await fetch(favoriteUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
+            const headers = typeof window.shopGuestFetchHeaders === 'function'
+                ? window.shopGuestFetchHeaders()
+                : {
                     Accept: 'application/json',
                     'X-CSRF-TOKEN': csrfToken(),
                     'X-Requested-With': 'XMLHttpRequest',
-                },
+                };
+
+            const res = await fetch(favoriteUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers,
             });
 
             if (res.status === 401 || res.redirected) {
@@ -134,12 +138,16 @@ document.addEventListener('click', async (e) => {
                 }
             });
 
+            if (typeof data.session_id === 'string' && typeof window.persistShopSessionId === 'function') {
+                window.persistShopSessionId(data.session_id);
+            }
+
             if (typeof data.count === 'number') {
                 updateWishlistBadge(data.count);
                 window.dispatchEvent(new CustomEvent('wishlist:updated', { detail: { count: data.count } }));
             }
         } catch {
-            //
+            alert('تعذّرت إضافة المنتج للمفضلة');
         } finally {
             document.querySelectorAll(`[data-product-wishlist][data-product-id="${wishlistBtn.dataset.productId}"]`).forEach((btn) => {
                 btn.classList.remove('is-loading');

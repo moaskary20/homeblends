@@ -51,20 +51,24 @@ let lastKnownWishlistCount = null;
 async function refreshMiniWishlist(expectedCount = null) {
     const root = document.querySelector('[data-mini-wishlist]');
     const body = root?.querySelector('[data-mini-wishlist-body]');
-    const previewUrl = root?.dataset.previewUrl;
+    const apiBase = root?.dataset.api || (typeof window.shopApiBase === 'function' ? window.shopApiBase() : '/api/v1');
 
-    if (!root || !body || !previewUrl) {
+    if (!root || !body) {
         return;
     }
 
+    const headers = typeof window.shopGuestFetchHeaders === 'function'
+        ? window.shopGuestFetchHeaders()
+        : {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': wishlistCsrfToken(),
+        };
+
     try {
-        const res = await fetch(previewUrl, {
+        const res = await fetch(`${apiBase}/wishlist`, {
             credentials: 'same-origin',
-            headers: {
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': wishlistCsrfToken(),
-            },
+            headers,
         });
 
         if (!res.ok) {
@@ -160,14 +164,18 @@ document.addEventListener('click', async (e) => {
     removeBtn.disabled = true;
 
     try {
-        const res = await fetch(url, {
-            method: 'DELETE',
-            credentials: 'same-origin',
-            headers: {
+        const headers = typeof window.shopGuestFetchHeaders === 'function'
+            ? window.shopGuestFetchHeaders()
+            : {
                 Accept: 'application/json',
                 'X-CSRF-TOKEN': wishlistCsrfToken(),
                 'X-Requested-With': 'XMLHttpRequest',
-            },
+            };
+
+        const res = await fetch(url, {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers,
         });
 
         if (!res.ok) {
@@ -185,6 +193,10 @@ document.addEventListener('click', async (e) => {
                     icon.setAttribute('fill', 'none');
                 }
             });
+        }
+
+        if (typeof data.session_id === 'string' && typeof window.persistShopSessionId === 'function') {
+            window.persistShopSessionId(data.session_id);
         }
 
         const count = data.count ?? 0;

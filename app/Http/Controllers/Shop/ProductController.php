@@ -8,6 +8,7 @@ use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Seo\SeoService;
 use App\Services\Shop\CompareListService;
 use App\Services\Shop\WishlistService;
+use App\Support\GuestShopContext;
 
 class ProductController extends Controller
 {
@@ -37,8 +38,7 @@ class ProductController extends Controller
         $inWishlist = false;
         $inCompare = false;
 
-        $sessionId = request()->session()->getId();
-        $user = auth('web')->user();
+        [$user, $sessionId] = GuestShopContext::resolve(request());
         $inWishlist = app(WishlistService::class)->has($user, $sessionId, $product);
         $inCompare = app(CompareListService::class)->has($user, $sessionId, $product);
 

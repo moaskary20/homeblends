@@ -7,7 +7,7 @@
 @endphp
 <div class="hb-mini-wishlist"
      data-mini-wishlist
-     data-preview-url="{{ route('shop.wishlist.preview') }}"
+     data-api="{{ url('/api/v1') }}"
      data-favorites-url="{{ $favoritesPageUrl }}"
      data-remove-label="{{ __('ecommerce.remove_from_favorites') }}"
      data-empty-text="{{ __('ecommerce.favorites_empty') }}"

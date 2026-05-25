@@ -5,6 +5,7 @@ namespace App\View\Composers;
 use App\Services\Cart\CartService;
 use App\Services\Shop\CompareListService;
 use App\Services\Shop\WishlistService;
+use App\Support\GuestShopContext;
 use Illuminate\View\View;
 
 class ShopHeaderComposer
@@ -39,8 +40,7 @@ class ShopHeaderComposer
 
         if (request()->hasSession()) {
             try {
-                $user = auth('web')->user();
-                $sessionId = request()->session()->getId();
+                [$user, $sessionId] = GuestShopContext::resolve(request());
                 $wishlist = app(WishlistService::class);
                 $wishlistCount = $wishlist->count($user, $sessionId);
                 $wishlistPreviewItems = $wishlist->previewProducts($user, $sessionId, 5);

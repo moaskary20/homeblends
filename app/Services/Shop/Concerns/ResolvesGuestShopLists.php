@@ -3,7 +3,9 @@
 namespace App\Services\Shop\Concerns;
 
 use App\Models\User;
+use App\Support\GuestShopContext;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 
 trait ResolvesGuestShopLists
 {
@@ -12,6 +14,10 @@ trait ResolvesGuestShopLists
      */
     protected function resolveCustomer(?User $user = null, ?string $sessionId = null): array
     {
+        if ($user === null && $sessionId === null && request() instanceof Request) {
+            return GuestShopContext::resolve(request());
+        }
+
         $user ??= auth('web')->user();
 
         if ($sessionId === null && request()->hasSession()) {

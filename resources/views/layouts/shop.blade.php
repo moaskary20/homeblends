@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @if(session()->isStarted())
+        <meta name="shop-session-id" content="{{ session()->getId() }}">
+    @endif
     <title>{{ ($seo ?? null)?->title ?? trim($__env->yieldContent('title', config('app.name'))) }}</title>
     @include('shop.partials.seo-meta')
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -89,6 +92,7 @@
             }
         });
     </script>
+    <script src="{{ asset('js/shop-guest-session.js') }}" defer></script>
     <script src="{{ asset('js/shop-header-mobile.js') }}" defer></script>
     <script src="{{ asset('js/shop-mini-cart.js') }}" defer></script>
     <script src="{{ asset('js/shop-mini-wishlist.js') }}" defer></script>
