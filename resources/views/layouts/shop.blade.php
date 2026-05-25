@@ -96,6 +96,6 @@
     <script src="{{ asset('js/shop-header-mobile.js') }}" defer></script>
     <script src="{{ asset('js/shop-mini-cart.js') }}" defer></script>
     <script src="{{ asset('js/shop-mini-wishlist.js') }}" defer></script>
-    <script src="{{ asset('js/shop-product-card.js') }}" defer></script>
+    <script src="{{ asset('js/shop-product-card.js') }}?v={{ filemtime(public_path('js/shop-product-card.js')) }}" defer></script>
 </body>
 </html>

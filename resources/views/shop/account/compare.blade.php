@@ -7,6 +7,3 @@
     ])
 @endsection
 
-@push('scripts')
-    <script src="{{ asset('js/shop-product-card.js') }}" defer></script>
-@endpush

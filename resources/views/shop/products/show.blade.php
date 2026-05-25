@@ -261,6 +261,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/shop-product-card.js') }}" defer></script>
     <script src="{{ asset('js/shop-product-page.js') }}" defer></script>
 @endpush

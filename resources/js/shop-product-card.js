@@ -22,6 +22,11 @@ function updateWishlistBadge(count) {
     }
 }
 
+const shopListToggleInFlight = new Set();
+
+if (!window.__hbShopProductCardClickBound) {
+    window.__hbShopProductCardClickBound = true;
+
 document.addEventListener('click', async (e) => {
     const compareBtn = e.target.closest('[data-product-compare]');
     if (compareBtn) {
@@ -30,11 +35,19 @@ document.addEventListener('click', async (e) => {
 
         const loginUrl = compareBtn.dataset.loginUrl;
         const compareUrl = compareBtn.dataset.compareUrl;
+        const productId = compareBtn.dataset.productId;
+        const inflightKey = `compare:${productId}`;
 
         if (!compareUrl) {
             window.location.href = loginUrl || '/login';
             return;
         }
+
+        if (shopListToggleInFlight.has(inflightKey)) {
+            return;
+        }
+
+        shopListToggleInFlight.add(inflightKey);
 
         compareBtn.classList.add('is-loading');
 
@@ -78,7 +91,8 @@ document.addEventListener('click', async (e) => {
         } catch {
             //
         } finally {
-            document.querySelectorAll(`[data-product-compare][data-product-id="${compareBtn.dataset.productId}"]`).forEach((btn) => {
+            shopListToggleInFlight.delete(inflightKey);
+            document.querySelectorAll(`[data-product-compare][data-product-id="${productId}"]`).forEach((btn) => {
                 btn.classList.remove('is-loading');
             });
         }
@@ -93,13 +107,21 @@ document.addEventListener('click', async (e) => {
 
         const loginUrl = wishlistBtn.dataset.loginUrl;
         const favoriteUrl = wishlistBtn.dataset.favoriteUrl;
+        const productId = wishlistBtn.dataset.productId;
+        const inflightKey = `wishlist:${productId}`;
 
         if (!favoriteUrl) {
             window.location.href = loginUrl || '/login';
             return;
         }
 
-        document.querySelectorAll(`[data-product-wishlist][data-product-id="${wishlistBtn.dataset.productId}"]`).forEach((btn) => {
+        if (shopListToggleInFlight.has(inflightKey)) {
+            return;
+        }
+
+        shopListToggleInFlight.add(inflightKey);
+
+        document.querySelectorAll(`[data-product-wishlist][data-product-id="${productId}"]`).forEach((btn) => {
             btn.classList.add('is-loading');
         });
 
@@ -125,7 +147,6 @@ document.addEventListener('click', async (e) => {
 
             const data = await res.json();
             const added = Boolean(data.added);
-            const productId = wishlistBtn.dataset.productId;
             document.querySelectorAll(`[data-product-wishlist][data-product-id="${productId}"]`).forEach((btn) => {
                 btn.classList.toggle('is-active', added);
                 const icon = btn.querySelector('svg');
@@ -149,7 +170,8 @@ document.addEventListener('click', async (e) => {
         } catch {
             alert('تعذّرت إضافة المنتج للمفضلة');
         } finally {
-            document.querySelectorAll(`[data-product-wishlist][data-product-id="${wishlistBtn.dataset.productId}"]`).forEach((btn) => {
+            shopListToggleInFlight.delete(inflightKey);
+            document.querySelectorAll(`[data-product-wishlist][data-product-id="${productId}"]`).forEach((btn) => {
                 btn.classList.remove('is-loading');
             });
         }
@@ -219,3 +241,5 @@ document.addEventListener('click', async (e) => {
         }, 2000);
     }
 });
+
+}
