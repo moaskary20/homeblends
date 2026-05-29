@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Services\Bundle\BundleService;
+use App\Support\ProductMedia;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,7 @@ class ProductBundleResource extends JsonResource
             'slug' => $this->slug,
             'short_description' => $this->short_description,
             'description' => $this->description,
-            'main_image' => $this->main_image ? asset('storage/'.$this->main_image) : null,
+            'main_image' => ProductMedia::url($this->main_image),
             'bundle_price' => $this->bundle_price,
             'regular_total' => $service->calculateRegularTotal($this->resource),
             'savings' => $service->calculateSavings($this->resource),

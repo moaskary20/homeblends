@@ -52,7 +52,7 @@
                 <li class="p-4 flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
                         @if($item->product?->main_image)
-                            <img src="{{ asset('storage/'.$item->product->main_image) }}" alt="" class="w-16 h-16 object-cover rounded-lg">
+                            <img src="{{ \App\Support\ProductMedia::url($item->product->main_image) }}" alt="" class="w-16 h-16 object-cover rounded-lg">
                         @endif
                         <div>
                             <a href="{{ route('shop.products.show', $item->product->slug) }}" class="font-semibold hover:text-amber-600">

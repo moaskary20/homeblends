@@ -3,6 +3,7 @@
 namespace App\Services\Shop;
 
 use App\Models\Setting;
+use App\Support\AppUrl;
 use App\Support\ProductMedia;
 use Illuminate\Support\Collection;
 
@@ -149,11 +150,11 @@ class HomepageService
             return null;
         }
 
-        if ($width) {
-            return ProductMedia::resizeUrl($path, $width);
-        }
+        $url = $width
+            ? ProductMedia::resizeUrl($path, $width)
+            : ProductMedia::url($path);
 
-        return ProductMedia::url($path);
+        return AppUrl::normalize($url);
     }
 
     public static function partnerLogoUrl(?string $logo): ?string

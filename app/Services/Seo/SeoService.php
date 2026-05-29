@@ -424,7 +424,7 @@ class SeoService
     {
         $path = $this->settings->get('seo_default_og_image');
 
-        return $path ? asset('storage/'.$path) : null;
+        return $path ? \App\Support\AppUrl::normalize(\App\Support\AppUrl::absolute('storage/'.$path)) : null;
     }
 
     protected function organizationSchema(): array
@@ -436,7 +436,7 @@ class SeoService
             '@type' => 'Organization',
             'name' => $this->settings->get('seo_organization_name') ?: $this->siteName(),
             'url' => url('/'),
-            'logo' => $logo ? asset('storage/'.$logo) : null,
+            'logo' => $logo ? \App\Support\AppUrl::normalize(\App\Support\AppUrl::absolute('storage/'.$logo)) : null,
         ]);
     }
 

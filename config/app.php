@@ -56,6 +56,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public storefront URL
+    |--------------------------------------------------------------------------
+    |
+    | When APP_URL still points to localhost on the server, set PUBLIC_APP_URL
+    | to your live domain (e.g. https://homeblendstore.com) so images and
+    | asset() links use the correct host.
+    |
+    */
+
+    'public_url' => env('PUBLIC_APP_URL'),
+
+    'asset_url' => env('ASSET_URL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

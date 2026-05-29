@@ -33,33 +33,33 @@ class HomeController extends Controller
         $seo = app(SeoService::class)->forHome();
         $homepageService = app(HomepageService::class);
         $homepage = $homepageService->getContent();
-        $popularCollectionCards = Cache::remember(
+        $popularCollectionCards = AppUrl::rewriteCachedValue(Cache::remember(
             'shop.popular_collections',
             3600,
             fn () => app(PopularCollectionsService::class)->cards()
-        );
-        $designBanner = $homepageService->resolveDesignBanner();
+        ));
+        $designBanner = AppUrl::rewriteCachedValue($homepageService->resolveDesignBanner());
         $catalogShowcaseService = app(CatalogShowcaseService::class);
-        $catalogShowcase = Cache::remember(
+        $catalogShowcase = AppUrl::rewriteCachedValue(Cache::remember(
             'shop.catalog_showcase',
             3600,
             fn () => $catalogShowcaseService->resolve()
-        );
-        $catalogShowcaseFurniture = Cache::remember(
+        ));
+        $catalogShowcaseFurniture = AppUrl::rewriteCachedValue(Cache::remember(
             'shop.catalog_showcase_furniture',
             3600,
             fn () => $catalogShowcaseService->resolve(
                 'homepage_catalog_showcase_furniture',
                 config('homepage.catalog_showcase_furniture', [])
             )
-        );
-        $promoBanner = $homepageService->resolvePromoBanner();
+        ));
+        $promoBanner = AppUrl::rewriteCachedValue($homepageService->resolvePromoBanner());
         $customerReviewsService = app(CustomerReviewsService::class);
-        $customerReviewCards = Cache::remember(
+        $customerReviewCards = AppUrl::normalizeReviewCards(Cache::remember(
             'shop.customer_reviews',
             3600,
             fn () => $customerReviewsService->cards()
-        );
+        ));
         $customerReviewsTitle = $customerReviewsService->sectionTitle();
         $contactStrip = $homepageService->resolveContactStrip();
         $comfortSpotlight = AppUrl::normalizeComfortSpotlight(Cache::remember(

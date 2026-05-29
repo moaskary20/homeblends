@@ -3,6 +3,7 @@
 namespace App\Services\Shop;
 
 use App\Models\Setting;
+use App\Support\AppUrl;
 use Illuminate\Support\Facades\Cache;
 
 class ContactPageService
@@ -14,7 +15,7 @@ class ContactPageService
 
     public function resolve(): array
     {
-        return Cache::remember('shop.contact_page', 3600, function (): array {
+        return AppUrl::rewriteCachedValue(Cache::remember('shop.contact_page', 3600, function (): array {
             $data = $this->getContent();
             $defaults = config('contact');
 
@@ -81,7 +82,7 @@ class ContactPageService
                 'social' => $social,
                 'gallery' => $gallery,
             ];
-        });
+        }));
     }
 
     public function clearCache(): void

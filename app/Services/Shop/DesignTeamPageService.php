@@ -3,6 +3,7 @@
 namespace App\Services\Shop;
 
 use App\Models\Setting;
+use App\Support\AppUrl;
 use Illuminate\Support\Facades\Cache;
 
 class DesignTeamPageService
@@ -14,7 +15,7 @@ class DesignTeamPageService
 
     public function resolve(): array
     {
-        return Cache::remember('shop.design_team_page', 3600, function (): array {
+        return AppUrl::rewriteCachedValue(Cache::remember('shop.design_team_page', 3600, function (): array {
             $data = $this->getContent();
             $defaults = config('design-team');
 
@@ -107,7 +108,7 @@ class DesignTeamPageService
                     'items' => $faqItems,
                 ],
             ];
-        });
+        }));
     }
 
     public function clearCache(): void
@@ -122,7 +123,7 @@ class DesignTeamPageService
         }
 
         if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
-            return $url;
+            return AppUrl::normalize($url) ?? $url;
         }
 
         if (str_starts_with($url, '/')) {

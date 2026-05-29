@@ -3,6 +3,7 @@
 namespace App\Services\Shop;
 
 use App\Models\Setting;
+use App\Support\AppUrl;
 use Illuminate\Support\Facades\Cache;
 
 class AboutPageService
@@ -14,7 +15,7 @@ class AboutPageService
 
     public function resolve(): array
     {
-        return Cache::remember('shop.about_page', 3600, function (): array {
+        return AppUrl::rewriteCachedValue(Cache::remember('shop.about_page', 3600, function (): array {
             $data = $this->getContent();
             $defaults = config('about');
 
@@ -76,7 +77,7 @@ class AboutPageService
                     'items' => $serviceItems,
                 ],
             ];
-        });
+        }));
     }
 
     public function clearCache(): void
