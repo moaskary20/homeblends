@@ -14,6 +14,7 @@ use App\Services\Shop\CustomerReviewsService;
 use App\Services\Shop\PopularCollectionsService;
 use App\Services\Seo\SeoService;
 use App\Services\FlashSale\FlashSaleService;
+use App\Support\AppUrl;
 use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
@@ -61,11 +62,11 @@ class HomeController extends Controller
         );
         $customerReviewsTitle = $customerReviewsService->sectionTitle();
         $contactStrip = $homepageService->resolveContactStrip();
-        $comfortSpotlight = Cache::remember(
+        $comfortSpotlight = AppUrl::normalizeComfortSpotlight(Cache::remember(
             'shop.comfort_spotlight',
             3600,
             fn () => app(ComfortSpotlightService::class)->resolve()
-        );
+        ));
         $homeCategories = $homepageService->categoriesForHome();
         $navCategories = app(CategoryBrowseService::class)->categoriesForNav();
 

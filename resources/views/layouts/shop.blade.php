@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{{ asset('css/shop-account.css') }}">
     <link rel="stylesheet" href="{{ asset('css/shop-product-card.css') }}">
     <link rel="stylesheet" href="{{ asset('css/shop-mobile-nav.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/shop-whatsapp.css') }}">
     @stack('head')
     <style>body { font-family: 'Cairo', sans-serif; }</style>
 </head>
@@ -46,6 +47,7 @@
     </main>
 
     @include('shop.partials.mobile-bottom-nav')
+    @include('shop.partials.whatsapp-float')
 
     <footer class="bg-[#3d3830] text-gray-200 mt-auto">
         <div class="max-w-[1400px] mx-auto px-4 py-8 text-center text-sm space-y-1.5">

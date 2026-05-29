@@ -33,10 +33,10 @@ class ProductMedia
         }
 
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
-            return $path;
+            return AppUrl::normalize($path);
         }
 
-        return asset('storage/'.$path);
+        return AppUrl::absolute('storage/'.$path);
     }
 
     public static function resizeUrl(?string $path, int $width): ?string
@@ -60,7 +60,7 @@ class ProductMedia
 
         $width = max(40, min(1600, $width));
 
-        return url('/media/'.$width.'/'.$relative);
+        return AppUrl::normalize('/media/'.$width.'/'.$relative);
     }
 
     public static function optimizeRemoteUrl(string $url, int $width): string
@@ -75,7 +75,7 @@ class ProductMedia
             return ($parsed['scheme'] ?? 'https').'://'.($parsed['host'] ?? '').($parsed['path'] ?? '').'?'.http_build_query($query);
         }
 
-        return $url;
+        return AppUrl::normalize($url) ?? $url;
     }
 
     /**

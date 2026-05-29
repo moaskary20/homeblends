@@ -4,6 +4,7 @@ namespace App\Services\Shop;
 
 use App\Models\Product;
 use App\Models\Setting;
+use App\Support\AppUrl;
 use App\Support\ProductMedia;
 use Illuminate\Support\Collection;
 
@@ -34,17 +35,17 @@ class CustomerReviewsService
                 ->values();
 
             if ($manual->isNotEmpty()) {
-                return $manual;
+                return AppUrl::normalizeReviewCards($manual);
             }
         }
 
         $auto = $this->autoCards((int) ($config['auto_limit'] ?? 10));
 
         if ($auto->isNotEmpty()) {
-            return $auto;
+            return AppUrl::normalizeReviewCards($auto);
         }
 
-        return $this->defaultCards();
+        return AppUrl::normalizeReviewCards($this->defaultCards());
     }
 
     public function sectionTitle(): string

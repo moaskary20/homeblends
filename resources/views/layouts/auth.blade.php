@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     @include('partials.vite-assets')
     <link rel="stylesheet" href="{{ asset('css/shop-header.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/shop-whatsapp.css') }}">
     <style>
         body { font-family: 'Cairo', sans-serif; }
         .hb-auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f5f0e6; padding: 2rem 1rem; }
@@ -33,5 +34,6 @@
             @yield('auth_content')
         </div>
     </div>
+    @include('shop.partials.whatsapp-float')
 </body>
 </html>

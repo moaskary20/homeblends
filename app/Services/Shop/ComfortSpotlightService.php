@@ -5,6 +5,7 @@ namespace App\Services\Shop;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Setting;
+use App\Support\AppUrl;
 use App\Support\ProductMedia;
 
 class ComfortSpotlightService
@@ -33,7 +34,7 @@ class ComfortSpotlightService
             return null;
         }
 
-        return [
+        return AppUrl::normalizeComfortSpotlight([
             'eyebrow' => (string) ($config['eyebrow'] ?? $defaults['eyebrow'] ?? ''),
             'title' => (string) ($config['title'] ?? $defaults['title'] ?? ''),
             'description' => (string) ($config['description'] ?? $defaults['description'] ?? ''),
@@ -42,7 +43,7 @@ class ComfortSpotlightService
             'image_url' => $imageUrl,
             'links' => $links,
             'thumbs' => $thumbs,
-        ];
+        ]);
     }
 
     /**

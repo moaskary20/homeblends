@@ -18,6 +18,7 @@ use App\Services\Cart\CartService;
 use App\Services\Shop\CompareListService;
 use App\Services\Shop\WishlistService;
 use App\Services\Settings\SettingsService;
+use App\Support\AppUrl;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
@@ -34,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        AppUrl::registerRootUrl();
+
         $sessionDomain = env('SESSION_DOMAIN');
         if (is_string($sessionDomain) && $sessionDomain !== '') {
             $sessionDomain = preg_replace('#^https?://#i', '', rtrim($sessionDomain, '/'));
