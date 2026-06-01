@@ -131,4 +131,6 @@
     ])
 
     @include('shop.partials.contact-strip', ['contactStrip' => $contactStrip ?? null])
+
+    @include('shop.partials.policy-links-strip')
 @endsection

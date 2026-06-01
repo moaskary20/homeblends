@@ -261,6 +261,22 @@ class SeoService
         );
     }
 
+    public function forLegalPage(string $title, ?string $description, string $canonical): SeoMeta
+    {
+        return $this->pageMeta(
+            title: $title,
+            description: $description ?: $this->defaultDescription(),
+            canonical: $canonical,
+            schema: [
+                $this->organizationSchema(),
+                $this->breadcrumbSchema([
+                    ['name' => $this->siteName(), 'url' => route('shop.home')],
+                    ['name' => $title, 'url' => $canonical],
+                ]),
+            ],
+        );
+    }
+
     public function forCategoryBrowse(Category $category): SeoMeta
     {
         $title = $category->meta_title ?: $category->name;
@@ -332,6 +348,30 @@ class SeoService
                 'lastmod' => now(),
                 'priority' => 0.75,
                 'changefreq' => 'monthly',
+            ],
+            [
+                'loc' => route('shop.legal.privacy'),
+                'lastmod' => now(),
+                'priority' => 0.5,
+                'changefreq' => 'yearly',
+            ],
+            [
+                'loc' => route('shop.legal.terms'),
+                'lastmod' => now(),
+                'priority' => 0.5,
+                'changefreq' => 'yearly',
+            ],
+            [
+                'loc' => route('shop.legal.returns'),
+                'lastmod' => now(),
+                'priority' => 0.5,
+                'changefreq' => 'yearly',
+            ],
+            [
+                'loc' => route('shop.legal.shipping'),
+                'lastmod' => now(),
+                'priority' => 0.5,
+                'changefreq' => 'yearly',
             ],
         ];
 

@@ -10,6 +10,7 @@ use App\Http\Controllers\Shop\HomeController;
 use App\Http\Controllers\Shop\AboutController;
 use App\Http\Controllers\Shop\DesignTeamController;
 use App\Http\Controllers\Shop\ContactController;
+use App\Http\Controllers\Shop\LegalPageController;
 use App\Http\Controllers\Shop\AffiliateController;
 use App\Http\Controllers\Shop\BundleController;
 use App\Http\Controllers\Shop\AccountController;
@@ -78,6 +79,10 @@ Route::group([
     Route::get('/design-team', DesignTeamController::class)->name('shop.design-team');
     Route::get('/contact', [ContactController::class, 'index'])->name('shop.contact');
     Route::post('/contact', [ContactController::class, 'store'])->name('shop.contact.store')->middleware('throttle:6,1');
+    Route::get('/privacy-policy', LegalPageController::class)->name('shop.legal.privacy');
+    Route::get('/terms-and-conditions', LegalPageController::class)->name('shop.legal.terms');
+    Route::get('/return-policy', LegalPageController::class)->name('shop.legal.returns');
+    Route::get('/delivery-policy', LegalPageController::class)->name('shop.legal.shipping');
     Route::get('/affiliate-program', [AffiliateController::class, 'index'])->name('shop.affiliate.index');
     Route::post('/affiliate-program/apply', [AffiliateController::class, 'apply'])->name('shop.affiliate.apply')->middleware('auth');
 });

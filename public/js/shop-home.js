@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDesignBanner();
     initCatalogShowcase();
     initCustomerReviews();
+    initPolicyLinksStrip();
 });
 
 function initHeroSlider() {
@@ -353,6 +354,62 @@ function initCatalogShowcase() {
                     panel.hidden = !active;
                 });
             });
+        });
+    });
+}
+
+function initPolicyLinksStrip() {
+    const section = document.querySelector('.hb-policy-strip');
+    if (!section) {
+        return;
+    }
+
+    const reveals = section.querySelectorAll('.hb-policy-reveal');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const show = (el) => {
+        const delay = reducedMotion ? 0 : Number(el.dataset.delay || 0);
+        window.setTimeout(() => el.classList.add('is-visible'), delay);
+    };
+
+    if (!reveals.length || reducedMotion) {
+        reveals.forEach(show);
+        return;
+    }
+
+    const observer = new IntersectionObserver(
+        (entries, obs) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                show(entry.target);
+                obs.unobserve(entry.target);
+            });
+        },
+        { threshold: 0.15, rootMargin: '0px 0px -48px 0px' }
+    );
+
+    reveals.forEach((el) => observer.observe(el));
+
+    section.querySelectorAll('.hb-policy-card').forEach((card) => {
+        card.addEventListener('mousemove', (event) => {
+            if (reducedMotion) {
+                return;
+            }
+
+            const rect = card.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / rect.width - 0.5;
+            const y = (event.clientY - rect.top) / rect.height - 0.5;
+
+            card.style.setProperty('--hb-tilt-x', `${y * -6}deg`);
+            card.style.setProperty('--hb-tilt-y', `${x * 6}deg`);
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.removeProperty('--hb-tilt-x');
+            card.style.removeProperty('--hb-tilt-y');
         });
     });
 }
