@@ -34,5 +34,12 @@ return [
             'description' => 'مفروشات، ملايات، وستائر بجودة فاخرة',
             'image' => 'images/categories/textiles.jpg',
         ],
+        [
+            'name' => 'الأجهزة المنزلية',
+            'slug' => 'home-appliances',
+            'sort_order' => 5,
+            'description' => 'أجهزة كهربائية منزلية كبيرة وصغيرة',
+            'image' => 'images/categories/accessories.jpg',
+        ],
     ],
 ];

@@ -1,0 +1,41 @@
+{
+    "data": {
+        "products": {
+            "items": [
+                {
+                    "sku": "KSV36VL30U",
+                    "name": "ثلاجة بوش سيريس 4 ديجيتال، نوفروست، 346 لتر، 2 باب، ستانلس ستيل - KSV36VL30U",
+                    "description": {
+                        "html": "<p>ثلاجة بوش نوفروست بسعة 346 لتر.</p>"
+                    },
+                    "short_description": {
+                        "html": "<p>346 لتر، نوفروست، ستانلس ستيل</p>"
+                    },
+                    "media_gallery": [
+                        {
+                            "url": "https://api-rayashop.freetls.fastly.net/media/catalog/product/cache/test/gallery-1.png",
+                            "label": "Front"
+                        },
+                        {
+                            "url": "https://api-rayashop.freetls.fastly.net/media/catalog/product/cache/test/gallery-2.png",
+                            "label": "Side"
+                        }
+                    ],
+                    "image": {
+                        "url": "https://api-rayashop.freetls.fastly.net/media/catalog/product/cache/test/s3ojbog.png"
+                    },
+                    "price_range": {
+                        "minimum_price": {
+                            "final_price": {
+                                "value": 49999
+                            },
+                            "regular_price": {
+                                "value": 54999
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

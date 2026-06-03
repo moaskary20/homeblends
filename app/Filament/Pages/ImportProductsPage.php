@@ -8,6 +8,9 @@ use App\Services\ProductScraper\AriikaScraperService;
 use App\Services\ProductScraper\CleopatraScraperService;
 use App\Services\ProductScraper\GemmaScraperService;
 use App\Services\ProductScraper\HansScraperService;
+use App\Services\ProductScraper\MahgoubScraperService;
+use App\Services\ProductScraper\RayaScraperService;
+use App\Services\ProductScraper\SallabScraperService;
 use App\Services\ProductScraper\ScrapedProductImporter;
 use App\Services\ProductScraper\SedarScraperService;
 use App\Services\ProductScraper\SyncScrapedProductImagesService;
@@ -95,6 +98,39 @@ class ImportProductsPage extends Page implements HasForms
 
     public array $cleopatraScrapeErrors = [];
 
+    public ?array $mahgoubScrapeData = [];
+
+    /** @var array<int, array<string, mixed>>|null */
+    public ?array $mahgoubScrapePreview = null;
+
+    public ?int $mahgoubScrapeCreated = null;
+
+    public ?int $mahgoubScrapeUpdated = null;
+
+    public array $mahgoubScrapeErrors = [];
+
+    public ?array $sallabScrapeData = [];
+
+    /** @var array<int, array<string, mixed>>|null */
+    public ?array $sallabScrapePreview = null;
+
+    public ?int $sallabScrapeCreated = null;
+
+    public ?int $sallabScrapeUpdated = null;
+
+    public array $sallabScrapeErrors = [];
+
+    public ?array $rayaScrapeData = [];
+
+    /** @var array<int, array<string, mixed>>|null */
+    public ?array $rayaScrapePreview = null;
+
+    public ?int $rayaScrapeCreated = null;
+
+    public ?int $rayaScrapeUpdated = null;
+
+    public array $rayaScrapeErrors = [];
+
     public ?array $syncImagesData = [];
 
     public ?int $imagesSynced = null;
@@ -130,6 +166,12 @@ class ImportProductsPage extends Page implements HasForms
 
         $defaultCleopatraCollections = array_keys(app(CleopatraScraperService::class)->getCollectionOptions());
 
+        $defaultMahgoubCollections = array_keys(app(MahgoubScraperService::class)->getCollectionOptions());
+
+        $defaultSallabCollections = array_keys(app(SallabScraperService::class)->getCollectionOptions());
+
+        $defaultRayaCollections = array_keys(app(RayaScraperService::class)->getCollectionOptions());
+
         $this->form->fill();
         $this->scrapeForm->fill([
             'source' => 'ariika',
@@ -154,6 +196,21 @@ class ImportProductsPage extends Page implements HasForms
         ]);
         $this->cleopatraScrapeForm->fill([
             'collections' => array_slice($defaultCleopatraCollections, 0, 3),
+            'max_per_collection' => 5,
+            'download_images' => true,
+        ]);
+        $this->mahgoubScrapeForm->fill([
+            'collections' => array_slice($defaultMahgoubCollections, 0, 3),
+            'max_per_collection' => 5,
+            'download_images' => true,
+        ]);
+        $this->sallabScrapeForm->fill([
+            'collections' => array_slice($defaultSallabCollections, 0, 3),
+            'max_per_collection' => 5,
+            'download_images' => true,
+        ]);
+        $this->rayaScrapeForm->fill([
+            'collections' => array_slice($defaultRayaCollections, 0, 3),
             'max_per_collection' => 5,
             'download_images' => true,
         ]);
@@ -342,6 +399,102 @@ class ImportProductsPage extends Page implements HasForms
             ->statePath('cleopatraScrapeData');
     }
 
+    public function mahgoubScrapeForm(Form $form): Form
+    {
+        $collectionOptions = app(MahgoubScraperService::class)->getCollectionOptions();
+
+        return $form
+            ->schema([
+                Forms\Components\Select::make('source')
+                    ->label(__('ecommerce.scrape_source'))
+                    ->options(['mahgoub' => 'Mahgoub — mahgoub.com/ar'])
+                    ->default('mahgoub')
+                    ->disabled()
+                    ->dehydrated(),
+                Forms\Components\CheckboxList::make('collections')
+                    ->label(__('ecommerce.scrape_mahgoub_collections'))
+                    ->options($collectionOptions)
+                    ->columns(2)
+                    ->required()
+                    ->minItems(1),
+                Forms\Components\TextInput::make('max_per_collection')
+                    ->label(__('ecommerce.scrape_max_per_collection'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->maxValue(50)
+                    ->default(5)
+                    ->required(),
+                Forms\Components\Toggle::make('download_images')
+                    ->label(__('ecommerce.scrape_download_images'))
+                    ->default(true),
+            ])
+            ->statePath('mahgoubScrapeData');
+    }
+
+    public function sallabScrapeForm(Form $form): Form
+    {
+        $collectionOptions = app(SallabScraperService::class)->getCollectionOptions();
+
+        return $form
+            ->schema([
+                Forms\Components\Select::make('source')
+                    ->label(__('ecommerce.scrape_source'))
+                    ->options(['sallab' => 'Sallab — ahmedelsallab.com'])
+                    ->default('sallab')
+                    ->disabled()
+                    ->dehydrated(),
+                Forms\Components\CheckboxList::make('collections')
+                    ->label(__('ecommerce.scrape_sallab_collections'))
+                    ->options($collectionOptions)
+                    ->columns(2)
+                    ->required()
+                    ->minItems(1),
+                Forms\Components\TextInput::make('max_per_collection')
+                    ->label(__('ecommerce.scrape_max_per_collection'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->maxValue(50)
+                    ->default(5)
+                    ->required(),
+                Forms\Components\Toggle::make('download_images')
+                    ->label(__('ecommerce.scrape_download_images'))
+                    ->default(true),
+            ])
+            ->statePath('sallabScrapeData');
+    }
+
+    public function rayaScrapeForm(Form $form): Form
+    {
+        $collectionOptions = app(RayaScraperService::class)->getCollectionOptions();
+
+        return $form
+            ->schema([
+                Forms\Components\Select::make('source')
+                    ->label(__('ecommerce.scrape_source'))
+                    ->options(['raya' => 'Raya Shop — rayashop.com'])
+                    ->default('raya')
+                    ->disabled()
+                    ->dehydrated(),
+                Forms\Components\CheckboxList::make('collections')
+                    ->label(__('ecommerce.scrape_raya_collections'))
+                    ->options($collectionOptions)
+                    ->columns(2)
+                    ->required()
+                    ->minItems(1),
+                Forms\Components\TextInput::make('max_per_collection')
+                    ->label(__('ecommerce.scrape_max_per_collection'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->maxValue(50)
+                    ->default(5)
+                    ->required(),
+                Forms\Components\Toggle::make('download_images')
+                    ->label(__('ecommerce.scrape_download_images'))
+                    ->default(true),
+            ])
+            ->statePath('rayaScrapeData');
+    }
+
     public function syncImagesForm(Form $form): Form
     {
         $skuOptions = app(SyncScrapedProductImagesService::class)
@@ -372,7 +525,7 @@ class ImportProductsPage extends Page implements HasForms
 
     protected function getForms(): array
     {
-        return ['form', 'scrapeForm', 'sedarScrapeForm', 'gemmaScrapeForm', 'hansScrapeForm', 'cleopatraScrapeForm', 'syncImagesForm'];
+        return ['form', 'scrapeForm', 'sedarScrapeForm', 'gemmaScrapeForm', 'hansScrapeForm', 'cleopatraScrapeForm', 'mahgoubScrapeForm', 'sallabScrapeForm', 'rayaScrapeForm', 'syncImagesForm'];
     }
 
     protected function getHeaderActions(): array
@@ -944,6 +1097,318 @@ class ImportProductsPage extends Page implements HasForms
     {
         return $scraper->getScrapeErrors()
             ->map(fn (array $e) => __('ecommerce.scrape_cleopatra_collection_error', [
+                'handle' => $e['handle'],
+                'message' => $e['message'],
+            ]))
+            ->all();
+    }
+
+    public function previewMahgoubScrape(): void
+    {
+        $this->mahgoubScrapePreview = null;
+        $this->mahgoubScrapeErrors = [];
+
+        try {
+            [$items, $scraper] = $this->fetchMahgoubScrapeItems();
+            $this->mahgoubScrapeErrors = $this->formatMahgoubScrapeErrors($scraper);
+
+            if ($items->isEmpty()) {
+                throw new \RuntimeException(__('ecommerce.scrape_mahgoub_no_products'));
+            }
+
+            $this->mahgoubScrapePreview = $items->map(fn (array $p) => [
+                'sku' => $p['sku'],
+                'name' => $p['name'],
+                'category' => $p['category_name'],
+                'price' => number_format($p['regular_price'], 0).' '.__('ecommerce.currency'),
+                'stock' => $p['stock_quantity'],
+                'url' => $p['source_url'],
+            ])->all();
+
+            Notification::make()
+                ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->mahgoubScrapePreview)]))
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            $this->mahgoubScrapeErrors = [$e->getMessage()];
+            Notification::make()
+                ->title(__('ecommerce.scrape_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function runMahgoubScrape(): void
+    {
+        $this->mahgoubScrapeCreated = null;
+        $this->mahgoubScrapeUpdated = null;
+        $this->mahgoubScrapeErrors = [];
+
+        try {
+            [$items, $scraper] = $this->fetchMahgoubScrapeItems();
+            $collectionErrors = $this->formatMahgoubScrapeErrors($scraper);
+
+            if ($items->isEmpty()) {
+                throw new \RuntimeException(__('ecommerce.scrape_mahgoub_no_products'));
+            }
+
+            $importer = app(ScrapedProductImporter::class);
+            $downloadImages = (bool) ($this->mahgoubScrapeData['download_images'] ?? true);
+            $importer->import($items, $downloadImages);
+
+            $this->mahgoubScrapeCreated = $importer->getCreatedCount();
+            $this->mahgoubScrapeUpdated = $importer->getUpdatedCount();
+            $this->mahgoubScrapeErrors = array_merge($collectionErrors, $importer->getErrors()->all());
+            $this->mahgoubScrapePreview = null;
+
+            Notification::make()
+                ->title(__('ecommerce.scrape_success', [
+                    'created' => $this->mahgoubScrapeCreated,
+                    'updated' => $this->mahgoubScrapeUpdated,
+                ]))
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            $this->mahgoubScrapeErrors = [$e->getMessage()];
+            Notification::make()
+                ->title(__('ecommerce.scrape_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    /**
+     * @return array{0: \Illuminate\Support\Collection, 1: MahgoubScraperService}
+     */
+    protected function fetchMahgoubScrapeItems(): array
+    {
+        $state = $this->mahgoubScrapeForm->getState();
+        $collections = $state['collections'] ?? [];
+        $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
+
+        $scraper = app(MahgoubScraperService::class);
+        $items = $scraper->scrapeCollections($collections, $limit);
+
+        return [$items, $scraper];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function formatMahgoubScrapeErrors(MahgoubScraperService $scraper): array
+    {
+        return $scraper->getScrapeErrors()
+            ->map(fn (array $e) => __('ecommerce.scrape_mahgoub_collection_error', [
+                'handle' => $e['handle'],
+                'message' => $e['message'],
+            ]))
+            ->all();
+    }
+
+    public function previewSallabScrape(): void
+    {
+        $this->sallabScrapePreview = null;
+        $this->sallabScrapeErrors = [];
+
+        try {
+            [$items, $scraper] = $this->fetchSallabScrapeItems();
+            $this->sallabScrapeErrors = $this->formatSallabScrapeErrors($scraper);
+
+            if ($items->isEmpty()) {
+                throw new \RuntimeException(__('ecommerce.scrape_sallab_no_products'));
+            }
+
+            $this->sallabScrapePreview = $items->map(fn (array $p) => [
+                'sku' => $p['sku'],
+                'name' => $p['name'],
+                'category' => $p['category_name'],
+                'price' => number_format($p['regular_price'], 0).' '.__('ecommerce.currency'),
+                'stock' => $p['stock_quantity'],
+                'url' => $p['source_url'],
+            ])->all();
+
+            Notification::make()
+                ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->sallabScrapePreview)]))
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            $this->sallabScrapeErrors = [$e->getMessage()];
+            Notification::make()
+                ->title(__('ecommerce.scrape_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function runSallabScrape(): void
+    {
+        $this->sallabScrapeCreated = null;
+        $this->sallabScrapeUpdated = null;
+        $this->sallabScrapeErrors = [];
+
+        try {
+            [$items, $scraper] = $this->fetchSallabScrapeItems();
+            $collectionErrors = $this->formatSallabScrapeErrors($scraper);
+
+            if ($items->isEmpty()) {
+                throw new \RuntimeException(__('ecommerce.scrape_sallab_no_products'));
+            }
+
+            $importer = app(ScrapedProductImporter::class);
+            $downloadImages = (bool) ($this->sallabScrapeData['download_images'] ?? true);
+            $importer->import($items, $downloadImages);
+
+            $this->sallabScrapeCreated = $importer->getCreatedCount();
+            $this->sallabScrapeUpdated = $importer->getUpdatedCount();
+            $this->sallabScrapeErrors = array_merge($collectionErrors, $importer->getErrors()->all());
+            $this->sallabScrapePreview = null;
+
+            Notification::make()
+                ->title(__('ecommerce.scrape_success', [
+                    'created' => $this->sallabScrapeCreated,
+                    'updated' => $this->sallabScrapeUpdated,
+                ]))
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            $this->sallabScrapeErrors = [$e->getMessage()];
+            Notification::make()
+                ->title(__('ecommerce.scrape_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    /**
+     * @return array{0: \Illuminate\Support\Collection, 1: SallabScraperService}
+     */
+    protected function fetchSallabScrapeItems(): array
+    {
+        $state = $this->sallabScrapeForm->getState();
+        $collections = $state['collections'] ?? [];
+        $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
+
+        $scraper = app(SallabScraperService::class);
+        $items = $scraper->scrapeCollections($collections, $limit);
+
+        return [$items, $scraper];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function formatSallabScrapeErrors(SallabScraperService $scraper): array
+    {
+        return $scraper->getScrapeErrors()
+            ->map(fn (array $e) => __('ecommerce.scrape_sallab_collection_error', [
+                'handle' => $e['handle'],
+                'message' => $e['message'],
+            ]))
+            ->all();
+    }
+
+    public function previewRayaScrape(): void
+    {
+        $this->rayaScrapePreview = null;
+        $this->rayaScrapeErrors = [];
+
+        try {
+            [$items, $scraper] = $this->fetchRayaScrapeItems();
+            $this->rayaScrapeErrors = $this->formatRayaScrapeErrors($scraper);
+
+            if ($items->isEmpty()) {
+                throw new \RuntimeException(__('ecommerce.scrape_raya_no_products'));
+            }
+
+            $this->rayaScrapePreview = $items->map(fn (array $p) => [
+                'sku' => $p['sku'],
+                'name' => $p['name'],
+                'category' => $p['category_name'],
+                'price' => number_format($p['regular_price'], 0).' '.__('ecommerce.currency'),
+                'stock' => $p['stock_quantity'],
+                'url' => $p['source_url'],
+            ])->all();
+
+            Notification::make()
+                ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->rayaScrapePreview)]))
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            $this->rayaScrapeErrors = [$e->getMessage()];
+            Notification::make()
+                ->title(__('ecommerce.scrape_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function runRayaScrape(): void
+    {
+        $this->rayaScrapeCreated = null;
+        $this->rayaScrapeUpdated = null;
+        $this->rayaScrapeErrors = [];
+
+        try {
+            [$items, $scraper] = $this->fetchRayaScrapeItems();
+            $collectionErrors = $this->formatRayaScrapeErrors($scraper);
+
+            if ($items->isEmpty()) {
+                throw new \RuntimeException(__('ecommerce.scrape_raya_no_products'));
+            }
+
+            $importer = app(ScrapedProductImporter::class);
+            $downloadImages = (bool) ($this->rayaScrapeData['download_images'] ?? true);
+            $importer->import($items, $downloadImages);
+
+            $this->rayaScrapeCreated = $importer->getCreatedCount();
+            $this->rayaScrapeUpdated = $importer->getUpdatedCount();
+            $this->rayaScrapeErrors = array_merge($collectionErrors, $importer->getErrors()->all());
+            $this->rayaScrapePreview = null;
+
+            Notification::make()
+                ->title(__('ecommerce.scrape_success', [
+                    'created' => $this->rayaScrapeCreated,
+                    'updated' => $this->rayaScrapeUpdated,
+                ]))
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            $this->rayaScrapeErrors = [$e->getMessage()];
+            Notification::make()
+                ->title(__('ecommerce.scrape_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    /**
+     * @return array{0: \Illuminate\Support\Collection, 1: RayaScraperService}
+     */
+    protected function fetchRayaScrapeItems(): array
+    {
+        $state = $this->rayaScrapeForm->getState();
+        $collections = $state['collections'] ?? [];
+        $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
+
+        $scraper = app(RayaScraperService::class);
+        $items = $scraper->scrapeCollections($collections, $limit);
+
+        return [$items, $scraper];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function formatRayaScrapeErrors(RayaScraperService $scraper): array
+    {
+        return $scraper->getScrapeErrors()
+            ->map(fn (array $e) => __('ecommerce.scrape_raya_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
             ]))

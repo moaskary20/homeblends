@@ -1,0 +1,55 @@
+{
+    "data": {
+        "categoryList": [
+            {
+                "products": {
+                    "total_count": 2,
+                    "items": [
+                        {
+                            "sku": "KSV36VL30U",
+                            "name": "ثلاجة بوش سيريس 4 ديجيتال، نوفروست، 346 لتر، 2 باب، ستانلس ستيل - KSV36VL30U",
+                            "url_key": "bosch-series-4-digital-refrigerator-no-frost-346-liter-stainless-steel-ksv36vl30u-26867",
+                            "stock_status": "IN_STOCK",
+                            "image": {
+                                "url": "https://api-rayashop.freetls.fastly.net/media/catalog/product/cache/test/s3ojbog.png"
+                            },
+                            "price_range": {
+                                "minimum_price": {
+                                    "final_price": {
+                                        "value": 49999,
+                                        "currency": "EGP"
+                                    },
+                                    "regular_price": {
+                                        "value": 54999,
+                                        "currency": "EGP"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "sku": "WR-R4K SS",
+                            "name": "ثلاجة ميني بار وايت ويل، ديفروست، 95 لتر، ستانلس ستيل - WR-R4K SS",
+                            "url_key": "white-whale-mini-bar-refrigerator-defrost-95-liter-stainless-steel-wr-r4k-ss-19522",
+                            "stock_status": "IN_STOCK",
+                            "image": {
+                                "url": "https://api-rayashop.freetls.fastly.net/media/catalog/product/cache/test/wr-r4kss.jpg"
+                            },
+                            "price_range": {
+                                "minimum_price": {
+                                    "final_price": {
+                                        "value": 7699,
+                                        "currency": "EGP"
+                                    },
+                                    "regular_price": {
+                                        "value": 7699,
+                                        "currency": "EGP"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
