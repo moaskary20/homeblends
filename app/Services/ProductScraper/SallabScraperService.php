@@ -2,6 +2,7 @@
 
 namespace App\Services\ProductScraper;
 
+use App\Support\HomeApplianceCategories;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -115,7 +116,7 @@ class SallabScraperService
             throw new \RuntimeException(__('ecommerce.scrape_sallab_unknown_collection', ['handle' => $handle]));
         }
 
-        $categoryName = $this->collections[$handle];
+        $categoryName = $this->categoryNameFor($handle);
         $products = collect();
         $page = 1;
         $pageSize = min(36, max($limit, 12));
@@ -231,7 +232,7 @@ class SallabScraperService
             'name' => $name,
             'slug' => basename(parse_url($sourceUrl, PHP_URL_PATH) ?: '', '.html') ?: Str::slug($name),
             'category_name' => $categoryName,
-            'category_slug' => 'sallab-'.$handle,
+            'category_slug' => $this->categorySlugFor($handle),
             'parent_category_name' => $this->parentCategory['name'],
             'parent_category_slug' => $this->parentCategory['slug'],
             'short_description' => null,
@@ -400,6 +401,19 @@ class SallabScraperService
         if ($this->delayMs > 0) {
             usleep($this->delayMs * 1000);
         }
+    }
+
+    protected function categorySlugFor(string $handle): string
+    {
+        return (string) ($this->collectionParams[$handle]['category_slug'] ?? $handle);
+    }
+
+    protected function categoryNameFor(string $handle): string
+    {
+        $slug = $this->categorySlugFor($handle);
+
+        return HomeApplianceCategories::canonicalName($slug)
+            ?? $this->collections[$handle];
     }
 
     public function ping(): bool

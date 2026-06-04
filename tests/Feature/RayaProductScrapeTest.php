@@ -49,7 +49,7 @@ class RayaProductScrapeTest extends TestCase
         $this->assertSame('RAYA-KSV36VL30U', $items->first()['sku']);
         $this->assertStringContainsString('بوش', $items->first()['name']);
         $this->assertSame('ثلاجات', $items->first()['category_name']);
-        $this->assertSame('raya-refrigerators', $items->first()['category_slug']);
+        $this->assertSame('refrigerators', $items->first()['category_slug']);
         $this->assertSame('home-appliances', $items->first()['parent_category_slug']);
         $this->assertSame('الأجهزة المنزلية', $items->first()['parent_category_name']);
         $this->assertSame(54999.0, $items->first()['regular_price']);
@@ -91,7 +91,7 @@ class RayaProductScrapeTest extends TestCase
         $importer->import($items, true);
 
         $this->assertDatabaseHas('categories', ['slug' => 'home-appliances', 'name' => 'الأجهزة المنزلية']);
-        $this->assertDatabaseHas('categories', ['slug' => 'raya-refrigerators', 'name' => 'ثلاجات']);
+        $this->assertDatabaseHas('categories', ['slug' => 'refrigerators', 'name' => 'ثلاجات']);
         $this->assertDatabaseHas('products', ['sku' => 'RAYA-KSV36VL30U']);
         $this->assertSame(1, $importer->getCreatedCount());
     }

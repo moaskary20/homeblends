@@ -1,0 +1,46 @@
+[
+    {
+        "id": 4056,
+        "name": "بيكو ثلاجة 367 لتر نوفروست لون أسود RDNE430K12B",
+        "slug": "beko-refrigerator-367-liter-no-frost-black-rdne430k12b",
+        "permalink": "https://shaheeneg.com/ar/store/refrigerators/beko-refrigerator-367-liter-no-frost-black-rdne430k12b/",
+        "sku": "RDNE430K12B",
+        "short_description": "",
+        "description": "<p>ثلاجة بيكو 367 لتر</p>",
+        "on_sale": true,
+        "prices": {
+            "price": "4100000",
+            "regular_price": "4599900",
+            "sale_price": "4100000",
+            "currency_minor_unit": 2
+        },
+        "is_in_stock": true,
+        "images": [
+            {
+                "src": "https://shaheeneg.com/wp-content/uploads/2022/04/test-fridge.jpg"
+            }
+        ]
+    },
+    {
+        "id": 4057,
+        "name": "بوش ثلاجة 350 لتر ستانلس ستيل",
+        "slug": "bosch-refrigerator-350-liter-stainless",
+        "permalink": "https://shaheeneg.com/ar/store/refrigerators/bosch-refrigerator-350-liter-stainless/",
+        "sku": "",
+        "short_description": "",
+        "description": "",
+        "on_sale": false,
+        "prices": {
+            "price": "5500000",
+            "regular_price": "5500000",
+            "sale_price": "5500000",
+            "currency_minor_unit": 2
+        },
+        "is_in_stock": true,
+        "images": [
+            {
+                "src": "https://shaheeneg.com/wp-content/uploads/2022/04/test-fridge-2.jpg"
+            }
+        ]
+    }
+]

@@ -39,8 +39,8 @@ class SallabProductScrapeTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $items->count());
         $this->assertSame('SALLAB-APBOS003236', $items->first()['sku']);
         $this->assertStringContainsString('Bosch Refrigerator', $items->first()['name']);
-        $this->assertSame('Sallab — ثلاجات', $items->first()['category_name']);
-        $this->assertSame('sallab-fridges', $items->first()['category_slug']);
+        $this->assertSame('ثلاجات', $items->first()['category_name']);
+        $this->assertSame('refrigerators', $items->first()['category_slug']);
         $this->assertSame('home-appliances', $items->first()['parent_category_slug']);
         $this->assertSame('الأجهزة المنزلية', $items->first()['parent_category_name']);
         $this->assertSame(31099.0, $items->first()['regular_price']);
@@ -73,7 +73,7 @@ class SallabProductScrapeTest extends TestCase
         $importer->import($items, true);
 
         $this->assertDatabaseHas('categories', ['slug' => 'home-appliances', 'name' => 'الأجهزة المنزلية']);
-        $this->assertDatabaseHas('categories', ['slug' => 'sallab-fridges', 'name' => 'Sallab — ثلاجات']);
+        $this->assertDatabaseHas('categories', ['slug' => 'refrigerators', 'name' => 'ثلاجات']);
         $this->assertDatabaseHas('products', ['sku' => 'SALLAB-APBOS003236']);
         $this->assertSame(1, $importer->getCreatedCount());
     }

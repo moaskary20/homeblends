@@ -42,4 +42,33 @@ return [
             'image' => 'images/categories/accessories.jpg',
         ],
     ],
+
+    /**
+     * Unified subcategories under home-appliances (shared by all appliance scrapers).
+     * Keys are canonical category slugs used in the storefront.
+     */
+    'home_appliances' => [
+        'refrigerators' => 'ثلاجات',
+        'washing-machines' => 'غسالات ملابس',
+        'air-conditioners' => 'تكييفات',
+        'cookers' => 'بوتاجازات',
+        'freezers' => 'فريزر',
+        'dishwashers' => 'غسالات أطباق',
+        'water-heaters' => 'سخانات',
+        'televisions' => 'تلفزيونات',
+        'small-appliances' => 'أجهزة صغيرة',
+        'kitchen-appliances' => 'أجهزة مطبخ',
+        'air-cooler' => 'مبرد هواء صحراوي',
+        'large-appliances' => 'أجهزة كبيرة',
+        'food-processors' => 'محضرات طعام',
+        'vacuum' => 'مكانس كهربائية',
+        'kettle' => 'غلايات',
+        'microwave' => 'ميكروويف',
+        'irons-and-steamers' => 'مكاوي',
+        'water-dispensers' => 'برادات مياه',
+        'water-filters' => 'فلاتر مياه',
+        'fans' => 'مراوح',
+        'hoods-exhaust-fans' => 'شفاطات ومراوح',
+        'electric-radiator' => 'دفايات',
+    ],
 ];

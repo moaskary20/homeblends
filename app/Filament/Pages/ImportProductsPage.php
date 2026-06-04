@@ -11,6 +11,7 @@ use App\Services\ProductScraper\HansScraperService;
 use App\Services\ProductScraper\MahgoubScraperService;
 use App\Services\ProductScraper\RayaScraperService;
 use App\Services\ProductScraper\SallabScraperService;
+use App\Services\ProductScraper\ShaheenScraperService;
 use App\Services\ProductScraper\ScrapedProductImporter;
 use App\Services\ProductScraper\SedarScraperService;
 use App\Services\ProductScraper\SyncScrapedProductImagesService;
@@ -131,6 +132,17 @@ class ImportProductsPage extends Page implements HasForms
 
     public array $rayaScrapeErrors = [];
 
+    public ?array $shaheenScrapeData = [];
+
+    /** @var array<int, array<string, mixed>>|null */
+    public ?array $shaheenScrapePreview = null;
+
+    public ?int $shaheenScrapeCreated = null;
+
+    public ?int $shaheenScrapeUpdated = null;
+
+    public array $shaheenScrapeErrors = [];
+
     public ?array $syncImagesData = [];
 
     public ?int $imagesSynced = null;
@@ -172,6 +184,8 @@ class ImportProductsPage extends Page implements HasForms
 
         $defaultRayaCollections = array_keys(app(RayaScraperService::class)->getCollectionOptions());
 
+        $defaultShaheenCollections = array_keys(app(ShaheenScraperService::class)->getCollectionOptions());
+
         $this->form->fill();
         $this->scrapeForm->fill([
             'source' => 'ariika',
@@ -211,6 +225,11 @@ class ImportProductsPage extends Page implements HasForms
         ]);
         $this->rayaScrapeForm->fill([
             'collections' => array_slice($defaultRayaCollections, 0, 3),
+            'max_per_collection' => 5,
+            'download_images' => true,
+        ]);
+        $this->shaheenScrapeForm->fill([
+            'collections' => array_slice($defaultShaheenCollections, 0, 3),
             'max_per_collection' => 5,
             'download_images' => true,
         ]);
@@ -439,7 +458,7 @@ class ImportProductsPage extends Page implements HasForms
             ->schema([
                 Forms\Components\Select::make('source')
                     ->label(__('ecommerce.scrape_source'))
-                    ->options(['sallab' => 'Sallab — ahmedelsallab.com'])
+                    ->options(['sallab' => 'ahmedelsallab.com'])
                     ->default('sallab')
                     ->disabled()
                     ->dehydrated(),
@@ -471,7 +490,7 @@ class ImportProductsPage extends Page implements HasForms
             ->schema([
                 Forms\Components\Select::make('source')
                     ->label(__('ecommerce.scrape_source'))
-                    ->options(['raya' => 'Raya Shop — rayashop.com'])
+                    ->options(['raya' => 'rayashop.com'])
                     ->default('raya')
                     ->disabled()
                     ->dehydrated(),
@@ -493,6 +512,38 @@ class ImportProductsPage extends Page implements HasForms
                     ->default(true),
             ])
             ->statePath('rayaScrapeData');
+    }
+
+    public function shaheenScrapeForm(Form $form): Form
+    {
+        $collectionOptions = app(ShaheenScraperService::class)->getCollectionOptions();
+
+        return $form
+            ->schema([
+                Forms\Components\Select::make('source')
+                    ->label(__('ecommerce.scrape_source'))
+                    ->options(['shaheen' => 'shaheeneg.com'])
+                    ->default('shaheen')
+                    ->disabled()
+                    ->dehydrated(),
+                Forms\Components\CheckboxList::make('collections')
+                    ->label(__('ecommerce.scrape_shaheen_collections'))
+                    ->options($collectionOptions)
+                    ->columns(2)
+                    ->required()
+                    ->minItems(1),
+                Forms\Components\TextInput::make('max_per_collection')
+                    ->label(__('ecommerce.scrape_max_per_collection'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->maxValue(50)
+                    ->default(5)
+                    ->required(),
+                Forms\Components\Toggle::make('download_images')
+                    ->label(__('ecommerce.scrape_download_images'))
+                    ->default(true),
+            ])
+            ->statePath('shaheenScrapeData');
     }
 
     public function syncImagesForm(Form $form): Form
@@ -525,7 +576,7 @@ class ImportProductsPage extends Page implements HasForms
 
     protected function getForms(): array
     {
-        return ['form', 'scrapeForm', 'sedarScrapeForm', 'gemmaScrapeForm', 'hansScrapeForm', 'cleopatraScrapeForm', 'mahgoubScrapeForm', 'sallabScrapeForm', 'rayaScrapeForm', 'syncImagesForm'];
+        return ['form', 'scrapeForm', 'sedarScrapeForm', 'gemmaScrapeForm', 'hansScrapeForm', 'cleopatraScrapeForm', 'mahgoubScrapeForm', 'sallabScrapeForm', 'rayaScrapeForm', 'shaheenScrapeForm', 'syncImagesForm'];
     }
 
     protected function getHeaderActions(): array
@@ -1409,6 +1460,110 @@ class ImportProductsPage extends Page implements HasForms
     {
         return $scraper->getScrapeErrors()
             ->map(fn (array $e) => __('ecommerce.scrape_raya_collection_error', [
+                'handle' => $e['handle'],
+                'message' => $e['message'],
+            ]))
+            ->all();
+    }
+
+    public function previewShaheenScrape(): void
+    {
+        $this->shaheenScrapePreview = null;
+        $this->shaheenScrapeErrors = [];
+
+        try {
+            [$items, $scraper] = $this->fetchShaheenScrapeItems();
+            $this->shaheenScrapeErrors = $this->formatShaheenScrapeErrors($scraper);
+
+            if ($items->isEmpty()) {
+                throw new \RuntimeException(__('ecommerce.scrape_shaheen_no_products'));
+            }
+
+            $this->shaheenScrapePreview = $items->map(fn (array $p) => [
+                'sku' => $p['sku'],
+                'name' => $p['name'],
+                'category' => $p['category_name'],
+                'price' => number_format($p['regular_price'], 0).' '.__('ecommerce.currency'),
+                'stock' => $p['stock_quantity'],
+                'url' => $p['source_url'],
+            ])->all();
+
+            Notification::make()
+                ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->shaheenScrapePreview)]))
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            $this->shaheenScrapeErrors = [$e->getMessage()];
+            Notification::make()
+                ->title(__('ecommerce.scrape_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function runShaheenScrape(): void
+    {
+        $this->shaheenScrapeCreated = null;
+        $this->shaheenScrapeUpdated = null;
+        $this->shaheenScrapeErrors = [];
+
+        try {
+            [$items, $scraper] = $this->fetchShaheenScrapeItems();
+            $collectionErrors = $this->formatShaheenScrapeErrors($scraper);
+
+            if ($items->isEmpty()) {
+                throw new \RuntimeException(__('ecommerce.scrape_shaheen_no_products'));
+            }
+
+            $importer = app(ScrapedProductImporter::class);
+            $downloadImages = (bool) ($this->shaheenScrapeData['download_images'] ?? true);
+            $importer->import($items, $downloadImages);
+
+            $this->shaheenScrapeCreated = $importer->getCreatedCount();
+            $this->shaheenScrapeUpdated = $importer->getUpdatedCount();
+            $this->shaheenScrapeErrors = array_merge($collectionErrors, $importer->getErrors()->all());
+            $this->shaheenScrapePreview = null;
+
+            Notification::make()
+                ->title(__('ecommerce.scrape_success', [
+                    'created' => $this->shaheenScrapeCreated,
+                    'updated' => $this->shaheenScrapeUpdated,
+                ]))
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            $this->shaheenScrapeErrors = [$e->getMessage()];
+            Notification::make()
+                ->title(__('ecommerce.scrape_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    /**
+     * @return array{0: \Illuminate\Support\Collection, 1: ShaheenScraperService}
+     */
+    protected function fetchShaheenScrapeItems(): array
+    {
+        $state = $this->shaheenScrapeForm->getState();
+        $collections = $state['collections'] ?? [];
+        $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
+
+        $scraper = app(ShaheenScraperService::class);
+        $items = $scraper->scrapeCollections($collections, $limit);
+
+        return [$items, $scraper];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function formatShaheenScrapeErrors(ShaheenScraperService $scraper): array
+    {
+        return $scraper->getScrapeErrors()
+            ->map(fn (array $e) => __('ecommerce.scrape_shaheen_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
             ]))
