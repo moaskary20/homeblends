@@ -31,6 +31,12 @@ class KhamatoScraperService
     /** @var array{slug: string, name: string} */
     protected array $parentCategory;
 
+    /** @var array<string, array{slug: string, name: string}> */
+    protected array $parentCategories;
+
+    /** @var array<string, string> */
+    protected array $collectionParents;
+
     /** @var array<string, string> */
     protected array $collections;
 
@@ -53,6 +59,8 @@ class KhamatoScraperService
         $this->delayMs = (int) ($config['delay_ms'] ?? 500);
         $this->skuPrefix = $config['sku_prefix'];
         $this->parentCategory = $config['parent_category'];
+        $this->parentCategories = $config['parent_categories'] ?? [];
+        $this->collectionParents = $config['collection_parents'] ?? [];
         $this->collections = $config['collections'];
         $this->collectionParams = $config['collection_params'];
         $this->scrapeErrors = collect();
@@ -61,7 +69,14 @@ class KhamatoScraperService
     /** @return array<string, string> */
     public function getCollectionOptions(): array
     {
-        return $this->collections;
+        $options = [];
+
+        foreach ($this->collections as $handle => $name) {
+            $parent = $this->resolveParentCategory($handle);
+            $options[$handle] = $parent['name'].' — '.$name;
+        }
+
+        return $options;
     }
 
     /** @return Collection<int, array{handle: string, message: string}> */
@@ -180,6 +195,7 @@ class KhamatoScraperService
         $imageUrls = $this->collectImageUrls($product);
         $sku = trim((string) ($product['sku'] ?? $product['id'] ?? ''));
         $slug = (string) ($product['url_key'] ?? Str::slug((string) ($product['name'] ?? $sku)));
+        $parentCategory = $this->resolveParentCategory($handle);
 
         return [
             'sku' => $this->skuPrefix.$sku,
@@ -187,8 +203,8 @@ class KhamatoScraperService
             'slug' => $slug,
             'category_name' => $categoryName,
             'category_slug' => 'khamato-'.$handle,
-            'parent_category_name' => $this->parentCategory['name'],
-            'parent_category_slug' => $this->parentCategory['slug'],
+            'parent_category_name' => $parentCategory['name'],
+            'parent_category_slug' => $parentCategory['slug'],
             'short_description' => Str::limit($plain, 500),
             'full_description' => $descriptionHtml !== '' ? $descriptionHtml : null,
             'main_image_url' => $imageUrls[0] ?? null,
@@ -268,6 +284,16 @@ class KhamatoScraperService
         $normalized = preg_replace('/[^\d.]/', '', $normalized) ?? '';
 
         return $normalized !== '' ? (float) $normalized : 0.0;
+    }
+
+    /**
+     * @return array{slug: string, name: string}
+     */
+    protected function resolveParentCategory(string $handle): array
+    {
+        $parentKey = $this->collectionParents[$handle] ?? 'accessories';
+
+        return $this->parentCategories[$parentKey] ?? $this->parentCategory;
     }
 
     protected function http(): \Illuminate\Http\Client\PendingRequest

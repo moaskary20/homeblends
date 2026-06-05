@@ -422,7 +422,7 @@ class ImportProductsPage extends Page implements HasForms
                 Forms\Components\CheckboxList::make('collections')
                     ->label(__('ecommerce.scrape_khamato_collections'))
                     ->options($collectionOptions)
-                    ->columns(2)
+                    ->columns(3)
                     ->required()
                     ->minItems(1),
                 Forms\Components\TextInput::make('max_per_collection')

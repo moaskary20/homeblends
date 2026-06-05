@@ -110,4 +110,30 @@ class KhamatoProductScrapeTest extends TestCase
         $this->assertDatabaseHas('products', ['sku' => 'KHAMATO-05006316-X']);
         $this->assertSame(1, $importer->getCreatedCount());
     }
+
+    public function test_scrapes_sanitary_products_under_sanitary_parent(): void
+    {
+        $categoryHtml = file_get_contents(__DIR__.'/../fixtures/khamato-category.html');
+        $productApi = file_get_contents(__DIR__.'/../fixtures/khamato-product-api.json');
+
+        Http::fake(function ($request) use ($categoryHtml, $productApi) {
+            if (str_contains($request->url(), 'sanitary/basin-mixers')) {
+                return Http::response($categoryHtml, 200, ['Content-Type' => 'text/html']);
+            }
+
+            if (str_contains($request->url(), '/web-api/products/6633')) {
+                return Http::response($productApi, 200, ['Content-Type' => 'application/json']);
+            }
+
+            return Http::response('', 404);
+        });
+
+        $items = app(KhamatoScraperService::class)->scrapeCollections(['basin-mixers'], 5);
+
+        $this->assertCount(1, $items);
+        $this->assertSame('خلاطات أحواض', $items->first()['category_name']);
+        $this->assertSame('khamato-basin-mixers', $items->first()['category_slug']);
+        $this->assertSame('sanitary', $items->first()['parent_category_slug']);
+        $this->assertSame('صحي', $items->first()['parent_category_name']);
+    }
 }
