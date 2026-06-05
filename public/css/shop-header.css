@@ -654,6 +654,65 @@ body.hb-menu-open {
     color: var(--hb-brand-dark);
 }
 
+.hb-nav-dropdown__menu--grouped {
+    min-width: 13rem;
+    max-width: 14rem;
+    padding: 0.35rem;
+}
+
+.hb-nav-dropdown__group {
+    position: relative;
+}
+
+.hb-nav-dropdown__item--parent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.hb-nav-dropdown__sub-chevron {
+    width: 0.85rem;
+    height: 0.85rem;
+    flex-shrink: 0;
+    opacity: 0.55;
+}
+
+.hb-nav-dropdown__submenu {
+    position: absolute;
+    top: 0;
+    inset-inline-end: calc(100% + 0.35rem);
+    min-width: 14rem;
+    max-width: 18rem;
+    max-height: 22rem;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.75rem;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    padding: 0.45rem;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(0.35rem);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+    z-index: 70;
+}
+
+.hb-nav-dropdown__group:hover .hb-nav-dropdown__submenu,
+.hb-nav-dropdown__group:focus-within .hb-nav-dropdown__submenu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+.hb-nav-dropdown__group:hover .hb-nav-dropdown__item--parent,
+.hb-nav-dropdown__group:focus-within .hb-nav-dropdown__item--parent {
+    background: #fff7ed;
+    color: var(--hb-brand);
+}
+
 .hb-side-nav-group {
     border-bottom: 1px solid #f3f4f6;
 }
@@ -708,4 +767,38 @@ body.hb-menu-open {
 .hb-side-nav-sublink--all {
     color: var(--hb-brand-dark);
     font-size: 0.8125rem;
+}
+
+.hb-side-nav-subgroup {
+    border-radius: 0.5rem;
+}
+
+.hb-side-nav-sublink--parent {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.hb-side-nav-subgroup summary::-webkit-details-marker {
+    display: none;
+}
+
+.hb-side-nav-subgroup[open] .hb-side-nav-chevron {
+    transform: rotate(180deg);
+}
+
+.hb-side-nav-subgroup-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding-inline-start: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.hb-side-nav-sublink--nested {
+    font-size: 0.8125rem;
+    font-weight: 500;
 }
