@@ -112,6 +112,32 @@ return [
         ],
     ],
 
+    'khamato' => [
+        'base_url' => 'https://khamato.com',
+        'api_url' => 'https://khamato.com/web-api',
+        'user_agent' => 'HomeBlendStore-ProductImporter/1.0',
+        'connect_timeout' => 30,
+        'request_timeout' => 90,
+        'retry_times' => 3,
+        'retry_sleep_ms' => 1500,
+        'delay_ms' => 400,
+        'sku_prefix' => 'KHAMATO-',
+        'parent_category' => [
+            'name' => 'إكسسوارات',
+            'slug' => 'accessories',
+        ],
+        'collections' => [
+            'doors-and-kitchen-hardware' => 'اكسسوارات الابواب والمطابخ',
+            'door-accessories' => 'اكسسوارات الابواب',
+            'furniture-accessories' => 'اكسسوارات الأثاث',
+        ],
+        'collection_params' => [
+            'doors-and-kitchen-hardware' => ['path' => 'doors-and-kitchen-hardware'],
+            'door-accessories' => ['path' => 'doors-and-kitchen-hardware/door-accessories'],
+            'furniture-accessories' => ['path' => 'doors-and-kitchen-hardware/furniture-accessories'],
+        ],
+    ],
+
     'cleopatra' => [
         'store_url' => 'https://www.cleopatraceramics.store',
         'catalog_url' => 'https://www.cleopatraceramics.com/ar',

@@ -16,7 +16,7 @@
 
     <div
         wire:loading.delay
-        wire:target="previewScrape,runScrape,previewSedarScrape,runSedarScrape,previewGemmaScrape,runGemmaScrape,previewHansScrape,runHansScrape,previewCleopatraScrape,runCleopatraScrape,previewMahgoubScrape,runMahgoubScrape,previewSallabScrape,runSallabScrape,previewRayaScrape,runRayaScrape,previewShaheenScrape,runShaheenScrape"
+        wire:target="previewScrape,runScrape,previewSedarScrape,runSedarScrape,previewGemmaScrape,runGemmaScrape,previewHansScrape,runHansScrape,previewKhamatoScrape,runKhamatoScrape,previewCleopatraScrape,runCleopatraScrape,previewMahgoubScrape,runMahgoubScrape,previewSallabScrape,runSallabScrape,previewRayaScrape,runRayaScrape,previewShaheenScrape,runShaheenScrape"
         class="rounded-lg border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800 dark:border-primary-800 dark:bg-primary-950/50 dark:text-primary-200 mb-4"
     >
         {{ __('ecommerce.scrape_progress_waiting') }}
@@ -335,6 +335,75 @@
                 <div class="mt-4 text-sm text-red-600">
                     <ul class="list-disc list-inside">
                         @foreach($hansScrapeErrors as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </x-filament::section>
+
+        <x-filament::section icon="heroicon-o-globe-alt">
+            <x-slot name="heading">{{ __('ecommerce.scrape_khamato_section_title') }}</x-slot>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                {{ __('ecommerce.scrape_khamato_section_description') }}
+            </p>
+            <p class="text-sm text-emerald-700 dark:text-emerald-400 mb-4 font-medium">
+                {{ __('ecommerce.scrape_khamato_category_hint') }}
+            </p>
+
+            <form wire:submit="runKhamatoScrape">
+                {{ $this->khamatoScrapeForm }}
+
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <x-filament::button type="button" wire:click="previewKhamatoScrape" color="gray" icon="heroicon-o-eye">
+                        {{ __('ecommerce.scrape_preview') }}
+                    </x-filament::button>
+                    <x-filament::button type="submit" icon="heroicon-o-cloud-arrow-down" wire:confirm="{{ __('ecommerce.scrape_confirm') }}">
+                        {{ __('ecommerce.scrape_start') }}
+                    </x-filament::button>
+                </div>
+            </form>
+
+            @if($khamatoScrapePreview)
+                <div class="mt-6 overflow-x-auto">
+                    <p class="text-sm font-medium mb-2">{{ __('ecommerce.scrape_preview_table', ['count' => count($khamatoScrapePreview)]) }}</p>
+                    <table class="w-full text-sm text-start border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                        <thead class="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th class="px-3 py-2">{{ __('ecommerce.sku') }}</th>
+                                <th class="px-3 py-2">{{ __('ecommerce.name') }}</th>
+                                <th class="px-3 py-2">{{ __('ecommerce.category') }}</th>
+                                <th class="px-3 py-2">{{ __('ecommerce.regular_price') }}</th>
+                                <th class="px-3 py-2">{{ __('ecommerce.stock_quantity') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($khamatoScrapePreview as $row)
+                                <tr class="border-t border-gray-100 dark:border-gray-800">
+                                    <td class="px-3 py-2 font-mono text-xs">{{ $row['sku'] }}</td>
+                                    <td class="px-3 py-2">{{ $row['name'] }}</td>
+                                    <td class="px-3 py-2">{{ $row['category'] }}</td>
+                                    <td class="px-3 py-2">{{ $row['price'] }}</td>
+                                    <td class="px-3 py-2">{{ $row['stock'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+
+            @if($khamatoScrapeCreated !== null)
+                <div class="mt-6 text-sm space-y-1">
+                    <p class="font-semibold">{{ __('ecommerce.scrape_results') }}</p>
+                    <p>{{ __('ecommerce.import_created', ['count' => $khamatoScrapeCreated]) }}</p>
+                    <p>{{ __('ecommerce.import_updated', ['count' => $khamatoScrapeUpdated]) }}</p>
+                </div>
+            @endif
+
+            @if(count($khamatoScrapeErrors))
+                <div class="mt-4 text-sm text-red-600">
+                    <ul class="list-disc list-inside">
+                        @foreach($khamatoScrapeErrors as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>

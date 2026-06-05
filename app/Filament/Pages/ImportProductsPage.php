@@ -9,6 +9,7 @@ use App\Services\ProductScraper\AriikaScraperService;
 use App\Services\ProductScraper\CleopatraScraperService;
 use App\Services\ProductScraper\GemmaScraperService;
 use App\Services\ProductScraper\HansScraperService;
+use App\Services\ProductScraper\KhamatoScraperService;
 use App\Services\ProductScraper\MahgoubScraperService;
 use App\Services\ProductScraper\RayaScraperService;
 use App\Services\ProductScraper\SallabScraperService;
@@ -89,6 +90,17 @@ class ImportProductsPage extends Page implements HasForms
     public ?int $hansScrapeUpdated = null;
 
     public array $hansScrapeErrors = [];
+
+    public ?array $khamatoScrapeData = [];
+
+    /** @var array<int, array<string, mixed>>|null */
+    public ?array $khamatoScrapePreview = null;
+
+    public ?int $khamatoScrapeCreated = null;
+
+    public ?int $khamatoScrapeUpdated = null;
+
+    public array $khamatoScrapeErrors = [];
 
     public ?array $cleopatraScrapeData = [];
 
@@ -178,6 +190,8 @@ class ImportProductsPage extends Page implements HasForms
 
         $defaultHansCollections = array_keys(app(HansScraperService::class)->getCollectionOptions());
 
+        $defaultKhamatoCollections = array_keys(app(KhamatoScraperService::class)->getCollectionOptions());
+
         $defaultCleopatraCollections = array_keys(app(CleopatraScraperService::class)->getCollectionOptions());
 
         $defaultMahgoubCollections = array_keys(app(MahgoubScraperService::class)->getCollectionOptions());
@@ -207,6 +221,11 @@ class ImportProductsPage extends Page implements HasForms
         ]);
         $this->hansScrapeForm->fill([
             'collections' => array_slice($defaultHansCollections, 0, 1),
+            'max_per_collection' => 5,
+            'download_images' => true,
+        ]);
+        $this->khamatoScrapeForm->fill([
+            'collections' => array_slice($defaultKhamatoCollections, 0, 2),
             'max_per_collection' => 5,
             'download_images' => true,
         ]);
@@ -386,6 +405,38 @@ class ImportProductsPage extends Page implements HasForms
                     ->default(true),
             ])
             ->statePath('hansScrapeData');
+    }
+
+    public function khamatoScrapeForm(Form $form): Form
+    {
+        $collectionOptions = app(KhamatoScraperService::class)->getCollectionOptions();
+
+        return $form
+            ->schema([
+                Forms\Components\Select::make('source')
+                    ->label(__('ecommerce.scrape_source'))
+                    ->options(['khamato' => 'khamato.com'])
+                    ->default('khamato')
+                    ->disabled()
+                    ->dehydrated(),
+                Forms\Components\CheckboxList::make('collections')
+                    ->label(__('ecommerce.scrape_khamato_collections'))
+                    ->options($collectionOptions)
+                    ->columns(2)
+                    ->required()
+                    ->minItems(1),
+                Forms\Components\TextInput::make('max_per_collection')
+                    ->label(__('ecommerce.scrape_max_per_collection'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->maxValue(50)
+                    ->default(5)
+                    ->required(),
+                Forms\Components\Toggle::make('download_images')
+                    ->label(__('ecommerce.scrape_download_images'))
+                    ->default(true),
+            ])
+            ->statePath('khamatoScrapeData');
     }
 
     public function cleopatraScrapeForm(Form $form): Form
@@ -578,7 +629,7 @@ class ImportProductsPage extends Page implements HasForms
 
     protected function getForms(): array
     {
-        return ['form', 'scrapeForm', 'sedarScrapeForm', 'gemmaScrapeForm', 'hansScrapeForm', 'cleopatraScrapeForm', 'mahgoubScrapeForm', 'sallabScrapeForm', 'rayaScrapeForm', 'shaheenScrapeForm', 'syncImagesForm'];
+        return ['form', 'scrapeForm', 'sedarScrapeForm', 'gemmaScrapeForm', 'hansScrapeForm', 'khamatoScrapeForm', 'cleopatraScrapeForm', 'mahgoubScrapeForm', 'sallabScrapeForm', 'rayaScrapeForm', 'shaheenScrapeForm', 'syncImagesForm'];
     }
 
     protected function getHeaderActions(): array
@@ -1054,6 +1105,112 @@ class ImportProductsPage extends Page implements HasForms
     {
         return $this->mergedScrapeErrors($scraper)
             ->map(fn (array $e) => __('ecommerce.scrape_hans_collection_error', [
+                'handle' => $e['handle'],
+                'message' => $e['message'],
+            ]))
+            ->all();
+    }
+
+    public function previewKhamatoScrape(): void
+    {
+        $this->khamatoScrapePreview = null;
+        $this->khamatoScrapeErrors = [];
+
+        try {
+            [$items, $scraper] = $this->fetchKhamatoScrapeItems();
+            $this->khamatoScrapeErrors = $this->formatKhamatoScrapeErrors($scraper);
+
+            if ($items->isEmpty()) {
+                throw new \RuntimeException(__('ecommerce.scrape_khamato_no_products'));
+            }
+
+            $this->khamatoScrapePreview = $items->map(fn (array $p) => [
+                'sku' => $p['sku'],
+                'name' => $p['name'],
+                'category' => $p['category_name'],
+                'price' => number_format($p['regular_price'], 0).' '.__('ecommerce.currency'),
+                'stock' => $p['stock_quantity'],
+                'url' => $p['source_url'],
+            ])->all();
+
+            Notification::make()
+                ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->khamatoScrapePreview)]))
+                ->success()
+                ->send();
+
+            $this->finishScrapeProgress(true);
+        } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
+            $this->khamatoScrapeErrors = [$e->getMessage()];
+            Notification::make()
+                ->title(__('ecommerce.scrape_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function runKhamatoScrape(): void
+    {
+        $this->khamatoScrapeCreated = null;
+        $this->khamatoScrapeUpdated = null;
+        $this->khamatoScrapeErrors = [];
+
+        try {
+            [$items, $scraper] = $this->fetchKhamatoScrapeItems();
+            $collectionErrors = $this->formatKhamatoScrapeErrors($scraper);
+
+            if ($items->isEmpty()) {
+                throw new \RuntimeException(__('ecommerce.scrape_khamato_no_products'));
+            }
+
+            $downloadImages = (bool) ($this->khamatoScrapeData['download_images'] ?? true);
+            $importer = $this->importWithProgress($items, $downloadImages);
+
+            $this->khamatoScrapeCreated = $importer->getCreatedCount();
+            $this->khamatoScrapeUpdated = $importer->getUpdatedCount();
+            $this->khamatoScrapeErrors = array_merge($collectionErrors, $importer->getErrors()->all());
+            $this->khamatoScrapePreview = null;
+
+            Notification::make()
+                ->title(__('ecommerce.scrape_success', [
+                    'created' => $this->khamatoScrapeCreated,
+                    'updated' => $this->khamatoScrapeUpdated,
+                ]))
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
+            $this->khamatoScrapeErrors = [$e->getMessage()];
+            Notification::make()
+                ->title(__('ecommerce.scrape_failed'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    /**
+     * @return array{0: \Illuminate\Support\Collection, 1: KhamatoScraperService}
+     */
+    protected function fetchKhamatoScrapeItems(): array
+    {
+        $state = $this->khamatoScrapeForm->getState();
+        $collections = $state['collections'] ?? [];
+        $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
+
+        $scraper = app(KhamatoScraperService::class);
+
+        return $this->fetchCollectionsWithProgress($scraper, $collections, $limit, 'khamato.com');
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function formatKhamatoScrapeErrors(KhamatoScraperService $scraper): array
+    {
+        return $this->mergedScrapeErrors($scraper)
+            ->map(fn (array $e) => __('ecommerce.scrape_khamato_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
             ]))
