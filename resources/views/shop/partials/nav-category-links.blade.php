@@ -10,11 +10,26 @@
             </a>
             <div class="hb-nav-dropdown__menu" role="menu">
                 @foreach($category->children as $child)
-                    <a href="{{ route('shop.categories.show', $child->slug) }}"
-                       class="hb-nav-dropdown__item {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $child->slug ? 'is-active' : '' }}"
-                       role="menuitem">
-                        {{ $child->name }}
-                    </a>
+                    @if($child->children->isNotEmpty())
+                        <a href="{{ route('shop.categories.show', $child->slug) }}"
+                           class="hb-nav-dropdown__item {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $child->slug ? 'is-active' : '' }}"
+                           role="menuitem">
+                            {{ $child->name }}
+                        </a>
+                        @foreach($child->children as $grandchild)
+                            <a href="{{ route('shop.categories.show', $grandchild->slug) }}"
+                               class="hb-nav-dropdown__item {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $grandchild->slug ? 'is-active' : '' }}"
+                               role="menuitem">
+                                — {{ $grandchild->name }}
+                            </a>
+                        @endforeach
+                    @else
+                        <a href="{{ route('shop.categories.show', $child->slug) }}"
+                           class="hb-nav-dropdown__item {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $child->slug ? 'is-active' : '' }}"
+                           role="menuitem">
+                            {{ $child->name }}
+                        </a>
+                    @endif
                 @endforeach
                 <a href="{{ route('shop.categories.show', ['slug' => $category->slug, 'all' => 1]) }}"
                    class="hb-nav-dropdown__item hb-nav-dropdown__item--all"

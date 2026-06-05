@@ -48,9 +48,10 @@ class CleopatraProductScrapeTest extends TestCase
         $this->assertCount(1, $items);
         $this->assertSame('CLEOPATRA-30724', $items->first()['sku']);
         $this->assertStringContainsString('Carrara', $items->first()['name']);
-        $this->assertSame('Cleopatra — أرضيات وحوائط', $items->first()['category_name']);
+        $this->assertSame('أرضيات وحوائط', $items->first()['category_name']);
         $this->assertSame('cleopatra-floor-and-wall', $items->first()['category_slug']);
-        $this->assertSame('ceramics', $items->first()['parent_category_slug']);
+        $this->assertSame('cleopatra', $items->first()['parent_category_slug']);
+        $this->assertSame('ceramics', $items->first()['grandparent_category_slug']);
         $this->assertSame(594.0, $items->first()['regular_price']);
         $this->assertGreaterThanOrEqual(2, count($items->first()['image_urls']));
     }
@@ -109,7 +110,8 @@ class CleopatraProductScrapeTest extends TestCase
         $importer->import($items, true);
 
         $this->assertDatabaseHas('categories', ['slug' => 'ceramics', 'name' => 'سيراميك']);
-        $this->assertDatabaseHas('categories', ['slug' => 'cleopatra-floor-and-wall', 'name' => 'Cleopatra — أرضيات وحوائط']);
+        $this->assertDatabaseHas('categories', ['slug' => 'cleopatra', 'name' => 'Cleopatra']);
+        $this->assertDatabaseHas('categories', ['slug' => 'cleopatra-floor-and-wall', 'name' => 'أرضيات وحوائط']);
         $this->assertDatabaseHas('products', ['sku' => 'CLEOPATRA-30724']);
         $this->assertSame(1, $importer->getCreatedCount());
     }

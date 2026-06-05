@@ -59,7 +59,7 @@ class CategoryBrowseService
 
     public function shouldShowSubcategoryLanding(Category $category, array $input): bool
     {
-        if ($category->parent_id !== null || $category->children->isEmpty()) {
+        if ($category->children->isEmpty()) {
             return false;
         }
 
@@ -94,7 +94,18 @@ class CategoryBrowseService
     {
         return $query
             ->active()
-            ->whereHas('products', fn ($q) => $q->published())
+            ->where(function ($q) {
+                $q->whereHas('products', fn ($products) => $products->published())
+                    ->orWhereHas('children.products', fn ($products) => $products->published());
+            })
+            ->with([
+                'children' => fn ($children) => $children
+                    ->active()
+                    ->whereHas('products', fn ($products) => $products->published())
+                    ->withCount(['products' => fn ($products) => $products->published()])
+                    ->orderBy('sort_order')
+                    ->orderBy('name'),
+            ])
             ->withCount(['products' => fn ($q) => $q->published()])
             ->orderBy('sort_order')
             ->orderBy('name');
@@ -106,16 +117,25 @@ class CategoryBrowseService
     public function categoryIdsIncludingChildren(Category $category): array
     {
         $ids = collect([$category->id]);
+        $toVisit = collect([$category->id]);
 
-        if ($category->relationLoaded('children')) {
-            $ids = $ids->merge($category->children->pluck('id'));
-        } else {
-            $ids = $ids->merge(
-                Category::query()->active()->where('parent_id', $category->id)->pluck('id')
-            );
+        while ($toVisit->isNotEmpty()) {
+            $children = Category::query()
+                ->active()
+                ->whereIn('parent_id', $toVisit->all())
+                ->pluck('id');
+
+            $newIds = $children->diff($ids);
+
+            if ($newIds->isEmpty()) {
+                break;
+            }
+
+            $ids = $ids->merge($newIds);
+            $toVisit = $newIds->values();
         }
 
-        return $ids->unique()->values()->all();
+        return $ids->values()->all();
     }
 
     /**

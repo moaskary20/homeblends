@@ -51,10 +51,23 @@
                             {{ __('ecommerce.view_subcategories', ['name' => $category->name]) }}
                         </a>
                         @foreach($category->children as $child)
-                            <a href="{{ route('shop.categories.show', $child->slug) }}"
-                               class="hb-side-nav-sublink {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $child->slug ? 'is-active' : '' }}">
-                                {{ $child->name }}
-                            </a>
+                            @if($child->children->isNotEmpty())
+                                <a href="{{ route('shop.categories.show', $child->slug) }}"
+                                   class="hb-side-nav-sublink {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $child->slug ? 'is-active' : '' }}">
+                                    {{ $child->name }}
+                                </a>
+                                @foreach($child->children as $grandchild)
+                                    <a href="{{ route('shop.categories.show', $grandchild->slug) }}"
+                                       class="hb-side-nav-sublink {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $grandchild->slug ? 'is-active' : '' }}">
+                                        — {{ $grandchild->name }}
+                                    </a>
+                                @endforeach
+                            @else
+                                <a href="{{ route('shop.categories.show', $child->slug) }}"
+                                   class="hb-side-nav-sublink {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $child->slug ? 'is-active' : '' }}">
+                                    {{ $child->name }}
+                                </a>
+                            @endif
                         @endforeach
                         <a href="{{ route('shop.categories.show', ['slug' => $category->slug, 'all' => 1]) }}" class="hb-side-nav-sublink hb-side-nav-sublink--all">
                             {{ __('ecommerce.browse_all_in_department', ['name' => $category->name]) }}

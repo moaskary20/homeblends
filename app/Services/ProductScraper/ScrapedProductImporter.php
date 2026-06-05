@@ -164,12 +164,37 @@ class ScrapedProductImporter
      */
     protected function resolveCategory(array $item): Category
     {
+        $grandparent = null;
+        $grandparentSlug = trim((string) ($item['grandparent_category_slug'] ?? ''));
+        $grandparentName = trim((string) ($item['grandparent_category_name'] ?? ''));
+
+        if ($grandparentSlug !== '' && $grandparentName !== '') {
+            $grandparent = Category::withTrashed()->firstOrCreate(
+                ['slug' => $grandparentSlug],
+                ['name' => $grandparentName, 'is_active' => true, 'sort_order' => 0]
+            );
+
+            if ($grandparent->trashed()) {
+                $grandparent->restore();
+            }
+
+            $grandparent->update([
+                'name' => $grandparentName,
+                'is_active' => true,
+            ]);
+        }
+
         $parentSlug = (string) ($item['parent_category_slug'] ?? 'athath');
         $parentName = (string) ($item['parent_category_name'] ?? 'أثاث');
 
         $parent = Category::withTrashed()->firstOrCreate(
             ['slug' => $parentSlug],
-            ['name' => $parentName, 'is_active' => true, 'sort_order' => 0]
+            [
+                'name' => $parentName,
+                'parent_id' => $grandparent?->id,
+                'is_active' => true,
+                'sort_order' => 0,
+            ]
         );
 
         if ($parent->trashed()) {
@@ -178,6 +203,7 @@ class ScrapedProductImporter
 
         $parent->update([
             'name' => $parentName,
+            'parent_id' => $grandparent?->id,
             'is_active' => true,
         ]);
 

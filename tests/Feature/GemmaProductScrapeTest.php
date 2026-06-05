@@ -26,9 +26,10 @@ class GemmaProductScrapeTest extends TestCase
         $this->assertCount(1, $items);
         $this->assertSame('GEMMA-12-00-004-0665-000-', $items->first()['sku']);
         $this->assertStringContainsString('Mallorca', $items->first()['name']);
-        $this->assertSame('Gemma — سيراميك حائط', $items->first()['category_name']);
+        $this->assertSame('سيراميك حائط', $items->first()['category_name']);
         $this->assertSame('gemma-wall-ceramic', $items->first()['category_slug']);
-        $this->assertSame('ceramics', $items->first()['parent_category_slug']);
+        $this->assertSame('gemma', $items->first()['parent_category_slug']);
+        $this->assertSame('ceramics', $items->first()['grandparent_category_slug']);
         $this->assertSame(147.003, $items->first()['regular_price']);
         $this->assertGreaterThanOrEqual(2, count($items->first()['image_urls']));
     }
@@ -76,7 +77,8 @@ class GemmaProductScrapeTest extends TestCase
         $importer->import($items, true);
 
         $this->assertDatabaseHas('categories', ['slug' => 'ceramics', 'name' => 'سيراميك']);
-        $this->assertDatabaseHas('categories', ['slug' => 'gemma-wall-ceramic', 'name' => 'Gemma — سيراميك حائط']);
+        $this->assertDatabaseHas('categories', ['slug' => 'gemma', 'name' => 'Gemma']);
+        $this->assertDatabaseHas('categories', ['slug' => 'gemma-wall-ceramic', 'name' => 'سيراميك حائط']);
         $this->assertDatabaseHas('products', ['sku' => 'GEMMA-12-00-004-0665-000-']);
         $this->assertSame(1, $importer->getCreatedCount());
     }
