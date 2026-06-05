@@ -8,22 +8,28 @@
                     <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/>
                 </svg>
             </a>
-            <div class="hb-nav-dropdown__menu" role="menu">
+            <div class="hb-nav-dropdown__menu {{ $category->children->contains(fn ($child) => $child->children->isNotEmpty()) ? 'hb-nav-dropdown__menu--grouped' : '' }}" role="menu">
                 @foreach($category->children as $child)
                     @if($child->children->isNotEmpty())
-                        <a href="{{ route('shop.categories.show', $child->slug) }}"
-                           class="hb-nav-dropdown__item hb-nav-dropdown__item--parent {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $child->slug ? 'is-active' : '' }}"
-                           role="menuitem">
-                            {{ $child->name }}
-                        </a>
-
-                        @foreach($child->children as $grandchild)
-                            <a href="{{ route('shop.categories.show', $grandchild->slug) }}"
-                               class="hb-nav-dropdown__item hb-nav-dropdown__item--grandchild {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $grandchild->slug ? 'is-active' : '' }}"
+                        <div class="hb-nav-dropdown__group">
+                            <a href="{{ route('shop.categories.show', $child->slug) }}"
+                               class="hb-nav-dropdown__item hb-nav-dropdown__item--parent {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $child->slug ? 'is-active' : '' }}"
                                role="menuitem">
-                                {{ $grandchild->name }}
+                                <span>{{ $child->name }}</span>
+                                <svg class="hb-nav-dropdown__sub-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L10.94 10 7.23 6.29a.75.75 0 111.06-1.06l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/>
+                                </svg>
                             </a>
-                        @endforeach
+                            <div class="hb-nav-dropdown__submenu" role="menu">
+                                @foreach($child->children as $grandchild)
+                                    <a href="{{ route('shop.categories.show', $grandchild->slug) }}"
+                                       class="hb-nav-dropdown__item {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $grandchild->slug ? 'is-active' : '' }}"
+                                       role="menuitem">
+                                        {{ $grandchild->name }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
                     @else
                         <a href="{{ route('shop.categories.show', $child->slug) }}"
                            class="hb-nav-dropdown__item {{ request()->routeIs('shop.categories.show') && request()->route('slug') === $child->slug ? 'is-active' : '' }}"

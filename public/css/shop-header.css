@@ -639,12 +639,6 @@ body.hb-menu-open {
     line-height: 1.35;
 }
 
-.hb-nav-dropdown__item--grandchild {
-    padding-inline-start: 1.35rem;
-    color: #4b5563;
-    font-weight: 600;
-}
-
 .hb-nav-dropdown__item:hover,
 .hb-nav-dropdown__item.is-active {
     background: #fff7ed;
