@@ -29,9 +29,15 @@ class ScrapedProductImporter
     /**
      * @param  Collection<int, array<string, mixed>>  $items
      */
-    public function import(Collection $items, bool $downloadImages = true): void
+    public function import(Collection $items, bool $downloadImages = true, ?callable $onProgress = null): void
     {
+        $total = max(1, $items->count());
+        $current = 0;
+
         foreach ($items as $item) {
+            $current++;
+            $onProgress?->__invoke($current, $total, (string) ($item['sku'] ?? ''));
+
             try {
                 $this->importOne($item, $downloadImages);
             } catch (\Throwable $e) {

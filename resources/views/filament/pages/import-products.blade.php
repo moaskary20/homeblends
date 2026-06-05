@@ -1,4 +1,27 @@
 <x-filament-panels::page>
+    <div
+        wire:stream="scrape-progress"
+        class="sticky top-4 z-20 mb-6"
+        wire:loading.class="opacity-100"
+    >
+        @if($scrapeInProgress)
+            @include('filament.pages.partials.scrape-progress-panel', [
+                'percent' => $scrapeProgressPercent,
+                'message' => $scrapeProgressMessage,
+                'source' => $scrapeProgressSource,
+                'active' => true,
+            ])
+        @endif
+    </div>
+
+    <div
+        wire:loading.delay
+        wire:target="previewScrape,runScrape,previewSedarScrape,runSedarScrape,previewGemmaScrape,runGemmaScrape,previewHansScrape,runHansScrape,previewCleopatraScrape,runCleopatraScrape,previewMahgoubScrape,runMahgoubScrape,previewSallabScrape,runSallabScrape,previewRayaScrape,runRayaScrape,previewShaheenScrape,runShaheenScrape"
+        class="rounded-lg border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800 dark:border-primary-800 dark:bg-primary-950/50 dark:text-primary-200 mb-4"
+    >
+        {{ __('ecommerce.scrape_progress_waiting') }}
+    </div>
+
     <div class="space-y-8">
         {{-- Excel import --}}
         <x-filament::section>

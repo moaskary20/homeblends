@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Pages\Concerns\TracksScrapeProgress;
 use App\Exports\ProductsImportTemplateExport;
 use App\Imports\ProductsImport;
 use App\Services\ProductScraper\AriikaScraperService;
@@ -29,6 +30,7 @@ use Maatwebsite\Excel\Validators\ValidationException;
 class ImportProductsPage extends Page implements HasForms
 {
     use InteractsWithForms;
+    use TracksScrapeProgress;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-up-tray';
 
@@ -673,7 +675,10 @@ class ImportProductsPage extends Page implements HasForms
                 ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->scrapePreview)]))
                 ->success()
                 ->send();
+
+            $this->finishScrapeProgress(true);
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->scrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -697,9 +702,8 @@ class ImportProductsPage extends Page implements HasForms
                 throw new \RuntimeException(__('ecommerce.scrape_no_products'));
             }
 
-            $importer = app(ScrapedProductImporter::class);
             $downloadImages = (bool) ($this->scrapeData['download_images'] ?? true);
-            $importer->import($items, $downloadImages);
+            $importer = $this->importWithProgress($items, $downloadImages);
 
             $this->scrapeCreated = $importer->getCreatedCount();
             $this->scrapeUpdated = $importer->getUpdatedCount();
@@ -714,6 +718,7 @@ class ImportProductsPage extends Page implements HasForms
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->scrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -733,9 +738,8 @@ class ImportProductsPage extends Page implements HasForms
         $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
 
         $scraper = app(AriikaScraperService::class);
-        $items = $scraper->scrapeFurniture($collections, $limit);
 
-        return [$items, $scraper];
+        return $this->fetchCollectionsWithProgress($scraper, $collections, $limit, 'ariika.com');
     }
 
     public function previewSedarScrape(): void
@@ -764,7 +768,10 @@ class ImportProductsPage extends Page implements HasForms
                 ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->sedarScrapePreview)]))
                 ->success()
                 ->send();
+
+            $this->finishScrapeProgress(true);
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->sedarScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -788,9 +795,8 @@ class ImportProductsPage extends Page implements HasForms
                 throw new \RuntimeException(__('ecommerce.scrape_sedar_no_products'));
             }
 
-            $importer = app(ScrapedProductImporter::class);
             $downloadImages = (bool) ($this->sedarScrapeData['download_images'] ?? true);
-            $importer->import($items, $downloadImages);
+            $importer = $this->importWithProgress($items, $downloadImages);
 
             $this->sedarScrapeCreated = $importer->getCreatedCount();
             $this->sedarScrapeUpdated = $importer->getUpdatedCount();
@@ -805,6 +811,7 @@ class ImportProductsPage extends Page implements HasForms
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->sedarScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -824,9 +831,8 @@ class ImportProductsPage extends Page implements HasForms
         $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
 
         $scraper = app(SedarScraperService::class);
-        $items = $scraper->scrapeCollections($collections, $limit);
 
-        return [$items, $scraper];
+        return $this->fetchCollectionsWithProgress($scraper, $collections, $limit, 'sedarglobal.com');
     }
 
     /**
@@ -834,7 +840,7 @@ class ImportProductsPage extends Page implements HasForms
      */
     protected function formatSedarScrapeErrors(SedarScraperService $scraper): array
     {
-        return $scraper->getScrapeErrors()
+        return $this->mergedScrapeErrors($scraper)
             ->map(fn (array $e) => __('ecommerce.scrape_sedar_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
@@ -868,7 +874,10 @@ class ImportProductsPage extends Page implements HasForms
                 ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->gemmaScrapePreview)]))
                 ->success()
                 ->send();
+
+            $this->finishScrapeProgress(true);
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->gemmaScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -892,9 +901,8 @@ class ImportProductsPage extends Page implements HasForms
                 throw new \RuntimeException(__('ecommerce.scrape_gemma_no_products'));
             }
 
-            $importer = app(ScrapedProductImporter::class);
             $downloadImages = (bool) ($this->gemmaScrapeData['download_images'] ?? true);
-            $importer->import($items, $downloadImages);
+            $importer = $this->importWithProgress($items, $downloadImages);
 
             $this->gemmaScrapeCreated = $importer->getCreatedCount();
             $this->gemmaScrapeUpdated = $importer->getUpdatedCount();
@@ -909,6 +917,7 @@ class ImportProductsPage extends Page implements HasForms
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->gemmaScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -928,9 +937,8 @@ class ImportProductsPage extends Page implements HasForms
         $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
 
         $scraper = app(GemmaScraperService::class);
-        $items = $scraper->scrapeCollections($collections, $limit);
 
-        return [$items, $scraper];
+        return $this->fetchCollectionsWithProgress($scraper, $collections, $limit, 'gemma.com.eg');
     }
 
     /**
@@ -938,7 +946,7 @@ class ImportProductsPage extends Page implements HasForms
      */
     protected function formatGemmaScrapeErrors(GemmaScraperService $scraper): array
     {
-        return $scraper->getScrapeErrors()
+        return $this->mergedScrapeErrors($scraper)
             ->map(fn (array $e) => __('ecommerce.scrape_gemma_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
@@ -972,7 +980,10 @@ class ImportProductsPage extends Page implements HasForms
                 ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->hansScrapePreview)]))
                 ->success()
                 ->send();
+
+            $this->finishScrapeProgress(true);
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->hansScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -996,9 +1007,8 @@ class ImportProductsPage extends Page implements HasForms
                 throw new \RuntimeException(__('ecommerce.scrape_hans_no_products'));
             }
 
-            $importer = app(ScrapedProductImporter::class);
             $downloadImages = (bool) ($this->hansScrapeData['download_images'] ?? true);
-            $importer->import($items, $downloadImages);
+            $importer = $this->importWithProgress($items, $downloadImages);
 
             $this->hansScrapeCreated = $importer->getCreatedCount();
             $this->hansScrapeUpdated = $importer->getUpdatedCount();
@@ -1013,6 +1023,7 @@ class ImportProductsPage extends Page implements HasForms
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->hansScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1032,9 +1043,8 @@ class ImportProductsPage extends Page implements HasForms
         $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
 
         $scraper = app(HansScraperService::class);
-        $items = $scraper->scrapeCollections($collections, $limit);
 
-        return [$items, $scraper];
+        return $this->fetchCollectionsWithProgress($scraper, $collections, $limit, 'hansegypt.com');
     }
 
     /**
@@ -1042,7 +1052,7 @@ class ImportProductsPage extends Page implements HasForms
      */
     protected function formatHansScrapeErrors(HansScraperService $scraper): array
     {
-        return $scraper->getScrapeErrors()
+        return $this->mergedScrapeErrors($scraper)
             ->map(fn (array $e) => __('ecommerce.scrape_hans_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
@@ -1076,7 +1086,10 @@ class ImportProductsPage extends Page implements HasForms
                 ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->cleopatraScrapePreview)]))
                 ->success()
                 ->send();
+
+            $this->finishScrapeProgress(true);
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->cleopatraScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1100,9 +1113,8 @@ class ImportProductsPage extends Page implements HasForms
                 throw new \RuntimeException(__('ecommerce.scrape_cleopatra_no_products'));
             }
 
-            $importer = app(ScrapedProductImporter::class);
             $downloadImages = (bool) ($this->cleopatraScrapeData['download_images'] ?? true);
-            $importer->import($items, $downloadImages);
+            $importer = $this->importWithProgress($items, $downloadImages);
 
             $this->cleopatraScrapeCreated = $importer->getCreatedCount();
             $this->cleopatraScrapeUpdated = $importer->getUpdatedCount();
@@ -1117,6 +1129,7 @@ class ImportProductsPage extends Page implements HasForms
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->cleopatraScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1136,9 +1149,8 @@ class ImportProductsPage extends Page implements HasForms
         $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
 
         $scraper = app(CleopatraScraperService::class);
-        $items = $scraper->scrapeCollections($collections, $limit);
 
-        return [$items, $scraper];
+        return $this->fetchCollectionsWithProgress($scraper, $collections, $limit, 'cleopatraceramics.com');
     }
 
     /**
@@ -1146,7 +1158,7 @@ class ImportProductsPage extends Page implements HasForms
      */
     protected function formatCleopatraScrapeErrors(CleopatraScraperService $scraper): array
     {
-        return $scraper->getScrapeErrors()
+        return $this->mergedScrapeErrors($scraper)
             ->map(fn (array $e) => __('ecommerce.scrape_cleopatra_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
@@ -1180,7 +1192,10 @@ class ImportProductsPage extends Page implements HasForms
                 ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->mahgoubScrapePreview)]))
                 ->success()
                 ->send();
+
+            $this->finishScrapeProgress(true);
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->mahgoubScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1204,9 +1219,8 @@ class ImportProductsPage extends Page implements HasForms
                 throw new \RuntimeException(__('ecommerce.scrape_mahgoub_no_products'));
             }
 
-            $importer = app(ScrapedProductImporter::class);
             $downloadImages = (bool) ($this->mahgoubScrapeData['download_images'] ?? true);
-            $importer->import($items, $downloadImages);
+            $importer = $this->importWithProgress($items, $downloadImages);
 
             $this->mahgoubScrapeCreated = $importer->getCreatedCount();
             $this->mahgoubScrapeUpdated = $importer->getUpdatedCount();
@@ -1221,6 +1235,7 @@ class ImportProductsPage extends Page implements HasForms
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->mahgoubScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1240,9 +1255,8 @@ class ImportProductsPage extends Page implements HasForms
         $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
 
         $scraper = app(MahgoubScraperService::class);
-        $items = $scraper->scrapeCollections($collections, $limit);
 
-        return [$items, $scraper];
+        return $this->fetchCollectionsWithProgress($scraper, $collections, $limit, 'mahgoub.com');
     }
 
     /**
@@ -1250,7 +1264,7 @@ class ImportProductsPage extends Page implements HasForms
      */
     protected function formatMahgoubScrapeErrors(MahgoubScraperService $scraper): array
     {
-        return $scraper->getScrapeErrors()
+        return $this->mergedScrapeErrors($scraper)
             ->map(fn (array $e) => __('ecommerce.scrape_mahgoub_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
@@ -1284,7 +1298,10 @@ class ImportProductsPage extends Page implements HasForms
                 ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->sallabScrapePreview)]))
                 ->success()
                 ->send();
+
+            $this->finishScrapeProgress(true);
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->sallabScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1308,9 +1325,8 @@ class ImportProductsPage extends Page implements HasForms
                 throw new \RuntimeException(__('ecommerce.scrape_sallab_no_products'));
             }
 
-            $importer = app(ScrapedProductImporter::class);
             $downloadImages = (bool) ($this->sallabScrapeData['download_images'] ?? true);
-            $importer->import($items, $downloadImages);
+            $importer = $this->importWithProgress($items, $downloadImages);
 
             $this->sallabScrapeCreated = $importer->getCreatedCount();
             $this->sallabScrapeUpdated = $importer->getUpdatedCount();
@@ -1325,6 +1341,7 @@ class ImportProductsPage extends Page implements HasForms
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->sallabScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1344,9 +1361,8 @@ class ImportProductsPage extends Page implements HasForms
         $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
 
         $scraper = app(SallabScraperService::class);
-        $items = $scraper->scrapeCollections($collections, $limit);
 
-        return [$items, $scraper];
+        return $this->fetchCollectionsWithProgress($scraper, $collections, $limit, 'ahmedelsallab.com');
     }
 
     /**
@@ -1354,7 +1370,7 @@ class ImportProductsPage extends Page implements HasForms
      */
     protected function formatSallabScrapeErrors(SallabScraperService $scraper): array
     {
-        return $scraper->getScrapeErrors()
+        return $this->mergedScrapeErrors($scraper)
             ->map(fn (array $e) => __('ecommerce.scrape_sallab_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
@@ -1388,7 +1404,10 @@ class ImportProductsPage extends Page implements HasForms
                 ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->rayaScrapePreview)]))
                 ->success()
                 ->send();
+
+            $this->finishScrapeProgress(true);
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->rayaScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1412,9 +1431,8 @@ class ImportProductsPage extends Page implements HasForms
                 throw new \RuntimeException(__('ecommerce.scrape_raya_no_products'));
             }
 
-            $importer = app(ScrapedProductImporter::class);
             $downloadImages = (bool) ($this->rayaScrapeData['download_images'] ?? true);
-            $importer->import($items, $downloadImages);
+            $importer = $this->importWithProgress($items, $downloadImages);
 
             $this->rayaScrapeCreated = $importer->getCreatedCount();
             $this->rayaScrapeUpdated = $importer->getUpdatedCount();
@@ -1429,6 +1447,7 @@ class ImportProductsPage extends Page implements HasForms
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->rayaScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1448,9 +1467,8 @@ class ImportProductsPage extends Page implements HasForms
         $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
 
         $scraper = app(RayaScraperService::class);
-        $items = $scraper->scrapeCollections($collections, $limit);
 
-        return [$items, $scraper];
+        return $this->fetchCollectionsWithProgress($scraper, $collections, $limit, 'rayashop.com');
     }
 
     /**
@@ -1458,7 +1476,7 @@ class ImportProductsPage extends Page implements HasForms
      */
     protected function formatRayaScrapeErrors(RayaScraperService $scraper): array
     {
-        return $scraper->getScrapeErrors()
+        return $this->mergedScrapeErrors($scraper)
             ->map(fn (array $e) => __('ecommerce.scrape_raya_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
@@ -1492,7 +1510,10 @@ class ImportProductsPage extends Page implements HasForms
                 ->title(__('ecommerce.scrape_preview_ready', ['count' => count($this->shaheenScrapePreview)]))
                 ->success()
                 ->send();
+
+            $this->finishScrapeProgress(true);
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->shaheenScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1516,9 +1537,8 @@ class ImportProductsPage extends Page implements HasForms
                 throw new \RuntimeException(__('ecommerce.scrape_shaheen_no_products'));
             }
 
-            $importer = app(ScrapedProductImporter::class);
             $downloadImages = (bool) ($this->shaheenScrapeData['download_images'] ?? true);
-            $importer->import($items, $downloadImages);
+            $importer = $this->importWithProgress($items, $downloadImages);
 
             $this->shaheenScrapeCreated = $importer->getCreatedCount();
             $this->shaheenScrapeUpdated = $importer->getUpdatedCount();
@@ -1533,6 +1553,7 @@ class ImportProductsPage extends Page implements HasForms
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->shaheenScrapeErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.scrape_failed'))
@@ -1552,9 +1573,8 @@ class ImportProductsPage extends Page implements HasForms
         $limit = max(1, min(50, (int) ($state['max_per_collection'] ?? 5)));
 
         $scraper = app(ShaheenScraperService::class);
-        $items = $scraper->scrapeCollections($collections, $limit);
 
-        return [$items, $scraper];
+        return $this->fetchCollectionsWithProgress($scraper, $collections, $limit, 'shaheeneg.com');
     }
 
     /**
@@ -1562,7 +1582,7 @@ class ImportProductsPage extends Page implements HasForms
      */
     protected function formatShaheenScrapeErrors(ShaheenScraperService $scraper): array
     {
-        return $scraper->getScrapeErrors()
+        return $this->mergedScrapeErrors($scraper)
             ->map(fn (array $e) => __('ecommerce.scrape_shaheen_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
@@ -1592,6 +1612,7 @@ class ImportProductsPage extends Page implements HasForms
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            $this->finishScrapeProgress(false);
             $this->syncImagesErrors = [$e->getMessage()];
             Notification::make()
                 ->title(__('ecommerce.sync_images_failed_title'))
@@ -1603,7 +1624,7 @@ class ImportProductsPage extends Page implements HasForms
 
     protected function formatScrapeErrors(AriikaScraperService $scraper): array
     {
-        return $scraper->getScrapeErrors()
+        return $this->mergedScrapeErrors($scraper)
             ->map(fn (array $e) => __('ecommerce.scrape_collection_error', [
                 'handle' => $e['handle'],
                 'message' => $e['message'],
