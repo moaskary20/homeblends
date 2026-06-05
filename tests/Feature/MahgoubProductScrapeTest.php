@@ -39,8 +39,8 @@ class MahgoubProductScrapeTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $items->count());
         $this->assertSame('MAHGOUB-1020008734', $items->first()['sku']);
         $this->assertStringContainsString('هيدو', $items->first()['name']);
-        $this->assertSame('Mahgoub — راك', $items->first()['category_name']);
-        $this->assertSame('mahgoub-brand-rako', $items->first()['category_slug']);
+        $this->assertSame('راك', $items->first()['category_name']);
+        $this->assertSame('brand-rako', $items->first()['category_slug']);
         $this->assertSame('ceramics', $items->first()['parent_category_slug']);
         $this->assertSame(678.0, $items->first()['regular_price']);
         $this->assertGreaterThanOrEqual(2, count($items->first()['image_urls']));
@@ -96,7 +96,8 @@ class MahgoubProductScrapeTest extends TestCase
         $importer->import($items, true);
 
         $this->assertDatabaseHas('categories', ['slug' => 'ceramics', 'name' => 'سيراميك']);
-        $this->assertDatabaseHas('categories', ['slug' => 'mahgoub-brand-rako', 'name' => 'Mahgoub — راك']);
+        $this->assertDatabaseHas('categories', ['slug' => 'brand-rako', 'name' => 'راك']);
+        $this->assertDatabaseMissing('categories', ['slug' => 'mahgoub-brand-rako']);
         $this->assertDatabaseHas('products', ['sku' => 'MAHGOUB-1020008734']);
         $this->assertSame(1, $importer->getCreatedCount());
     }
@@ -124,9 +125,15 @@ class MahgoubProductScrapeTest extends TestCase
         $items = app(MahgoubScraperService::class)->scrapeCollections(['sanitary-fixtures'], 3);
 
         $this->assertGreaterThanOrEqual(1, $items->count());
-        $this->assertSame('Mahgoub — أدوات صحية', $items->first()['category_name']);
-        $this->assertSame('mahgoub-sanitary-fixtures', $items->first()['category_slug']);
+        $this->assertSame('أدوات صحية', $items->first()['category_name']);
+        $this->assertSame('sanitary-fixtures', $items->first()['category_slug']);
         $this->assertSame('sanitary', $items->first()['parent_category_slug']);
         $this->assertSame('صحي', $items->first()['parent_category_name']);
+
+        app(ScrapedProductImporter::class)->import($items, true);
+
+        $this->assertDatabaseHas('categories', ['slug' => 'sanitary', 'name' => 'صحي']);
+        $this->assertDatabaseHas('categories', ['slug' => 'sanitary-fixtures', 'name' => 'أدوات صحية']);
+        $this->assertDatabaseMissing('categories', ['slug' => 'mahgoub-sanitary-fixtures']);
     }
 }

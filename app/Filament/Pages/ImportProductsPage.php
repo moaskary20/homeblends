@@ -428,7 +428,7 @@ class ImportProductsPage extends Page implements HasForms
             ->schema([
                 Forms\Components\Select::make('source')
                     ->label(__('ecommerce.scrape_source'))
-                    ->options(['mahgoub' => 'Mahgoub — mahgoub.com/ar'])
+                    ->options(['mahgoub' => 'mahgoub.com/ar'])
                     ->default('mahgoub')
                     ->disabled()
                     ->dehydrated(),

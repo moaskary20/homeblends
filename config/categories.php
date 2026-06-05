@@ -41,6 +41,13 @@ return [
             'description' => 'أجهزة كهربائية منزلية كبيرة وصغيرة',
             'image' => 'images/categories/accessories.jpg',
         ],
+        [
+            'name' => 'صحي',
+            'slug' => 'sanitary',
+            'sort_order' => 6,
+            'description' => 'أدوات صحية وخزانات دفن ووحدات حمام',
+            'image' => 'images/categories/accessories.jpg',
+        ],
     ],
 
     /**
@@ -70,5 +77,45 @@ return [
         'fans' => 'مراوح',
         'hoods-exhaust-fans' => 'شفاطات ومراوح',
         'electric-radiator' => 'دفايات',
+    ],
+
+    /** Unified Mahgoub ceramics subcategories (under سيراميك). */
+    'mahgoub_ceramics' => [
+        'all' => 'سيراميك و بورسلين',
+        'imported' => 'المستورد',
+        'local' => 'المحلي',
+        'brand-aljohra' => 'الجوهرة',
+        'brand-porcelainosa' => 'بورسالينوزا',
+        'brand-grespania' => 'جرسبانيا',
+        'brand-rako' => 'راك',
+        'brand-ceifi' => 'سيفري',
+        'brand-spain' => 'صنع في إسبانيا',
+        'floor-porcelain' => 'بورسلين أرضيات',
+        'wall-porcelain' => 'بورسلين حوائط',
+        'floor-ceramic' => 'سيراميك أرضيات',
+        'wall-ceramic' => 'سيراميك حوائط',
+    ],
+
+    /** Unified Mahgoub sanitary subcategories (under صحي). */
+    'mahgoub_sanitary' => [
+        'sanitary-all' => 'صحي ووحدات',
+        'sanitary-fixtures' => 'أدوات صحية',
+        'sanitary-concealed-tanks' => 'خزانات دفن',
+        'sanitary-units' => 'وحدات',
+        'sanitary-brand-ideal-standard' => 'ايديال ستاندرد',
+        'sanitary-brand-grohe' => 'جروهي',
+        'sanitary-brand-roca' => 'روكا',
+        'sanitary-brand-duravit' => 'ديورافيت',
+        'sanitary-brand-geberit' => 'جيبرت',
+        'sanitary-brand-hansgrohe' => 'هانز جروهي',
+        'sanitary-brand-whitehall' => 'وايت فيل',
+        'sanitary-type-toilet' => 'مرحاض',
+        'sanitary-type-wall-toilet' => 'مرحاض معلق',
+        'sanitary-type-basin' => 'حوض',
+        'sanitary-type-bidet' => 'بيديه',
+        'sanitary-type-urinal' => 'مبولة',
+        'sanitary-type-unit' => 'وحدة',
+        'sanitary-type-in-wall-tank' => 'خزان دفن',
+        'sanitary-type-seat' => 'سيديلى',
     ],
 ];

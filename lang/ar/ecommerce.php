@@ -380,7 +380,7 @@ return [
     'scrape_mahgoub_section_title' => 'سحب منتجات Mahgoub',
     'scrape_mahgoub_section_description' => 'اسحب السيراميك والبورسلين من mahgoub.com/ar/سيراميك-و-بورسلين/ وصحي ووحدات من mahgoub.com/ar/صحي-ووحدات/ — اختر الأقسام (التصنيف، الماركة، النوع…) كما في Cleopatra. يُنشئ أقساماً فرعية تحت «سيراميك» أو «صحي».',
     'scrape_mahgoub_category_hint' => 'المصدر: سيراميك https://www.mahgoub.com/ar/سيراميك-و-بورسلين/ — صحي https://www.mahgoub.com/ar/صحي-ووحدات/ — جرّب المعاينة أولاً بعدد محدود (مثلاً 5 لكل قسم).',
-    'scrape_mahgoub_collections' => 'أقسام Mahgoub',
+    'scrape_mahgoub_collections' => 'أقسام السحب',
     'scrape_mahgoub_unknown_collection' => 'قسم غير معروف: :handle',
     'scrape_mahgoub_collection_error' => 'قسم :handle: :message',
     'scrape_mahgoub_collection_failed' => 'فشل جلب قسم :handle (HTTP :status)',

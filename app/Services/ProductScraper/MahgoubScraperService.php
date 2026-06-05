@@ -2,6 +2,7 @@
 
 namespace App\Services\ProductScraper;
 
+use App\Support\MahgoubCategories;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -97,8 +98,6 @@ class MahgoubScraperService
                 continue;
             }
 
-            $categoryName = $this->collections[$handle];
-
             try {
                 $batch = $this->fetchCollectionProducts($handle, $maxPerCollection)
                     ->map(fn (array $item) => $this->enrichFromProductPage($item));
@@ -123,7 +122,6 @@ class MahgoubScraperService
     public function fetchCollectionProducts(string $handle, int $limit = 10): Collection
     {
         $params = $this->collectionParams[$handle];
-        $categoryName = $this->collections[$handle];
         $products = collect();
         $start = 0;
         $pageSize = min(24, max($limit, 1));
@@ -142,7 +140,7 @@ class MahgoubScraperService
                 ]));
             }
 
-            $batch = $this->parseGridHtml($response->body(), $handle, $categoryName);
+            $batch = $this->parseGridHtml($response->body(), $handle);
 
             if ($batch->isEmpty()) {
                 break;
@@ -164,7 +162,7 @@ class MahgoubScraperService
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    protected function parseGridHtml(string $html, string $handle, string $categoryName): Collection
+    protected function parseGridHtml(string $html, string $handle): Collection
     {
         $products = collect();
 
@@ -206,8 +204,8 @@ class MahgoubScraperService
                 'sku' => $this->skuPrefix.$pid,
                 'name' => $name,
                 'slug' => $href !== null ? basename($href, '.html') : Str::slug($name),
-                'category_name' => $categoryName,
-                'category_slug' => 'mahgoub-'.$handle,
+                'category_name' => $this->categoryNameFor($handle),
+                'category_slug' => $this->categorySlugFor($handle),
                 'parent_category_name' => $parentCategory['name'],
                 'parent_category_slug' => $parentCategory['slug'],
                 'short_description' => null,
@@ -357,6 +355,19 @@ class MahgoubScraperService
         }
 
         return null;
+    }
+
+    protected function categorySlugFor(string $handle): string
+    {
+        return (string) ($this->collectionParams[$handle]['category_slug'] ?? $handle);
+    }
+
+    protected function categoryNameFor(string $handle): string
+    {
+        $slug = $this->categorySlugFor($handle);
+
+        return MahgoubCategories::canonicalName($slug)
+            ?? $this->collections[$handle];
     }
 
     /**
