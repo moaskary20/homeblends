@@ -187,13 +187,23 @@ class ScrapedProductImporter
         $parentSlug = (string) ($item['parent_category_slug'] ?? 'athath');
         $parentName = (string) ($item['parent_category_name'] ?? 'أثاث');
 
+        $parentSortOrder = 0;
+        // Ensure deterministic ordering for main ceramics subgroups.
+        if ($grandparentSlug === 'ceramics') {
+            $parentSortOrder = match ($parentSlug) {
+                'cleopatra' => 1,
+                'gemma' => 2,
+                default => 0,
+            };
+        }
+
         $parent = Category::withTrashed()->firstOrCreate(
             ['slug' => $parentSlug],
             [
                 'name' => $parentName,
                 'parent_id' => $grandparent?->id,
                 'is_active' => true,
-                'sort_order' => 0,
+                'sort_order' => $parentSortOrder,
             ]
         );
 
@@ -205,6 +215,7 @@ class ScrapedProductImporter
             'name' => $parentName,
             'parent_id' => $grandparent?->id,
             'is_active' => true,
+            'sort_order' => $parentSortOrder,
         ]);
 
         $childSlug = (string) ($item['category_slug'] ?? Category::slugify((string) $item['category_name']));
