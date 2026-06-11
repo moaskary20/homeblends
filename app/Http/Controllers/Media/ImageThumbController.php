@@ -19,6 +19,13 @@ class ImageThumbController extends Controller
             abort(404);
         }
 
+        if (str_ends_with(strtolower($source), '.svg')) {
+            return response()->file($source, [
+                'Cache-Control' => 'public, max-age=604800, immutable',
+                'Content-Type' => 'image/svg+xml',
+            ]);
+        }
+
         $thumb = $resizer->ensureThumbnail($source, $width, $quality) ?? $source;
 
         return response()->file($thumb, [
