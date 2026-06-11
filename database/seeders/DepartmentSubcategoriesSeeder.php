@@ -10,6 +10,10 @@ class DepartmentSubcategoriesSeeder extends Seeder
     public function run(): void
     {
         Artisan::call('categories:setup-subcategories');
-        $this->command?->write(Artisan::output());
+
+        $output = trim(Artisan::output());
+        if ($output !== '' && $this->command !== null) {
+            $this->command->getOutput()->write($output.PHP_EOL);
+        }
     }
 }
