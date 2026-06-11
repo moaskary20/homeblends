@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Category;
+use App\Models\Product;
 use App\Support\DepartmentSubcategories;
 use App\Support\SanitarySubcategories;
 use Illuminate\Console\Command;
@@ -19,6 +20,7 @@ class SetupDepartmentSubcategoriesCommand extends Command
     {
         $dryRun = (bool) $this->option('dry-run');
         $moved = 0;
+        $deleted = 0;
         $created = 0;
 
         foreach (DepartmentSubcategories::grouped() as $departmentSlug => $subcategories) {
@@ -115,72 +117,171 @@ class SetupDepartmentSubcategoriesCommand extends Command
                 }
             }
 
-            $this->reparentVendorWrappers($department, $canonicalBySlug, $dryRun, $moved);
+            if ($department->slug === 'ceramics') {
+                $this->purgeCeramicsExtras($department, $canonicalBySlug, $dryRun, $moved, $deleted);
+            }
         }
 
         $created += $this->setupSanitaryTree($dryRun, $moved);
 
         if ($dryRun) {
-            $this->warn("Dry run — would create/update {$created} subcategories and move {$moved} categories.");
+            $this->warn("Dry run — would create/update {$created} subcategories, move {$moved} categories, delete {$deleted} extras.");
         } else {
             $this->clearCategoryCaches();
-            $this->info("Subcategories ready ({$created} upserted, {$moved} re-parented).");
+            $this->info("Subcategories ready ({$created} upserted, {$moved} re-parented, {$deleted} ceramics extras removed).");
         }
 
         return self::SUCCESS;
     }
 
     /**
+     * Flatten سيراميك to only the four canonical subcategories.
+     *
      * @param  array<string, Category|null>  $canonicalBySlug
      */
-    protected function reparentVendorWrappers(Category $department, array $canonicalBySlug, bool $dryRun, int &$moved): void
-    {
-        if ($department->slug !== 'ceramics') {
-            return;
-        }
+    protected function purgeCeramicsExtras(
+        Category $ceramics,
+        array $canonicalBySlug,
+        bool $dryRun,
+        int &$moved,
+        int &$deleted,
+    ): void {
+        $canonical = collect($canonicalBySlug)->filter()->values();
+        $canonicalIds = $canonical->map(fn (Category $category) => $category->id)->all();
+        $canonicalSlugs = $canonical->map(fn (Category $category) => $category->slug)->all();
 
-        foreach (['cleopatra', 'gemma'] as $vendorSlug) {
-            $vendor = Category::query()
-                ->where('slug', $vendorSlug)
-                ->where('parent_id', $department->id)
-                ->first();
+        while (true) {
+            $extras = Category::query()
+                ->with('parent')
+                ->whereNotIn('id', $canonicalIds)
+                ->get()
+                ->filter(fn (Category $category) => $this->isUnderCeramics($category, $ceramics->id))
+                ->sortByDesc(fn (Category $category) => $this->categoryDepth($category, $ceramics->id));
 
-            if ($vendor === null) {
-                continue;
+            if ($extras->isEmpty()) {
+                break;
             }
 
-            $vendorChildren = Category::query()
-                ->where('parent_id', $vendor->id)
-                ->get();
+            $removedThisRound = 0;
 
-            foreach ($vendorChildren as $child) {
-                $targetSlug = DepartmentSubcategories::targetSubcategoryForSlug($child->slug);
+            foreach ($extras as $extra) {
+                $targetSlug = $this->resolveCeramicsTargetSlug($extra, $canonicalBySlug);
+                $target = $canonicalBySlug[$targetSlug] ?? null;
 
-                if ($targetSlug === null || ! isset($canonicalBySlug[$targetSlug])) {
+                if ($target === null) {
                     continue;
                 }
 
-                $target = $canonicalBySlug[$targetSlug];
+                $productCount = $extra->products()->count();
+
+                if ($productCount > 0) {
+                    if ($dryRun) {
+                        $this->line("Would move {$productCount} product(s) from {$extra->slug} → {$targetSlug}");
+                        $moved += $productCount;
+                    } else {
+                        Product::query()
+                            ->where('category_id', $extra->id)
+                            ->update(['category_id' => $target->id]);
+                        $this->line("↳ moved {$productCount} product(s) from {$extra->slug} → {$targetSlug}");
+                        $moved += $productCount;
+                    }
+                }
+
+                if (Category::query()->where('parent_id', $extra->id)->exists()) {
+                    continue;
+                }
 
                 if ($dryRun) {
-                    $this->line("Would move {$child->slug} from {$vendorSlug} → {$targetSlug}");
-                    $moved++;
+                    $this->line("Would delete {$extra->slug}");
+                    $deleted++;
+                    $removedThisRound++;
 
                     continue;
                 }
 
-                if ($child->parent_id !== $target->id) {
-                    $child->update(['parent_id' => $target->id, 'is_active' => true]);
-                    $this->line("↳ {$child->slug} ({$vendorSlug}) → {$targetSlug}");
-                    $moved++;
+                $extra->delete();
+                $this->warn("Removed ceramics extra: {$extra->slug}");
+                $deleted++;
+                $removedThisRound++;
+            }
+
+            if ($dryRun || $removedThisRound === 0) {
+                break;
+            }
+        }
+
+        if (! $dryRun) {
+            foreach ($canonical as $category) {
+                if ($category->parent_id !== $ceramics->id) {
+                    $category->update(['parent_id' => $ceramics->id, 'is_active' => true]);
                 }
             }
 
-            if (! $dryRun && $vendor->children()->count() === 0) {
-                $vendor->delete();
-                $this->warn("Removed empty vendor wrapper: {$vendorSlug}");
+            $strayDirectChildren = Category::query()
+                ->where('parent_id', $ceramics->id)
+                ->whereNotIn('slug', $canonicalSlugs)
+                ->pluck('slug');
+
+            if ($strayDirectChildren->isNotEmpty()) {
+                $this->warn('Ceramics still has unexpected children: '.$strayDirectChildren->implode(', '));
             }
         }
+    }
+
+    protected function isUnderCeramics(Category $category, int $ceramicsId): bool
+    {
+        $current = $category;
+
+        while ($current->parent_id !== null) {
+            if ($current->parent_id === $ceramicsId) {
+                return true;
+            }
+
+            $current = $current->parent ?? Category::query()->find($current->parent_id);
+
+            if ($current === null) {
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    protected function categoryDepth(Category $category, int $ceramicsId): int
+    {
+        $depth = 0;
+        $current = $category;
+
+        while ($current->parent_id !== null && $current->parent_id !== $ceramicsId) {
+            $depth++;
+            $current = $current->parent ?? Category::query()->find($current->parent_id);
+
+            if ($current === null) {
+                break;
+            }
+        }
+
+        return $depth;
+    }
+
+    /**
+     * @param  array<string, Category|null>  $canonicalBySlug
+     */
+    protected function resolveCeramicsTargetSlug(Category $category, array $canonicalBySlug): string
+    {
+        $mapped = DepartmentSubcategories::targetSubcategoryForSlug($category->slug);
+
+        if ($mapped !== null && isset($canonicalBySlug[$mapped])) {
+            return $mapped;
+        }
+
+        $parent = $category->parent;
+
+        if ($parent !== null && isset($canonicalBySlug[$parent->slug])) {
+            return $parent->slug;
+        }
+
+        return 'indoor-flooring';
     }
 
     protected function setupSanitaryTree(bool $dryRun, int &$moved): int

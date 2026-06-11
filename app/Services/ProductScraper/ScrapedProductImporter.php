@@ -188,11 +188,12 @@ class ScrapedProductImporter
         $parentName = (string) ($item['parent_category_name'] ?? 'أثاث');
 
         $parentSortOrder = 0;
-        // Ensure deterministic ordering for main ceramics subgroups.
         if ($grandparentSlug === 'ceramics') {
             $parentSortOrder = match ($parentSlug) {
-                'cleopatra' => 1,
-                'gemma' => 2,
+                'indoor-flooring' => 1,
+                'walls' => 2,
+                'outdoor-flooring' => 3,
+                'porcelain' => 4,
                 default => 0,
             };
         }
@@ -233,6 +234,10 @@ class ScrapedProductImporter
 
         if ($child->trashed()) {
             $child->restore();
+        }
+
+        if ($grandparentSlug === 'ceramics') {
+            return $parent;
         }
 
         return $child;
