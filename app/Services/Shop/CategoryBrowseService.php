@@ -47,14 +47,55 @@ class CategoryBrowseService
 
     public function getCategoryBySlug(string $slug): ?Category
     {
-        return Category::query()
+        $category = Category::query()
             ->active()
             ->where('slug', $slug)
-            ->with([
-                'parent',
-                'children' => fn ($q) => $this->subcategoriesQuery($q),
-            ])
+            ->with('parent')
             ->first();
+
+        if ($category === null) {
+            return null;
+        }
+
+        $category->load([
+            'children' => fn ($q) => $this->subcategoriesQuery(
+                $q,
+                includeEmpty: $this->shouldIncludeEmptySubcategories($category),
+            ),
+        ]);
+
+        return $category;
+    }
+
+    protected function shouldIncludeEmptySubcategories(Category $category): bool
+    {
+        if ($category->parent_id === null) {
+            return true;
+        }
+
+        $departmentSlug = $category->parent?->slug;
+
+        if ($departmentSlug !== null
+            && array_key_exists($category->slug, config("categories.department_subcategories.{$departmentSlug}", []))) {
+            return true;
+        }
+
+        if ($category->parent?->slug === 'sanitary'
+            && array_key_exists($category->slug, config('categories.sanitary_subcategories', []))) {
+            return true;
+        }
+
+        $mainSlug = $category->parent?->slug;
+
+        if ($mainSlug !== null) {
+            $children = config("categories.sanitary_subcategories.{$mainSlug}.children", []);
+
+            if (array_key_exists($category->slug, $children)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function shouldShowSubcategoryLanding(Category $category, array $input): bool
@@ -90,13 +131,15 @@ class CategoryBrowseService
      * @param  \Illuminate\Database\Eloquent\Builder<\App\Models\Category>  $query
      * @return \Illuminate\Database\Eloquent\Builder<\App\Models\Category>
      */
-    protected function subcategoriesQuery($query)
+    protected function subcategoriesQuery($query, bool $includeEmpty = false)
     {
         return $query
             ->active()
-            ->where(function ($q) {
-                $q->whereHas('products', fn ($products) => $products->published())
-                    ->orWhereHas('children.products', fn ($products) => $products->published());
+            ->when(! $includeEmpty, function ($query) {
+                $query->where(function ($q) {
+                    $q->whereHas('products', fn ($products) => $products->published())
+                        ->orWhereHas('children.products', fn ($products) => $products->published());
+                });
             })
             ->with([
                 'children' => fn ($children) => $children

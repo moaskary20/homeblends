@@ -2,6 +2,7 @@
 
 namespace App\Services\ProductScraper;
 
+use App\Support\DepartmentSubcategories;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -142,8 +143,13 @@ class AriikaScraperService
             'slug' => (string) ($product['handle'] ?? ''),
             'category_name' => $categoryName,
             'category_slug' => 'ariika-'.$collectionHandle,
-            'parent_category_name' => config('product-scraper.ariika.parent_category.name'),
-            'parent_category_slug' => config('product-scraper.ariika.parent_category.slug'),
+            'parent_category_name' => DepartmentSubcategories::canonicalName(
+                'athath',
+                DepartmentSubcategories::ariikaSubcategorySlug($collectionHandle)
+            ) ?? $categoryName,
+            'parent_category_slug' => DepartmentSubcategories::ariikaSubcategorySlug($collectionHandle),
+            'grandparent_category_name' => config('product-scraper.ariika.parent_category.name'),
+            'grandparent_category_slug' => config('product-scraper.ariika.parent_category.slug'),
             'short_description' => Str::limit($plain, 500),
             'full_description' => $bodyHtml !== '' ? $bodyHtml : null,
             'main_image_url' => $imageUrls[0] ?? null,

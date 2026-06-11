@@ -2,6 +2,7 @@
 
 namespace App\Services\ProductScraper;
 
+use App\Support\DepartmentSubcategories;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -330,8 +331,11 @@ class CleopatraScraperService
             'slug' => $slug,
             'category_name' => $categoryName,
             'category_slug' => 'cleopatra-'.$handle,
-            'parent_category_name' => 'Cleopatra',
-            'parent_category_slug' => 'cleopatra',
+            'parent_category_name' => DepartmentSubcategories::canonicalName(
+                'ceramics',
+                DepartmentSubcategories::cleopatraCeramicsSubcategorySlug($handle)
+            ) ?? $categoryName,
+            'parent_category_slug' => DepartmentSubcategories::cleopatraCeramicsSubcategorySlug($handle),
             'grandparent_category_name' => config('product-scraper.cleopatra.parent_category.name'),
             'grandparent_category_slug' => config('product-scraper.cleopatra.parent_category.slug'),
             'short_description' => Str::limit($plain, 500),

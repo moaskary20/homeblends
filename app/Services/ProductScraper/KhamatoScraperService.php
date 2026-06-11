@@ -2,6 +2,8 @@
 
 namespace App\Services\ProductScraper;
 
+use App\Support\DepartmentSubcategories;
+use App\Support\SanitarySubcategories;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -196,15 +198,21 @@ class KhamatoScraperService
         $sku = trim((string) ($product['sku'] ?? $product['id'] ?? ''));
         $slug = (string) ($product['url_key'] ?? Str::slug((string) ($product['name'] ?? $sku)));
         $parentCategory = $this->resolveParentCategory($handle);
+        $accessorySubSlug = DepartmentSubcategories::khamatoAccessorySubcategorySlug($handle);
+        $sanitaryLeafSlug = SanitarySubcategories::khamatoLeafSlug($handle);
 
-        return [
+        $payload = [
             'sku' => $this->skuPrefix.$sku,
             'name' => (string) ($product['name'] ?? ''),
             'slug' => $slug,
             'category_name' => $categoryName,
             'category_slug' => 'khamato-'.$handle,
-            'parent_category_name' => $parentCategory['name'],
-            'parent_category_slug' => $parentCategory['slug'],
+            'parent_category_name' => match (true) {
+                $accessorySubSlug !== null => DepartmentSubcategories::canonicalName('accessories', $accessorySubSlug) ?? $categoryName,
+                $sanitaryLeafSlug !== null => SanitarySubcategories::name($sanitaryLeafSlug) ?? $categoryName,
+                default => $parentCategory['name'],
+            },
+            'parent_category_slug' => $accessorySubSlug ?? $sanitaryLeafSlug ?? $parentCategory['slug'],
             'short_description' => Str::limit($plain, 500),
             'full_description' => $descriptionHtml !== '' ? $descriptionHtml : null,
             'main_image_url' => $imageUrls[0] ?? null,
@@ -220,6 +228,18 @@ class KhamatoScraperService
                 (string) ($product['category_name'] ?? ''),
             ])),
         ];
+
+        if ($accessorySubSlug !== null) {
+            $payload['grandparent_category_name'] = $this->parentCategories['accessories']['name']
+                ?? $this->parentCategory['name'];
+            $payload['grandparent_category_slug'] = $this->parentCategories['accessories']['slug']
+                ?? $this->parentCategory['slug'];
+        } elseif ($sanitaryLeafSlug !== null) {
+            $payload['grandparent_category_name'] = $this->parentCategories['sanitary']['name'] ?? 'صحي';
+            $payload['grandparent_category_slug'] = $this->parentCategories['sanitary']['slug'] ?? 'sanitary';
+        }
+
+        return $payload;
     }
 
     /**

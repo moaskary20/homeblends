@@ -41,7 +41,8 @@ class KhamatoProductScrapeTest extends TestCase
         $this->assertStringContainsString('غيدينى', $items->first()['name']);
         $this->assertSame('اكسسوارات الابواب', $items->first()['category_name']);
         $this->assertSame('khamato-door-accessories', $items->first()['category_slug']);
-        $this->assertSame('accessories', $items->first()['parent_category_slug']);
+        $this->assertSame('door-accessories', $items->first()['parent_category_slug']);
+        $this->assertSame('accessories', $items->first()['grandparent_category_slug']);
         $this->assertSame(12956.9, $items->first()['regular_price']);
         $this->assertSame(11779.0, $items->first()['discount_price']);
         $this->assertGreaterThanOrEqual(1, count($items->first()['image_urls']));
@@ -133,7 +134,8 @@ class KhamatoProductScrapeTest extends TestCase
         $this->assertCount(1, $items);
         $this->assertSame('خلاطات أحواض', $items->first()['category_name']);
         $this->assertSame('khamato-basin-mixers', $items->first()['category_slug']);
-        $this->assertSame('sanitary', $items->first()['parent_category_slug']);
-        $this->assertSame('صحي', $items->first()['parent_category_name']);
+        $this->assertSame('kitchen-mixers', $items->first()['parent_category_slug']);
+        $this->assertSame('مطابخ', $items->first()['parent_category_name']);
+        $this->assertSame('sanitary', $items->first()['grandparent_category_slug']);
     }
 }

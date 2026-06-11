@@ -33,6 +33,10 @@ class SetupMainCategoriesCommand extends Command
                     'ceramics' => 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=900&q=80&auto=format',
                     'accessories' => 'https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=900&q=80&auto=format',
                     'textiles' => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=900&q=80&auto=format',
+                    'sanitary' => 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=900&q=80&auto=format',
+                    'art-panels' => 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=900&q=80&auto=format',
+                    'lighting' => 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=900&q=80&auto=format',
+                    'carpets' => 'https://images.unsplash.com/photo-1600166896089-0094491f0ce3?w=900&q=80&auto=format',
                     default => '',
                 },
             ])

@@ -2,7 +2,9 @@
 
 namespace App\Services\ProductScraper;
 
+use App\Support\DepartmentSubcategories;
 use App\Support\MahgoubCategories;
+use App\Support\SanitarySubcategories;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -199,15 +201,26 @@ class MahgoubScraperService
             $discountPrice = $this->resolveDiscountPrice($chunk, $regularPrice);
             $sourceUrl = $href !== null ? $this->baseUrl.$href : $this->baseUrl;
             $parentCategory = $this->resolveParentCategory($handle);
+            $parentKey = MahgoubCategories::parentSlugForHandle($handle);
+            $ceramicsSubSlug = $parentKey === 'ceramics'
+                ? DepartmentSubcategories::mahgoubCeramicsSubcategorySlug($handle)
+                : null;
+            $sanitaryLeafSlug = $parentKey === 'sanitary'
+                ? SanitarySubcategories::mahgoubLeafSlug($handle)
+                : null;
 
-            $products->push([
+            $row = [
                 'sku' => $this->skuPrefix.$pid,
                 'name' => $name,
                 'slug' => $href !== null ? basename($href, '.html') : Str::slug($name),
                 'category_name' => $this->categoryNameFor($handle),
                 'category_slug' => $this->categorySlugFor($handle),
-                'parent_category_name' => $parentCategory['name'],
-                'parent_category_slug' => $parentCategory['slug'],
+                'parent_category_name' => match (true) {
+                    $ceramicsSubSlug !== null => DepartmentSubcategories::canonicalName('ceramics', $ceramicsSubSlug) ?? $parentCategory['name'],
+                    $sanitaryLeafSlug !== null => SanitarySubcategories::name($sanitaryLeafSlug) ?? $parentCategory['name'],
+                    default => $parentCategory['name'],
+                },
+                'parent_category_slug' => $ceramicsSubSlug ?? $sanitaryLeafSlug ?? $parentCategory['slug'],
                 'short_description' => null,
                 'full_description' => null,
                 'main_image_url' => $imageUrl,
@@ -221,7 +234,19 @@ class MahgoubScraperService
                 'tags' => array_values(array_filter([
                     trim((string) ($gtm['category'] ?? '')),
                 ])),
-            ]);
+            ];
+
+            if ($ceramicsSubSlug !== null) {
+                $row['grandparent_category_name'] = $this->parentCategories['ceramics']['name']
+                    ?? $this->parentCategory['name'];
+                $row['grandparent_category_slug'] = $this->parentCategories['ceramics']['slug']
+                    ?? $this->parentCategory['slug'];
+            } elseif ($sanitaryLeafSlug !== null) {
+                $row['grandparent_category_name'] = $this->parentCategories['sanitary']['name'] ?? 'صحي';
+                $row['grandparent_category_slug'] = $this->parentCategories['sanitary']['slug'] ?? 'sanitary';
+            }
+
+            $products->push($row);
         }
 
         return $products;

@@ -2,6 +2,7 @@
 
 namespace App\Services\ProductScraper;
 
+use App\Support\DepartmentSubcategories;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -142,8 +143,13 @@ class HansScraperService
             'slug' => (string) ($product['handle'] ?? ''),
             'category_name' => $categoryName,
             'category_slug' => 'hans-'.$collectionHandle,
-            'parent_category_name' => config('product-scraper.hans.parent_category.name'),
-            'parent_category_slug' => config('product-scraper.hans.parent_category.slug'),
+            'parent_category_name' => DepartmentSubcategories::canonicalName(
+                'accessories',
+                DepartmentSubcategories::hansSubcategorySlug($collectionHandle)
+            ) ?? $categoryName,
+            'parent_category_slug' => DepartmentSubcategories::hansSubcategorySlug($collectionHandle),
+            'grandparent_category_name' => config('product-scraper.hans.parent_category.name'),
+            'grandparent_category_slug' => config('product-scraper.hans.parent_category.slug'),
             'short_description' => Str::limit($plain, 500),
             'full_description' => $bodyHtml !== '' ? $bodyHtml : null,
             'main_image_url' => $imageUrls[0] ?? null,

@@ -9,5 +9,6 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $this->call(MainCategoriesSeeder::class);
+        $this->call(DepartmentSubcategoriesSeeder::class);
     }
 }

@@ -127,8 +127,9 @@ class MahgoubProductScrapeTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $items->count());
         $this->assertSame('أدوات صحية', $items->first()['category_name']);
         $this->assertSame('sanitary-fixtures', $items->first()['category_slug']);
-        $this->assertSame('sanitary', $items->first()['parent_category_slug']);
-        $this->assertSame('صحي', $items->first()['parent_category_name']);
+        $this->assertSame('sanitary-supplies', $items->first()['parent_category_slug']);
+        $this->assertSame('لوازم أدوات صحية', $items->first()['parent_category_name']);
+        $this->assertSame('sanitary', $items->first()['grandparent_category_slug']);
 
         app(ScrapedProductImporter::class)->import($items, true);
 
