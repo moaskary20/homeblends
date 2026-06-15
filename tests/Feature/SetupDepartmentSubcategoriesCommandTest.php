@@ -36,7 +36,7 @@ class SetupDepartmentSubcategoriesCommandTest extends TestCase
 
         $this->assertNotNull($livingRoom);
         $this->assertSame('ليفينج روم', $livingRoom->name);
-        $this->assertSame('images/categories/athath-living-room.svg', $livingRoom->image);
+        $this->assertSame('images/categories/living-room.jpg', $livingRoom->image);
         $this->assertSame(
             Category::query()->where('slug', 'athath')->value('id'),
             $livingRoom->parent_id
@@ -46,8 +46,8 @@ class SetupDepartmentSubcategoriesCommandTest extends TestCase
         $this->assertSame($livingRoom->id, $legacy->parent_id);
 
         $this->assertDatabaseHas('categories', [
-            'slug' => 'bathroom-accessories',
-            'name' => 'اكسسورات حمام',
+            'slug' => 'salons',
+            'name' => 'صلونات',
         ]);
         $this->assertDatabaseHas('categories', [
             'slug' => 'indoor-flooring',
@@ -75,7 +75,7 @@ class SetupDepartmentSubcategoriesCommandTest extends TestCase
         $this->assertNotNull($bathroomMixers);
         $this->assertSame('خلاطات', $mixers->name);
         $this->assertSame($mixers->id, $bathroomMixers->parent_id);
-        $this->assertSame('images/categories/sanitary-bathroom-mixers.svg', $bathroomMixers->image);
+        $this->assertSame('images/categories/bathroom-mixers.jpg', $bathroomMixers->image);
 
         $legacy->refresh();
         $this->assertSame($bathroomMixers->id, $legacy->parent_id);
@@ -125,11 +125,24 @@ class SetupDepartmentSubcategoriesCommandTest extends TestCase
         $this->artisan('categories:setup-main')->assertSuccessful();
         $this->artisan('categories:setup-subcategories')->assertSuccessful();
 
-        $response = $this->get(route('shop.categories.show', 'accessories'));
+        $response = $this->get(route('shop.categories.show', 'athath'));
 
         $response->assertOk();
-        $response->assertSee('اكسسورات حمام');
-        $response->assertSee('اكسسوارات الابواب');
+        $response->assertSee('ليفينج روم');
+        $response->assertSee('غرف نوم');
+        $response->assertSee(__('ecommerce.choose_subcategory'));
+    }
+
+    public function test_configured_subcategories_show_when_empty(): void
+    {
+        $this->artisan('categories:setup-main')->assertSuccessful();
+        $this->artisan('categories:setup-subcategories')->assertSuccessful();
+
+        $response = $this->get(route('shop.categories.show', 'ceramics'));
+
+        $response->assertOk();
+        $response->assertSee('أرضيات داخليه');
+        $response->assertSee('بورسلين');
         $response->assertSee(__('ecommerce.choose_subcategory'));
     }
 }

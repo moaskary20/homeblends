@@ -261,33 +261,28 @@ body.home-page {
     object-fit: cover;
 }
 
+.hb-category-circle img.hb-dept-image--vector {
+    object-fit: contain;
+    padding: 0.35rem;
+    background: linear-gradient(145deg, #faf8f5 0%, #efe8df 100%);
+}
+
 .hb-category-name-ticker {
-    overflow: hidden;
-    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.75rem;
     background: var(--hb-brand-dark);
     color: #fff;
     border-radius: 9999px;
     font-size: 0.8rem;
     font-weight: 700;
-}
-
-.hb-category-name-track {
-    display: flex;
-    flex-direction: column;
-    animation: hb-category-name 6s ease-in-out infinite;
-}
-
-.hb-category-name-track span {
-    height: 1.75rem;
-    line-height: 1.75rem;
     padding: 0 0.75rem;
-    white-space: nowrap;
 }
 
-@keyframes hb-category-name {
-    0%, 40% { transform: translateY(0); }
-    50%, 90% { transform: translateY(-1.75rem); }
-    100% { transform: translateY(0); }
+.hb-category-name-ticker span {
+    line-height: 1.75rem;
+    white-space: nowrap;
 }
 
 .hb-home-section {

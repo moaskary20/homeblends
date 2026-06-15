@@ -4,10 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Support\CategoryImageResolver;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 
 class SetupMainCategoriesCommand extends Command
 {
@@ -27,18 +26,6 @@ class SetupMainCategoriesCommand extends Command
                 'sort_order' => $department['sort_order'] ?? 0,
                 'description' => $department['description'] ?? '',
                 'image' => $department['image'] ?? null,
-                'image_file' => basename((string) ($department['image'] ?? '')),
-                'image_source' => match ($department['slug'] ?? '') {
-                    'athath' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&q=80&auto=format',
-                    'ceramics' => 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=900&q=80&auto=format',
-                    'accessories' => 'https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=900&q=80&auto=format',
-                    'textiles' => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=900&q=80&auto=format',
-                    'sanitary' => 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=900&q=80&auto=format',
-                    'art-panels' => 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=900&q=80&auto=format',
-                    'lighting' => 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=900&q=80&auto=format',
-                    'carpets' => 'https://images.unsplash.com/photo-1600166896089-0094491f0ce3?w=900&q=80&auto=format',
-                    default => '',
-                },
             ])
             ->all();
     }
@@ -47,12 +34,12 @@ class SetupMainCategoriesCommand extends Command
     {
         $departments = collect($this->departments());
         $furniture = null;
+        $images = app(CategoryImageResolver::class);
 
         foreach ($departments as $department) {
-            $imagePath = $this->resolveCategoryImage(
+            $imagePath = $images->resolve(
+                (string) $department['slug'],
                 $department['image'] ?? null,
-                $department['image_file'] ?? '',
-                $department['image_source'] ?? '',
             );
 
             $category = Category::withTrashed()->updateOrCreate(
@@ -103,41 +90,6 @@ class SetupMainCategoriesCommand extends Command
         $this->info('Main departments are ready.');
 
         return self::SUCCESS;
-    }
-
-    protected function resolveCategoryImage(?string $publicRelative, string $filename, string $sourceUrl): string
-    {
-        if (filled($publicRelative) && is_file(public_path($publicRelative))) {
-            return $publicRelative;
-        }
-
-        $relativePath = 'categories/'.$filename;
-        $disk = Storage::disk('public');
-
-        if ($disk->exists($relativePath) && $disk->size($relativePath) > 0) {
-            return $relativePath;
-        }
-
-        if ($filename === '' || $sourceUrl === '') {
-            return $publicRelative ?: $relativePath;
-        }
-
-        $disk->makeDirectory('categories');
-
-        try {
-            $response = Http::timeout(45)->get($sourceUrl);
-
-            if ($response->successful() && strlen($response->body()) > 1024) {
-                $disk->put($relativePath, $response->body());
-                $this->line("  ↳ downloaded {$relativePath}");
-
-                return $relativePath;
-            }
-        } catch (\Throwable $exception) {
-            $this->warn("  ↳ download failed for {$filename}: {$exception->getMessage()}");
-        }
-
-        return $publicRelative ?: $sourceUrl;
     }
 
     protected function clearCategoryCaches(): void

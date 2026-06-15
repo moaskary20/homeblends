@@ -31,13 +31,11 @@
                 @foreach($category->children as $child)
                     <a href="{{ route('shop.categories.show', $child->slug) }}" class="hb-dept-card group">
                         <div class="hb-dept-circle group-hover:scale-105 transition-transform">
-                            @if($child->imageUrl())
-                                <img src="{{ $child->imageUrl(400) }}" alt="{{ $child->name }}" loading="lazy" decoding="async">
-                            @elseif($category->imageUrl())
-                                <img src="{{ $category->imageUrl(400) }}" alt="{{ $child->name }}" loading="lazy" decoding="async">
-                            @else
-                                <span class="text-4xl">🛋️</span>
-                            @endif
+                            @include('shop.partials.category-circle-image', [
+                                'category' => $child->imageUrl() ? $child : $category,
+                                'alt' => $child->name,
+                                'width' => 400,
+                            ])
                         </div>
                         <h2 class="font-semibold text-center mt-3">{{ $child->name }}</h2>
                         <p class="text-xs text-amber-700 text-center mt-1">

@@ -6,6 +6,7 @@ use App\Models\Attribute;
 use App\Models\Category;
 use App\Models\Product;
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Support\CategoryCatalog;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -38,7 +39,7 @@ class CategoryBrowseService
             ->active()
             ->roots()
             ->with([
-                'children' => fn ($q) => $this->subcategoriesQuery($q),
+                'children' => fn ($q) => $this->subcategoriesQuery($q, includeEmpty: true),
             ])
             ->orderBy('sort_order')
             ->orderBy('name')
@@ -69,30 +70,12 @@ class CategoryBrowseService
 
     protected function shouldIncludeEmptySubcategories(Category $category): bool
     {
+        if (CategoryCatalog::isConfiguredSlug($category->slug)) {
+            return true;
+        }
+
         if ($category->parent_id === null) {
             return true;
-        }
-
-        $departmentSlug = $category->parent?->slug;
-
-        if ($departmentSlug !== null
-            && array_key_exists($category->slug, config("categories.department_subcategories.{$departmentSlug}", []))) {
-            return true;
-        }
-
-        if ($category->parent?->slug === 'sanitary'
-            && array_key_exists($category->slug, config('categories.sanitary_subcategories', []))) {
-            return true;
-        }
-
-        $mainSlug = $category->parent?->slug;
-
-        if ($mainSlug !== null) {
-            $children = config("categories.sanitary_subcategories.{$mainSlug}.children", []);
-
-            if (array_key_exists($category->slug, $children)) {
-                return true;
-            }
         }
 
         return false;
@@ -142,12 +125,10 @@ class CategoryBrowseService
                 });
             })
             ->with([
-                'children' => fn ($children) => $children
-                    ->active()
-                    ->whereHas('products', fn ($products) => $products->published())
-                    ->withCount(['products' => fn ($products) => $products->published()])
-                    ->orderBy('sort_order')
-                    ->orderBy('name'),
+                'children' => fn ($children) => $this->subcategoriesQuery(
+                    $children,
+                    includeEmpty: $includeEmpty,
+                ),
             ])
             ->withCount(['products' => fn ($q) => $q->published()])
             ->orderBy('sort_order')

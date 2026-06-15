@@ -67,4 +67,9 @@ class Category extends Model
     {
         return ProductMedia::resizeUrl($this->image, $width);
     }
+
+    public function usesVectorImage(): bool
+    {
+        return str_ends_with(strtolower((string) $this->image), '.svg');
+    }
 }

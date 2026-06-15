@@ -3,7 +3,6 @@
 return [
     /**
      * Main storefront departments (homepage circles + nav roots).
-     * Images live under public/images/categories/ so they deploy with git.
      */
     'main_departments' => [
         [
@@ -17,82 +16,108 @@ return [
             'name' => 'سيراميك',
             'slug' => 'ceramics',
             'sort_order' => 2,
-            'description' => 'سيراميك وبورcelain وتشطيبات للأرضيات والجدران',
+            'description' => 'سيراميك وبورسلين وتشطيبات للأرضيات والجدران',
             'image' => 'images/categories/ceramics.jpg',
-        ],
-        [
-            'name' => 'إكسسوارات',
-            'slug' => 'accessories',
-            'sort_order' => 3,
-            'description' => 'إكسسوارات وديكورات تكمّل أناقة مساحتك',
-            'image' => 'images/categories/accessories.jpg',
-        ],
-        [
-            'name' => 'منسوجات',
-            'slug' => 'textiles',
-            'sort_order' => 4,
-            'description' => 'مفروشات، ملايات، وستائر بجودة فاخرة',
-            'image' => 'images/categories/textiles.jpg',
         ],
         [
             'name' => 'الأجهزة المنزلية',
             'slug' => 'home-appliances',
-            'sort_order' => 5,
+            'sort_order' => 3,
             'description' => 'أجهزة كهربائية منزلية كبيرة وصغيرة',
-            'image' => 'images/categories/accessories.jpg',
+            'image' => 'images/categories/home-appliances.jpg',
         ],
         [
             'name' => 'صحي',
             'slug' => 'sanitary',
-            'sort_order' => 6,
+            'sort_order' => 4,
             'description' => 'أدوات صحية وخزانات دفن ووحدات حمام',
-            'image' => 'images/categories/sanitary.svg',
+            'image' => 'images/categories/sanitary.jpg',
         ],
         [
             'name' => 'لوحات فنية',
             'slug' => 'art-panels',
-            'sort_order' => 7,
+            'sort_order' => 5,
             'description' => 'لوحات فنية وديكور حائط يضيف لمسة أناقة',
-            'image' => 'images/categories/art-panels.svg',
+            'image' => 'images/categories/art-panels.jpg',
         ],
         [
             'name' => 'اضاءات',
             'slug' => 'lighting',
-            'sort_order' => 8,
+            'sort_order' => 6,
             'description' => 'إضاءات داخلية وخارجية لكل أركان المنزل',
-            'image' => 'images/categories/lighting.svg',
+            'image' => 'images/categories/lighting.jpg',
         ],
         [
             'name' => 'سجاد',
             'slug' => 'carpets',
-            'sort_order' => 9,
+            'sort_order' => 7,
             'description' => 'سجاد وموكيت بأشكال وألوان تناسب ديكورك',
-            'image' => 'images/categories/carpets.svg',
+            'image' => 'images/categories/carpets.jpg',
+        ],
+        [
+            'name' => 'منسوجات',
+            'slug' => 'textiles',
+            'sort_order' => 8,
+            'description' => 'مفروشات، ملايات، وستائر بجودة فاخرة',
+            'image' => 'images/categories/textiles.jpg',
         ],
     ],
 
     /**
+     * Live photo sources (Unsplash) keyed by category slug.
+     */
+    'category_image_sources' => [
+        'athath' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&q=80&auto=format',
+        'ceramics' => 'https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=900&q=80&auto=format',
+        'home-appliances' => 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=900&q=80&auto=format',
+        'sanitary' => 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=900&q=80&auto=format',
+        'art-panels' => 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=900&q=80&auto=format',
+        'lighting' => 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=900&q=80&auto=format',
+        'carpets' => 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=900&q=80&auto=format',
+        'textiles' => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=900&q=80&auto=format',
+        'living-room' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=900&q=80&auto=format',
+        'bedrooms' => 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=900&q=80&auto=format',
+        'dining-rooms' => 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=900&q=80&auto=format',
+        'salons' => 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&q=80&auto=format',
+        'outdoor' => 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80&auto=format',
+        'libraries' => 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=900&q=80&auto=format',
+        'indoor-flooring' => 'https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=900&q=80&auto=format',
+        'walls' => 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=900&q=80&auto=format',
+        'outdoor-flooring' => 'https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=900&q=80&auto=format',
+        'porcelain' => 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=900&q=80&auto=format',
+        'mixers' => 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=900&q=80&auto=format',
+        'kitchen-mixers' => 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=900&q=80&auto=format',
+        'bathroom-mixers' => 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=900&q=80&auto=format',
+        'sanitary-equipment' => 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=900&q=80&auto=format',
+        'basins' => 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=900&q=80&auto=format',
+        'combination' => 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=900&q=80&auto=format',
+        'bathtub-sets' => 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=900&q=80&auto=format',
+        'jacuzzi' => 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=900&q=80&auto=format',
+        'concealed-sanitary-sets' => 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=900&q=80&auto=format',
+        'sanitary-supplies' => 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80&auto=format',
+    ],
+
+    /**
      * Nested storefront subcategories under صحي.
-     * Main groups may contain leaf subcategories (children).
      */
     'sanitary_subcategories' => [
         'mixers' => [
             'name' => 'خلاطات',
             'sort_order' => 1,
             'description' => 'خلاطات مطابخ وحمامات بجودة عالية',
-            'image' => 'images/categories/sanitary-mixers.svg',
+            'image' => 'images/categories/mixers.jpg',
             'children' => [
                 'kitchen-mixers' => [
                     'name' => 'مطابخ',
                     'sort_order' => 1,
                     'description' => 'خلاطات ومغاسل المطبخ',
-                    'image' => 'images/categories/sanitary-kitchen-mixers.svg',
+                    'image' => 'images/categories/kitchen-mixers.jpg',
                 ],
                 'bathroom-mixers' => [
                     'name' => 'حمامات',
                     'sort_order' => 2,
                     'description' => 'خلاطات البانيو والشاور والأحواض',
-                    'image' => 'images/categories/sanitary-bathroom-mixers.svg',
+                    'image' => 'images/categories/bathroom-mixers.jpg',
                 ],
             ],
         ],
@@ -100,31 +125,31 @@ return [
             'name' => 'أجهزة صحية',
             'sort_order' => 2,
             'description' => 'أحواض وبانيوهات ووحدات صحية متكاملة',
-            'image' => 'images/categories/sanitary-equipment.svg',
+            'image' => 'images/categories/sanitary-equipment.jpg',
             'children' => [
                 'basins' => [
                     'name' => 'أحواض',
                     'sort_order' => 1,
                     'description' => 'أحواض حمامات وديكور',
-                    'image' => 'images/categories/sanitary-basins.svg',
+                    'image' => 'images/categories/basins.jpg',
                 ],
                 'combination' => [
                     'name' => 'كوبنشن',
                     'sort_order' => 2,
                     'description' => 'وحدات صحية متكاملة وكومباكت',
-                    'image' => 'images/categories/sanitary-combination.svg',
+                    'image' => 'images/categories/combination.jpg',
                 ],
                 'bathtub-sets' => [
-                    'name' => 'أطقم بانيوهات',
+                    'name' => 'بانيوهات',
                     'sort_order' => 3,
                     'description' => 'بانيوهات وأطقم استحمام',
-                    'image' => 'images/categories/sanitary-bathtub-sets.svg',
+                    'image' => 'images/categories/bathtub-sets.jpg',
                 ],
                 'jacuzzi' => [
                     'name' => 'جاكوزي',
                     'sort_order' => 4,
                     'description' => 'جاكوزي وبانيوهات فاخرة',
-                    'image' => 'images/categories/sanitary-jacuzzi.svg',
+                    'image' => 'images/categories/jacuzzi.jpg',
                 ],
             ],
         ],
@@ -132,91 +157,58 @@ return [
             'name' => 'أطقم صحية دفن',
             'sort_order' => 3,
             'description' => 'خزانات دفن وأنظمة صحية مخفية',
-            'image' => 'images/categories/sanitary-concealed-sets.svg',
+            'image' => 'images/categories/concealed-sanitary-sets.jpg',
             'children' => [],
         ],
         'sanitary-supplies' => [
             'name' => 'لوازم أدوات صحية',
             'sort_order' => 4,
             'description' => 'مراحيض ودش ولوازم تكميلية',
-            'image' => 'images/categories/sanitary-supplies.svg',
+            'image' => 'images/categories/sanitary-supplies.jpg',
             'children' => [],
         ],
     ],
 
     /**
-     * Storefront subcategories under أثاث / سيراميك / إكسسوارات.
-     * Images live under public/images/categories/ so they deploy with git.
+     * Storefront subcategories under أثاث / سيراميك.
      */
     'department_subcategories' => [
-        'accessories' => [
-            'bathroom-accessories' => [
-                'name' => 'اكسسورات حمام',
-                'sort_order' => 1,
-                'description' => 'إكسسوارات وتجهيزات الحمام',
-                'image' => 'images/categories/accessories-bathroom-accessories.svg',
-            ],
-            'kitchen-accessories' => [
-                'name' => 'اكسسورات مطابخ',
-                'sort_order' => 2,
-                'description' => 'إكسسوارات وتجهيزات المطبخ',
-                'image' => 'images/categories/accessories-kitchen-accessories.svg',
-            ],
-            'furniture-accessories' => [
-                'name' => 'اكسسوارات الأثاث',
-                'sort_order' => 3,
-                'description' => 'مقابض وإكسسوارات تكمّل قطع الأثاث',
-                'image' => 'images/categories/accessories-furniture-accessories.svg',
-            ],
-            'door-accessories' => [
-                'name' => 'اكسسوارات الابواب',
-                'sort_order' => 4,
-                'description' => 'مفصلات ومقابض وإكسسوارات الأبواب',
-                'image' => 'images/categories/accessories-door-accessories.svg',
-            ],
-            'doors-kitchen-hardware' => [
-                'name' => 'اكسسوارات الابواب والمطابخ',
-                'sort_order' => 5,
-                'description' => 'حلول موحّدة لأبواب المطبخ والأثاث',
-                'image' => 'images/categories/accessories-doors-kitchen-hardware.svg',
-            ],
-        ],
         'athath' => [
             'living-room' => [
                 'name' => 'ليفينج روم',
                 'sort_order' => 1,
                 'description' => 'أثاث غرف المعيشة والجلوس',
-                'image' => 'images/categories/athath-living-room.svg',
+                'image' => 'images/categories/living-room.jpg',
             ],
             'bedrooms' => [
                 'name' => 'غرف نوم',
                 'sort_order' => 2,
                 'description' => 'أسرة وخزائن وغرف نوم كاملة',
-                'image' => 'images/categories/athath-bedrooms.svg',
+                'image' => 'images/categories/bedrooms.jpg',
             ],
             'dining-rooms' => [
                 'name' => 'غرف سفره',
                 'sort_order' => 3,
                 'description' => 'سفرة وكراسي وبوفيهات',
-                'image' => 'images/categories/athath-dining-rooms.svg',
+                'image' => 'images/categories/dining-rooms.jpg',
             ],
             'salons' => [
-                'name' => 'صالونات',
+                'name' => 'صلونات',
                 'sort_order' => 4,
                 'description' => 'صالونات ومجالس ضيافة',
-                'image' => 'images/categories/athath-salons.svg',
+                'image' => 'images/categories/salons.jpg',
             ],
             'outdoor' => [
                 'name' => 'اوت دور',
                 'sort_order' => 5,
                 'description' => 'أثاث خارجي للحدائق والتراس',
-                'image' => 'images/categories/athath-outdoor.svg',
+                'image' => 'images/categories/outdoor.jpg',
             ],
             'libraries' => [
                 'name' => 'مكتبات',
                 'sort_order' => 6,
                 'description' => 'مكتبات ووحدات تخزين للكتب',
-                'image' => 'images/categories/athath-libraries.svg',
+                'image' => 'images/categories/libraries.jpg',
             ],
         ],
         'ceramics' => [
@@ -224,32 +216,31 @@ return [
                 'name' => 'أرضيات داخليه',
                 'sort_order' => 1,
                 'description' => 'سيراميك وبورسلين للأرضيات الداخلية',
-                'image' => 'images/categories/ceramics-indoor-flooring.svg',
+                'image' => 'images/categories/indoor-flooring.jpg',
             ],
             'walls' => [
                 'name' => 'حوائط',
                 'sort_order' => 2,
                 'description' => 'تشطيبات وجدران سيراميك وبورسلين',
-                'image' => 'images/categories/ceramics-walls.svg',
+                'image' => 'images/categories/walls.jpg',
             ],
             'outdoor-flooring' => [
                 'name' => 'أرضيات خارجيه',
                 'sort_order' => 3,
                 'description' => 'أرضيات خارجية مقاومة للعوامل الجوية',
-                'image' => 'images/categories/ceramics-outdoor-flooring.svg',
+                'image' => 'images/categories/outdoor-flooring.jpg',
             ],
             'porcelain' => [
                 'name' => 'بورسلين',
                 'sort_order' => 4,
                 'description' => 'بورسلين فاخر للأرضيات والحوائط',
-                'image' => 'images/categories/ceramics-porcelain.svg',
+                'image' => 'images/categories/porcelain.jpg',
             ],
         ],
     ],
 
     /**
      * Unified subcategories under home-appliances (shared by all appliance scrapers).
-     * Keys are canonical category slugs used in the storefront.
      */
     'home_appliances' => [
         'refrigerators' => 'ثلاجات',

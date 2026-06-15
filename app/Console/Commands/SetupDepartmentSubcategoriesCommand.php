@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Support\CategoryImageResolver;
 use App\Support\DepartmentSubcategories;
 use App\Support\SanitarySubcategories;
 use Illuminate\Console\Command;
@@ -22,6 +23,7 @@ class SetupDepartmentSubcategoriesCommand extends Command
         $moved = 0;
         $deleted = 0;
         $created = 0;
+        $images = app(CategoryImageResolver::class);
 
         foreach (DepartmentSubcategories::grouped() as $departmentSlug => $subcategories) {
             $department = Category::query()->where('slug', $departmentSlug)->first();
@@ -59,7 +61,7 @@ class SetupDepartmentSubcategoriesCommand extends Command
                         'name' => $name,
                         'parent_id' => $department->id,
                         'description' => $row['description'] ?? null,
-                        'image' => $row['image'] ?? null,
+                        'image' => $images->resolve($slug, $row['image'] ?? null),
                         'is_active' => true,
                         'sort_order' => (int) ($row['sort_order'] ?? 0),
                         'deleted_at' => null,
@@ -74,7 +76,7 @@ class SetupDepartmentSubcategoriesCommand extends Command
                     'name' => $name,
                     'parent_id' => $department->id,
                     'description' => $row['description'] ?? null,
-                    'image' => $row['image'] ?? null,
+                    'image' => $images->resolve($slug, $row['image'] ?? null),
                     'is_active' => true,
                     'sort_order' => (int) ($row['sort_order'] ?? 0),
                 ]);
@@ -122,7 +124,7 @@ class SetupDepartmentSubcategoriesCommand extends Command
             }
         }
 
-        $created += $this->setupSanitaryTree($dryRun, $moved);
+        $created += $this->setupSanitaryTree($dryRun, $moved, $images);
 
         if ($dryRun) {
             $this->warn("Dry run — would create/update {$created} subcategories, move {$moved} categories, delete {$deleted} extras.");
@@ -284,7 +286,7 @@ class SetupDepartmentSubcategoriesCommand extends Command
         return 'indoor-flooring';
     }
 
-    protected function setupSanitaryTree(bool $dryRun, int &$moved): int
+    protected function setupSanitaryTree(bool $dryRun, int &$moved, CategoryImageResolver $images): int
     {
         $department = Category::query()->where('slug', 'sanitary')->first();
 
@@ -305,6 +307,7 @@ class SetupDepartmentSubcategoriesCommand extends Command
                 $mainRow,
                 $dryRun,
                 $created,
+                $images,
             );
 
             if ($main !== null) {
@@ -322,6 +325,7 @@ class SetupDepartmentSubcategoriesCommand extends Command
                     $leafRow,
                     $dryRun,
                     $created,
+                    $images,
                 );
 
                 if ($leaf !== null) {
@@ -390,8 +394,10 @@ class SetupDepartmentSubcategoriesCommand extends Command
         array $row,
         bool $dryRun,
         int &$created,
+        CategoryImageResolver $images,
     ): ?Category {
         $name = (string) ($row['name'] ?? $slug);
+        $image = $images->resolve($slug, $row['image'] ?? null);
 
         if ($dryRun) {
             $existing = Category::query()
@@ -413,7 +419,7 @@ class SetupDepartmentSubcategoriesCommand extends Command
                 'name' => $name,
                 'parent_id' => $parent->id,
                 'description' => $row['description'] ?? null,
-                'image' => $row['image'] ?? null,
+                'image' => $image,
                 'is_active' => true,
                 'sort_order' => (int) ($row['sort_order'] ?? 0),
                 'deleted_at' => null,
@@ -428,7 +434,7 @@ class SetupDepartmentSubcategoriesCommand extends Command
             'name' => $name,
             'parent_id' => $parent->id,
             'description' => $row['description'] ?? null,
-            'image' => $row['image'] ?? null,
+            'image' => $image,
             'is_active' => true,
             'sort_order' => (int) ($row['sort_order'] ?? 0),
         ]);

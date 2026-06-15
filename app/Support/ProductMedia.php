@@ -58,12 +58,8 @@ class ProductMedia
             return null;
         }
 
-        if (str_ends_with(strtolower($relative), '.svg')) {
-            if (is_file(public_path($relative))) {
-                return AppUrl::absolute($relative);
-            }
-
-            return self::url($relative);
+        if (is_file(public_path($relative))) {
+            return AppUrl::absolute($relative);
         }
 
         $width = max(40, min(1600, $width));

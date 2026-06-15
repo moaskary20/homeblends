@@ -7,12 +7,17 @@ use Tests\TestCase;
 
 class ProductMediaTest extends TestCase
 {
-    public function test_resize_url_serves_public_svg_without_media_pipeline(): void
+    public function test_resize_url_serves_public_assets_without_media_pipeline(): void
     {
-        $url = ProductMedia::resizeUrl('images/categories/sanitary.svg', 400);
+        $svg = ProductMedia::resizeUrl('images/categories/sanitary.svg', 400);
+        $jpg = ProductMedia::resizeUrl('images/categories/athath.jpg', 400);
 
-        $this->assertNotNull($url);
-        $this->assertStringEndsWith('/images/categories/sanitary.svg', $url);
-        $this->assertStringNotContainsString('/media/', $url);
+        $this->assertNotNull($svg);
+        $this->assertStringEndsWith('/images/categories/sanitary.svg', $svg);
+        $this->assertStringNotContainsString('/media/', $svg);
+
+        $this->assertNotNull($jpg);
+        $this->assertStringEndsWith('/images/categories/athath.jpg', $jpg);
+        $this->assertStringNotContainsString('/media/', $jpg);
     }
 }

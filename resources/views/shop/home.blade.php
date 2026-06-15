@@ -62,16 +62,13 @@
                 <a href="{{ route('shop.categories.show', $category->slug) }}" class="hb-category-card group">
                     <div class="hb-category-circle group-hover:scale-105 transition-transform">
                         @if($category->imageUrl())
-                            <img src="{{ $category->imageUrl(400) }}" alt="{{ $category->name }}" loading="lazy" decoding="async">
+                            @include('shop.partials.category-circle-image', ['category' => $category, 'width' => 400])
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-amber-100 text-4xl">🏠</div>
                         @endif
                     </div>
                     <div class="hb-category-name-ticker">
-                        <div class="hb-category-name-track" style="animation-delay: {{ $loop->index * 0.4 }}s">
-                            <span>{{ $category->name }}</span>
-                            <span>{{ __('ecommerce.explore_now') }} ←</span>
-                        </div>
+                        <span>{{ $category->name }}</span>
                     </div>
                 </a>
             @endforeach

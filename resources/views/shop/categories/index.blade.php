@@ -14,11 +14,7 @@
                 @foreach($categories as $category)
                     <a href="{{ route('shop.categories.show', $category->slug) }}" class="hb-dept-card group">
                         <div class="hb-dept-circle group-hover:scale-105 transition-transform">
-                            @if($category->imageUrl())
-                                <img src="{{ $category->imageUrl(400) }}" alt="{{ $category->name }}" loading="lazy" decoding="async">
-                            @else
-                                <span class="text-4xl">🛋️</span>
-                            @endif
+                            @include('shop.partials.category-circle-image', ['category' => $category, 'width' => 400])
                         </div>
                         <h2 class="font-semibold text-center mt-3">{{ $category->name }}</h2>
                         @if($category->parent)
