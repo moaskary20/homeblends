@@ -5,8 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/providers/repositories.dart';
 import '../../shared/models/category.dart';
-import '../../shared/models/product.dart';
-import '../../shared/widgets/product_card.dart';
+import '../../shared/models/home.dart';
+import '../../shared/widgets/app_drawer.dart';
+import '../../shared/widgets/customer_reviews_carousel.dart';
+import '../../shared/widgets/three_d_drawer_scaffold.dart';
+import '../../shared/widgets/hero_slider.dart';
+import '../../shared/widgets/news_ticker.dart';
+import '../../shared/widgets/product_carousel.dart';
 import '../../shared/widgets/server_settings_sheet.dart';
 import '../../shared/widgets/state_views.dart';
 
@@ -18,7 +23,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  List<Product> _featured = [];
+  final _drawerKey = GlobalKey<ThreeDDrawerScaffoldState>();
+  HomeContent? _home;
   List<Category> _categories = [];
   bool _loading = true;
   String? _error;
@@ -37,14 +43,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       _connectionError = false;
     });
     try {
+      final homeRepo = await ref.read(homeRepositoryProvider.future);
       final catalog = await ref.read(catalogRepositoryProvider.future);
       final results = await Future.wait([
-        catalog.getFeatured(),
+        homeRepo.getHome(),
         catalog.getCategories(),
       ]);
       if (!mounted) return;
       setState(() {
-        _featured = results[0] as List<Product>;
+        _home = results[0] as HomeContent;
         _categories = results[1] as List<Category>;
         _loading = false;
       });
@@ -71,15 +78,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ThreeDDrawerScaffold(
+      key: _drawerKey,
+      drawer: AppDrawer(
+        onClose: () => _drawerKey.currentState?.closeDrawer(),
+      ),
       appBar: AppBar(
         title: const Text('هوم بلند'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_ethernet),
-            tooltip: 'إعدادات الاتصال',
-            onPressed: _openServerSettings,
-          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () => context.push('/search'),
@@ -99,92 +105,100 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onRefresh: _load,
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
                     children: [
-                      if (_categories.isNotEmpty) ...[
-                        const Text(
-                          'التصنيفات',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 100,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: _categories.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(width: 12),
-                            itemBuilder: (context, index) {
-                              final cat = _categories[index];
-                              return InkWell(
-                                onTap: () =>
-                                    context.push('/categories/${cat.slug}'),
-                                child: Column(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 32,
-                                      backgroundImage: cat.image != null
-                                          ? NetworkImage(cat.image!)
-                                          : null,
-                                      child: cat.image == null
-                                          ? Text(cat.name[0])
-                                          : null,
-                                    ),
-                                    const SizedBox(height: 6),
-                                    SizedBox(
-                                      width: 72,
-                                      child: Text(
-                                        cat.name,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(fontSize: 12),
+                      if (_home!.newsTicker.isNotEmpty)
+                        NewsTicker(items: _home!.newsTicker),
+                      if (_home!.heroSlides.isNotEmpty) ...[
+                        HeroSlider(slides: _home!.heroSlides),
+                        const SizedBox(height: 20),
+                      ],
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (_categories.isNotEmpty) ...[
+                              SectionHeader(
+                                title: 'التصنيفات',
+                                onViewAll: () => context.go('/categories-tab'),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                height: 100,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _categories.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(width: 12),
+                                  itemBuilder: (context, index) {
+                                    final cat = _categories[index];
+                                    return InkWell(
+                                      onTap: () => context.push(
+                                        '/categories/${cat.slug}',
                                       ),
-                                    ),
-                                  ],
+                                      child: Column(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 32,
+                                            backgroundImage: cat.image != null
+                                                ? NetworkImage(cat.image!)
+                                                : null,
+                                            child: cat.image == null
+                                                ? Text(cat.name[0])
+                                                : null,
+                                          ),
+                                          const SizedBox(height: 6),
+                                          SizedBox(
+                                            width: 72,
+                                            child: Text(
+                                              cat.name,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ] else
-                        const EmptyView(
-                          message: 'لا توجد تصنيفات',
-                          icon: Icons.category_outlined,
-                        ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'منتجات مميزة',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                              ),
+                            ] else
+                              const EmptyView(
+                                message: 'لا توجد تصنيفات',
+                                icon: Icons.category_outlined,
+                              ),
+                            const SizedBox(height: 24),
+                            ProductCarousel(
+                              title: 'منتجات مميزة',
+                              products: _home!.featured,
+                            ),
+                            const SizedBox(height: 24),
+                            ..._home!.departments.map(
+                              (section) => Padding(
+                                padding: const EdgeInsets.only(bottom: 24),
+                                child: ProductCarousel(
+                                  title: section.title,
+                                  products: section.products,
+                                  categorySlug: section.slug,
+                                ),
+                              ),
+                            ),
+                            CustomerReviewsCarousel(
+                              title: _home!.customerReviewsTitle,
+                              reviews: _home!.customerReviews,
+                            ),
+                            const SizedBox(height: 24),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      if (_featured.isEmpty)
-                        const EmptyView(message: 'لا توجد منتجات مميزة')
-                      else
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.72,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                          ),
-                          itemCount: _featured.length,
-                          itemBuilder: (_, i) =>
-                              ProductCard(product: _featured[i]),
-                        ),
                     ],
                   ),
                 ),
     );
   }
 }
+

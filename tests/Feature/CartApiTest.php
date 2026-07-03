@@ -92,6 +92,36 @@ class CartApiTest extends TestCase
             ->assertJsonPath('totals.items_count', 0);
     }
 
+    public function test_mobile_guest_cart_persists_across_requests_with_x_session_id(): void
+    {
+        $category = Category::create(['name' => 'Cat', 'slug' => 'cat', 'is_active' => true]);
+        $product = Product::create([
+            'category_id' => $category->id,
+            'name' => 'Mobile item',
+            'slug' => 'mobile-item',
+            'sku' => 'SKU-MOB',
+            'regular_price' => 40,
+            'stock_quantity' => 5,
+            'status' => ProductStatus::Published,
+        ]);
+
+        $sessionId = 'guest-mobile-session-xyz';
+
+        $this->withHeader('X-Session-Id', $sessionId)
+            ->postJson('/api/v1/cart/items', [
+                'product_id' => $product->id,
+                'quantity' => 1,
+            ])
+            ->assertOk()
+            ->assertJsonPath('totals.items_count', 1);
+
+        $this->withHeader('X-Session-Id', $sessionId)
+            ->getJson('/api/v1/cart')
+            ->assertOk()
+            ->assertJsonPath('totals.items_count', 1)
+            ->assertJsonPath('cart.items.0.product.id', $product->id);
+    }
+
     public function test_resolve_cart_merges_guest_items_for_logged_in_user(): void
     {
         $user = User::factory()->create();

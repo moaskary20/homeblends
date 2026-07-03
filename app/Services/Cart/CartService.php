@@ -2,6 +2,7 @@
 
 namespace App\Services\Cart;
 
+use App\Http\Concerns\ResolvesCartSession;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
@@ -12,28 +13,17 @@ use Illuminate\Support\Facades\DB;
 
 class CartService
 {
+    use ResolvesCartSession;
+
     public function resolveForRequest(Request $request): Cart
     {
-        $userId = $request->hasSession()
-            ? auth('web')->id()
-            : $request->user()?->id;
+        $userId = $request->user()?->id;
 
-        $sessionId = $request->hasSession()
-            ? $request->session()->getId()
-            : $request->header('X-Session-Id');
-
-        if (! is_string($sessionId) || $sessionId === '') {
-            $sessionId = null;
+        if ($userId === null && $request->hasSession()) {
+            $userId = auth('web')->id();
         }
 
-        if (! $userId && $sessionId === null) {
-            $header = $request->header('X-Session-Id');
-            if (is_string($header) && $header !== '') {
-                $sessionId = $header;
-            }
-        }
-
-        return $this->resolveCart($userId, $sessionId);
+        return $this->resolveCart($userId, $this->resolveCartSessionId($request));
     }
 
     public function resolveCart(?int $userId, ?string $sessionId): Cart

@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers/repositories.dart';
 import '../../shared/models/category.dart';
 import '../../shared/models/product.dart';
+import '../../shared/widgets/category_grid_card.dart';
 import '../../shared/widgets/product_card.dart';
 import '../../shared/widgets/state_views.dart';
 
@@ -168,34 +168,51 @@ class _SubcategoryLanding extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(
-          'اختر قسماً فرعياً',
-          style: Theme.of(context).textTheme.titleMedium,
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: CategoryHeroBanner(
+            category: category,
+            subtitle: 'اختر قسماً فرعياً أو اعرض كل المنتجات',
+          ),
         ),
-        const SizedBox(height: 12),
-        ...category.children.map(
-          (child) => Card(
-            margin: const EdgeInsets.only(bottom: 8),
-            child: ListTile(
-              leading: child.image != null
-                  ? CircleAvatar(
-                      backgroundImage: CachedNetworkImageProvider(child.image!),
-                    )
-                  : CircleAvatar(child: Text(child.name[0])),
-              title: Text(child.name),
-              trailing: const Icon(Icons.arrow_back_ios, size: 16),
-              onTap: () => context.push('/categories/${child.slug}'),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.82,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final child = category.children[index];
+                return CategoryGridCard(
+                  category: child,
+                  compact: true,
+                  onTap: () => context.push('/categories/${child.slug}'),
+                );
+              },
+              childCount: category.children.length,
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: onBrowseAll,
-          icon: const Icon(Icons.grid_view_outlined),
-          label: Text('عرض كل منتجات ${category.name}'),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+            child: OutlinedButton.icon(
+              onPressed: onBrowseAll,
+              icon: const Icon(Icons.grid_view_rounded),
+              label: Text('عرض كل منتجات ${category.name}'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );

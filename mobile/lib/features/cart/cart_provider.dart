@@ -8,8 +8,26 @@ class CartNotifier extends StateNotifier<AsyncValue<CartResponse?>> {
 
   final Ref _ref;
 
-  Future<void> load() async {
-    state = const AsyncValue.loading();
+  Future<void> load({bool force = false}) async {
+    if (!force && state.valueOrNull != null) {
+      return;
+    }
+
+    final previous = state.valueOrNull;
+    if (previous == null) {
+      state = const AsyncValue.loading();
+    }
+
+    try {
+      final repo = await _ref.read(cartRepositoryProvider.future);
+      final cart = await repo.getCart();
+      state = AsyncValue.data(cart);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> refresh() async {
     try {
       final repo = await _ref.read(cartRepositoryProvider.future);
       final cart = await repo.getCart();
@@ -61,6 +79,8 @@ final cartItemCountProvider = Provider<int>((ref) {
   final cart = ref.watch(cartProvider);
   return cart.maybeWhen(
     data: (value) => value?.totals.itemsCount ?? 0,
+    loading: () => cart.value?.totals.itemsCount ?? 0,
+    error: (_, __) => cart.value?.totals.itemsCount ?? 0,
     orElse: () => 0,
   );
 });

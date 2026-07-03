@@ -1009,6 +1009,7 @@ class HomepageSettingsPage extends Page implements HasForms
         Cache::forget('shop.catalog_showcase');
         Cache::forget('shop.catalog_showcase_furniture');
         Cache::forget('shop.featured');
+        Cache::forget('api.v1.home');
 
         Notification::make()
             ->title(__('ecommerce.settings_saved'))

@@ -12,6 +12,8 @@ import '../../shared/models/order.dart';
 import '../../shared/models/product.dart';
 import '../../shared/models/review.dart';
 import '../../shared/models/shipping.dart';
+import '../../shared/models/home.dart';
+import '../../shared/models/loyalty.dart';
 import '../../shared/models/user.dart';
 
 class AuthRepository {
@@ -154,7 +156,7 @@ class CartRepository {
     int? variantId,
     int quantity = 1,
   }) async {
-    final response = await _client.post<Map<String, dynamic>>(
+    await _client.post<Map<String, dynamic>>(
       '/cart/items',
       data: {
         'product_id': productId,
@@ -162,30 +164,30 @@ class CartRepository {
         'quantity': quantity,
       },
     );
-    return CartResponse.fromJson(response.data!);
+    return getCart();
   }
 
   Future<CartResponse> updateItem(int itemId, int quantity) async {
-    final response = await _client.patch<Map<String, dynamic>>(
+    await _client.patch<Map<String, dynamic>>(
       '/cart/items/$itemId',
       data: {'quantity': quantity},
     );
-    return CartResponse.fromJson(response.data!);
+    return getCart();
   }
 
   Future<CartResponse> removeItem(int itemId) async {
-    final response = await _client.delete<Map<String, dynamic>>(
+    await _client.delete<Map<String, dynamic>>(
       '/cart/items/$itemId',
     );
-    return CartResponse.fromJson(response.data!);
+    return getCart();
   }
 
   Future<CartResponse> applyCoupon(String code) async {
-    final response = await _client.post<Map<String, dynamic>>(
+    await _client.post<Map<String, dynamic>>(
       '/cart/coupon',
       data: {'code': code},
     );
-    return CartResponse.fromJson(response.data!);
+    return getCart();
   }
 }
 
@@ -300,6 +302,48 @@ class WishlistRepository {
   }
 }
 
+class HomeRepository {
+  HomeRepository(this._client);
+
+  final ApiClient _client;
+
+  Future<HomeContent> getHome() async {
+    final response = await _client.get<Map<String, dynamic>>('/home');
+    return HomeContent.fromJson(response.data!);
+  }
+}
+
+class LoyaltyRepository {
+  LoyaltyRepository(this._client);
+
+  final ApiClient _client;
+
+  Future<LoyaltyProgram> getProgram() async {
+    final response = await _client.get<Map<String, dynamic>>('/loyalty/balance');
+    return LoyaltyProgram.fromJson(response.data!);
+  }
+
+  Future<List<LoyaltyTransaction>> getHistory({int page = 1}) async {
+    final response = await _client.get<dynamic>(
+      '/loyalty/history',
+      queryParameters: {'page': page},
+    );
+    return parseList(response.data, LoyaltyTransaction.fromJson);
+  }
+
+  Future<LoyaltyProgram> redeemToWallet(int points) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      '/loyalty/redeem-wallet',
+      data: {'points': points},
+    );
+    final data = response.data!;
+    if (data['program'] is Map<String, dynamic>) {
+      return LoyaltyProgram.fromJson(data['program'] as Map<String, dynamic>);
+    }
+    return getProgram();
+  }
+}
+
 final authRepositoryProvider = FutureProvider<AuthRepository>((ref) async {
   final client = await ref.watch(apiClientProvider.future);
   return AuthRepository(
@@ -312,6 +356,11 @@ final authRepositoryProvider = FutureProvider<AuthRepository>((ref) async {
 final catalogRepositoryProvider = FutureProvider<CatalogRepository>((ref) async {
   final client = await ref.watch(apiClientProvider.future);
   return CatalogRepository(client);
+});
+
+final homeRepositoryProvider = FutureProvider<HomeRepository>((ref) async {
+  final client = await ref.watch(apiClientProvider.future);
+  return HomeRepository(client);
 });
 
 final cartRepositoryProvider = FutureProvider<CartRepository>((ref) async {
@@ -332,4 +381,9 @@ final orderRepositoryProvider = FutureProvider<OrderRepository>((ref) async {
 final wishlistRepositoryProvider = FutureProvider<WishlistRepository>((ref) async {
   final client = await ref.watch(apiClientProvider.future);
   return WishlistRepository(client);
+});
+
+final loyaltyRepositoryProvider = FutureProvider<LoyaltyRepository>((ref) async {
+  final client = await ref.watch(apiClientProvider.future);
+  return LoyaltyRepository(client);
 });

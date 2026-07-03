@@ -7,16 +7,34 @@ use Illuminate\Http\Request;
 trait ResolvesCartSession
 {
     /**
-     * Prefer the live Laravel session cookie over a stale X-Session-Id from cached HTML.
+     * Resolve the cart session key for API and web clients.
+     *
+     * Mobile apps send X-Session-Id without Laravel cookies. When the API
+     * middleware starts an ephemeral in-memory session, we must still honour
+     * the explicit header instead of a throwaway session id.
      */
     protected function resolveCartSessionId(Request $request): ?string
     {
-        if ($request->hasSession()) {
-            return $request->session()->getId();
+        $header = $this->normalizeCartSessionId($request->header('X-Session-Id'));
+
+        $sessionCookie = config('session.cookie');
+        $hasSessionCookie = is_string($sessionCookie)
+            && $sessionCookie !== ''
+            && $request->hasCookie($sessionCookie);
+
+        if ($header !== null && ! $hasSessionCookie) {
+            return $header;
         }
 
-        $header = $request->header('X-Session-Id');
+        if ($request->hasSession()) {
+            return $this->normalizeCartSessionId($request->session()->getId()) ?? $header;
+        }
 
-        return is_string($header) && $header !== '' ? $header : null;
+        return $header;
+    }
+
+    protected function normalizeCartSessionId(mixed $value): ?string
+    {
+        return is_string($value) && $value !== '' ? $value : null;
     }
 }

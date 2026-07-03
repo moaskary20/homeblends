@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/network/api_exception.dart';
 import '../../core/providers/repositories.dart';
+import '../../core/theme/app_colors.dart';
 import '../../shared/models/category.dart';
+import '../../shared/widgets/category_grid_card.dart';
 import '../../shared/widgets/server_settings_sheet.dart';
 import '../../shared/widgets/state_views.dart';
 
@@ -62,18 +64,16 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     showServerSettingsSheet(context, ref, onSaved: _load);
   }
 
+  void _openCategory(Category category) {
+    context.push('/categories/${category.slug}');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('التصنيفات'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_ethernet),
-            tooltip: 'إعدادات الاتصال',
-            onPressed: _openServerSettings,
-          ),
-        ],
       ),
       body: _loading
           ? const LoadingView(message: 'جاري تحميل التصنيفات...')
@@ -97,56 +97,69 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                             ),
                           ],
                         )
-                      : ListView.builder(
+                      : CustomScrollView(
                           physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _categories.length,
-                          itemBuilder: (context, index) {
-                            final category = _categories[index];
-                            return _CategoryTile(category: category);
-                          },
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  8,
+                                  20,
+                                  20,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Text(
+                                      'تسوّق حسب القسم',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.text,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      'اختر التصنيف المناسب واستكشف منتجاتنا',
+                                      style: TextStyle(
+                                        color: AppColors.muted,
+                                        fontSize: 14,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                              sliver: SliverGrid(
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  mainAxisSpacing: 16,
+                                  crossAxisSpacing: 14,
+                                  childAspectRatio: 0.78,
+                                ),
+                                delegate: SliverChildBuilderDelegate(
+                                  (context, index) {
+                                    final category = _categories[index];
+                                    return CategoryGridCard(
+                                      category: category,
+                                      onTap: () => _openCategory(category),
+                                    );
+                                  },
+                                  childCount: _categories.length,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                 ),
-    );
-  }
-}
-
-class _CategoryTile extends StatelessWidget {
-  const _CategoryTile({required this.category});
-
-  final Category category;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ExpansionTile(
-        leading: category.image != null
-            ? CircleAvatar(backgroundImage: NetworkImage(category.image!))
-            : CircleAvatar(child: Text(category.name[0])),
-        title: Text(category.name),
-        onExpansionChanged: (expanded) {
-          if (!expanded && category.children.isEmpty) {
-            context.push('/categories/${category.slug}');
-          }
-        },
-        children: [
-          if (category.children.isEmpty)
-            ListTile(
-              title: const Text('عرض المنتجات'),
-              trailing: const Icon(Icons.arrow_back_ios, size: 16),
-              onTap: () => context.push('/categories/${category.slug}'),
-            )
-          else
-            ...category.children.map(
-              (child) => ListTile(
-                title: Text(child.name),
-                trailing: const Icon(Icons.arrow_back_ios, size: 16),
-                onTap: () => context.push('/categories/${child.slug}'),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }

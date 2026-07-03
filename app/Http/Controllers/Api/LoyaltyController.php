@@ -76,4 +76,30 @@ class LoyaltyController extends Controller
             'message' => $message,
         ]);
     }
+
+    public function redeemToWallet(Request $request)
+    {
+        $minRedeem = (int) config('ecommerce.loyalty.min_redeem_points', 10);
+
+        $request->validate([
+            'points' => ['required', 'integer', 'min:'.$minRedeem],
+        ]);
+
+        try {
+            $amount = $this->loyaltyService->redeemToWallet(
+                $request->user(),
+                $request->integer('points'),
+            );
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => __('ecommerce.points_redeemed_to_wallet', [
+                'amount' => number_format($amount, 2),
+            ]),
+            'amount' => $amount,
+            'program' => $this->loyaltyService->getProgramInfo($request->user()->fresh()),
+        ]);
+    }
 }

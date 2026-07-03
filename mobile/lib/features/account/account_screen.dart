@@ -57,6 +57,16 @@ class AccountScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               _MenuTile(
+                icon: Icons.account_balance_wallet_outlined,
+                title: 'المحفظة',
+                onTap: () => context.push('/wallet'),
+              ),
+              _MenuTile(
+                icon: Icons.stars_outlined,
+                title: 'نقاط الولاء',
+                onTap: () => context.push('/points'),
+              ),
+              _MenuTile(
                 icon: Icons.receipt_long,
                 title: 'طلباتي',
                 onTap: () => context.push('/orders'),

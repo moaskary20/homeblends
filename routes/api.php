@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\BundleController;
-use App\Http\Controllers\Api\FlashSaleController;
+use App\Http\Controllers\Api\HomeController as ApiHomeController;
 use App\Http\Controllers\Api\LoyaltyController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentGatewayController;
@@ -27,6 +27,8 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::get('auth/social/{provider}/redirect', [SocialAuthController::class, 'redirect']);
     Route::get('auth/social/{provider}/callback', [SocialAuthController::class, 'callback']);
+
+    Route::get('home', ApiHomeController::class);
 
     Route::get('categories', [CategoryController::class, 'index']);
     Route::get('categories/{slug}', [CategoryController::class, 'show']);
@@ -86,6 +88,7 @@ Route::prefix('v1')->group(function () {
         Route::get('loyalty/balance', [LoyaltyController::class, 'balance']);
         Route::get('loyalty/history', [LoyaltyController::class, 'history']);
         Route::post('loyalty/preview', [LoyaltyController::class, 'preview']);
+        Route::post('loyalty/redeem-wallet', [LoyaltyController::class, 'redeemToWallet']);
 
         Route::post('affiliate/apply', [AffiliateController::class, 'apply']);
         Route::get('affiliate/dashboard', [AffiliateController::class, 'dashboard'])->middleware('affiliate');

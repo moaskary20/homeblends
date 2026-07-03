@@ -13,12 +13,20 @@ import '../../features/checkout/checkout_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/orders/orders_screen.dart';
 import '../../features/cart/cart_provider.dart';
+import '../../features/loyalty/points_screen.dart';
 import '../../features/splash/splash_screen.dart';
+import '../../features/wallet/wallet_screen.dart';
+import '../../shared/widgets/custom_bottom_nav_bar.dart';
 
 class MainShell extends ConsumerStatefulWidget {
-  const MainShell({super.key, required this.navigationShell});
+  const MainShell({
+    super.key,
+    required this.child,
+    required this.location,
+  });
 
-  final StatefulNavigationShell navigationShell;
+  final Widget child;
+  final String location;
 
   @override
   ConsumerState<MainShell> createState() => _MainShellState();
@@ -31,57 +39,71 @@ class _MainShellState extends ConsumerState<MainShell> {
     Future.microtask(() => ref.read(cartProvider.notifier).load());
   }
 
+  void _onTabSelected(int index) {
+    switch (index) {
+      case 0:
+        context.go('/');
+      case 1:
+        context.go('/categories-tab');
+      case 2:
+        context.go('/cart-tab');
+      case 3:
+        context.go('/account');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartCount = ref.watch(cartItemCountProvider);
+    final selectedIndex = bottomNavIndexForPath(widget.location);
+    final hideNav = shouldHideBottomNav(widget.location);
+    final bottomInset = hideNav ? 0.0 : 80.0;
 
     return Scaffold(
-      body: widget.navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: widget.navigationShell.currentIndex,
-        onDestinationSelected: widget.navigationShell.goBranch,
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'الرئيسية',
+      extendBody: !hideNav,
+      body: MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          padding: MediaQuery.of(context).padding.copyWith(
+            bottom: MediaQuery.of(context).padding.bottom + bottomInset,
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.category_outlined),
-            selectedIcon: Icon(Icons.category),
-            label: 'التصنيفات',
-          ),
-          NavigationDestination(
-            icon: Badge(
-              isLabelVisible: cartCount > 0,
-              label: Text('$cartCount'),
-              child: const Icon(Icons.shopping_cart_outlined),
-            ),
-            selectedIcon: Badge(
-              isLabelVisible: cartCount > 0,
-              label: Text('$cartCount'),
-              child: const Icon(Icons.shopping_cart),
-            ),
-            label: 'السلة',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'حسابي',
-          ),
-        ],
+        ),
+        child: widget.child,
       ),
+      bottomNavigationBar: hideNav
+          ? null
+          : CustomBottomNavBar(
+              selectedIndex: selectedIndex,
+              onSelected: _onTabSelected,
+              items: [
+                const NavBarItem(
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  label: 'الرئيسية',
+                ),
+                const NavBarItem(
+                  icon: Icons.grid_view_outlined,
+                  activeIcon: Icons.grid_view_rounded,
+                  label: 'التصنيفات',
+                ),
+                NavBarItem(
+                  icon: Icons.shopping_bag_outlined,
+                  activeIcon: Icons.shopping_bag_rounded,
+                  label: 'السلة',
+                  badge: cartCount > 0 ? cartCount : null,
+                ),
+                const NavBarItem(
+                  icon: Icons.person_outline_rounded,
+                  activeIcon: Icons.person_rounded,
+                  label: 'حسابي',
+                ),
+              ],
+            ),
     );
   }
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
-final _shellNavigatorCategoriesKey =
-    GlobalKey<NavigatorState>(debugLabel: 'categories');
-final _shellNavigatorCartKey = GlobalKey<NavigatorState>(debugLabel: 'cart');
-final _shellNavigatorAccountKey =
-    GlobalKey<NavigatorState>(debugLabel: 'account');
+final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
@@ -92,125 +114,99 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/splash',
         builder: (_, __) => const SplashScreen(),
       ),
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            MainShell(navigationShell: navigationShell),
-        branches: [
-          StatefulShellBranch(
-            navigatorKey: _shellNavigatorHomeKey,
-            routes: [
-              GoRoute(
-                path: '/',
-                builder: (_, __) => const HomeScreen(),
-              ),
-            ],
+      ShellRoute(
+        navigatorKey: _shellNavigatorKey,
+        builder: (context, state, child) => MainShell(
+          location: state.uri.path,
+          child: child,
+        ),
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, __) => const HomeScreen(),
           ),
-          StatefulShellBranch(
-            navigatorKey: _shellNavigatorCategoriesKey,
-            routes: [
-              GoRoute(
-                path: '/categories-tab',
-                builder: (_, __) => const CategoriesScreen(),
-              ),
-            ],
+          GoRoute(
+            path: '/categories-tab',
+            builder: (_, __) => const CategoriesScreen(),
           ),
-          StatefulShellBranch(
-            navigatorKey: _shellNavigatorCartKey,
-            routes: [
-              GoRoute(
-                path: '/cart-tab',
-                builder: (_, __) => const CartScreen(),
-              ),
-            ],
+          GoRoute(
+            path: '/cart-tab',
+            builder: (_, __) => const CartScreen(),
           ),
-          StatefulShellBranch(
-            navigatorKey: _shellNavigatorAccountKey,
-            routes: [
-              GoRoute(
-                path: '/account',
-                builder: (_, __) => const AccountScreen(),
-              ),
-            ],
+          GoRoute(
+            path: '/account',
+            builder: (_, __) => const AccountScreen(),
+          ),
+          GoRoute(
+            path: '/search',
+            builder: (_, __) => const SearchScreen(),
+          ),
+          GoRoute(
+            path: '/categories/:slug',
+            builder: (_, state) => CategoryProductsScreen(
+              slug: state.pathParameters['slug']!,
+              showAll: state.uri.queryParameters['all'] == '1',
+            ),
+          ),
+          GoRoute(
+            path: '/products/:slug',
+            builder: (_, state) => ProductDetailScreen(
+              slug: state.pathParameters['slug']!,
+            ),
+          ),
+          GoRoute(
+            path: '/login',
+            builder: (_, state) => LoginScreen(
+              redirect: state.uri.queryParameters['redirect'],
+            ),
+          ),
+          GoRoute(
+            path: '/register',
+            builder: (_, state) => RegisterScreen(
+              redirect: state.uri.queryParameters['redirect'],
+            ),
+          ),
+          GoRoute(
+            path: '/forgot-password',
+            builder: (_, __) => const ForgotPasswordScreen(),
+          ),
+          GoRoute(
+            path: '/checkout',
+            builder: (_, __) => const CheckoutScreen(),
+          ),
+          GoRoute(
+            path: '/orders',
+            builder: (_, __) => const OrdersScreen(),
+          ),
+          GoRoute(
+            path: '/orders/:id',
+            builder: (_, state) => OrderDetailScreen(
+              orderId: int.parse(state.pathParameters['id']!),
+            ),
+          ),
+          GoRoute(
+            path: '/addresses',
+            builder: (_, __) => const AddressesScreen(),
+          ),
+          GoRoute(
+            path: '/addresses/new',
+            builder: (_, __) => const NewAddressScreen(),
+          ),
+          GoRoute(
+            path: '/wishlist',
+            builder: (_, __) => const WishlistScreen(),
+          ),
+          GoRoute(
+            path: '/wallet',
+            builder: (_, __) => const WalletScreen(),
+          ),
+          GoRoute(
+            path: '/points',
+            builder: (_, __) => const PointsScreen(),
           ),
         ],
       ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/search',
-        builder: (_, __) => const SearchScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/categories/:slug',
-        builder: (_, state) => CategoryProductsScreen(
-          slug: state.pathParameters['slug']!,
-          showAll: state.uri.queryParameters['all'] == '1',
-        ),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/products/:slug',
-        builder: (_, state) => ProductDetailScreen(
-          slug: state.pathParameters['slug']!,
-        ),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/login',
-        builder: (_, state) => LoginScreen(
-          redirect: state.uri.queryParameters['redirect'],
-        ),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/register',
-        builder: (_, state) => RegisterScreen(
-          redirect: state.uri.queryParameters['redirect'],
-        ),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/forgot-password',
-        builder: (_, __) => const ForgotPasswordScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/checkout',
-        builder: (_, __) => const CheckoutScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/orders',
-        builder: (_, __) => const OrdersScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/orders/:id',
-        builder: (_, state) => OrderDetailScreen(
-          orderId: int.parse(state.pathParameters['id']!),
-        ),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/addresses',
-        builder: (_, __) => const AddressesScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/addresses/new',
-        builder: (_, __) => const NewAddressScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/wishlist',
-        builder: (_, __) => const WishlistScreen(),
-      ),
     ],
-    redirect: (context, state) {
-      final path = state.uri.path;
-      if (path == '/categories-tab' || path == '/') return null;
-      return null;
-    },
   );
   ref.onDispose(router.dispose);
   return router;

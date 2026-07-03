@@ -11,10 +11,12 @@ Future<void> resetApiBaseUrl(WidgetRef ref) async {
   ref.invalidate(apiClientProvider);
   ref.invalidate(authRepositoryProvider);
   ref.invalidate(catalogRepositoryProvider);
+  ref.invalidate(homeRepositoryProvider);
   ref.invalidate(cartRepositoryProvider);
   ref.invalidate(checkoutRepositoryProvider);
   ref.invalidate(orderRepositoryProvider);
   ref.invalidate(wishlistRepositoryProvider);
+  ref.invalidate(loyaltyRepositoryProvider);
 }
 
 Future<void> updateApiBaseUrl(WidgetRef ref, String url) async {
@@ -23,8 +25,10 @@ Future<void> updateApiBaseUrl(WidgetRef ref, String url) async {
   ref.invalidate(apiClientProvider);
   ref.invalidate(authRepositoryProvider);
   ref.invalidate(catalogRepositoryProvider);
+  ref.invalidate(homeRepositoryProvider);
   ref.invalidate(cartRepositoryProvider);
   ref.invalidate(checkoutRepositoryProvider);
   ref.invalidate(orderRepositoryProvider);
   ref.invalidate(wishlistRepositoryProvider);
+  ref.invalidate(loyaltyRepositoryProvider);
 }

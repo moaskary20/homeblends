@@ -59,17 +59,28 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         loading: () => const LoadingView(),
         error: (e, _) => ErrorView(
           message: e.toString(),
-          onRetry: () => ref.read(cartProvider.notifier).load(),
+          onRetry: () => ref.read(cartProvider.notifier).refresh(),
         ),
         data: (response) {
           if (response == null || response.cart.items.isEmpty) {
-            return const EmptyView(
-              message: 'السلة فارغة',
-              icon: Icons.shopping_cart_outlined,
+            return RefreshIndicator(
+              onRefresh: () => ref.read(cartProvider.notifier).refresh(),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(height: 120),
+                  EmptyView(
+                    message: 'السلة فارغة',
+                    icon: Icons.shopping_cart_outlined,
+                  ),
+                ],
+              ),
             );
           }
 
-          return Column(
+          return RefreshIndicator(
+            onRefresh: () => ref.read(cartProvider.notifier).refresh(),
+            child: Column(
             children: [
               Expanded(
                 child: ListView.builder(
@@ -215,6 +226,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
               ),
             ],
+          ),
           );
         },
       ),
