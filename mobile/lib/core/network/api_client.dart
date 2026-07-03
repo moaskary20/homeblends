@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../auth/session_manager.dart';
-import '../config/env.dart';
+import '../config/api_base_url.dart';
 import '../storage/session_storage.dart';
 import '../storage/token_storage.dart';
 import 'api_exception.dart';
@@ -13,13 +13,14 @@ typedef UnauthorizedCallback = void Function();
 
 class ApiClient {
   ApiClient({
+    required String baseUrl,
     required TokenStorage tokenStorage,
     required SessionStorage sessionStorage,
   })  : _tokenStorage = tokenStorage,
         _sessionStorage = sessionStorage,
         _dio = Dio(
           BaseOptions(
-            baseUrl: Env.apiBaseUrl,
+            baseUrl: baseUrl,
             connectTimeout: const Duration(seconds: 30),
             receiveTimeout: const Duration(seconds: 30),
             headers: {
@@ -111,7 +112,12 @@ class ApiClient {
       return ApiException('انتهت مهلة الاتصال بالخادم');
     }
     if (error.type == DioExceptionType.connectionError) {
-      return ApiException('تعذر الاتصال بالخادم');
+      return ApiException(
+        'تعذر الاتصال بالخادم\n'
+        'العنوان الحالي: ${ApiBaseUrl.current}\n'
+        'تأكد أن Laravel يعمل: php artisan serve --host=0.0.0.0\n'
+        'على الهاتف الحقيقي غيّر عنوان الخادم من «إعدادات الاتصال»',
+      );
     }
     return ApiException(error.message ?? 'حدث خطأ غير متوقع');
   }
@@ -135,8 +141,10 @@ final sessionStorageProvider = FutureProvider<SessionStorage>((ref) async {
 });
 
 final apiClientProvider = FutureProvider<ApiClient>((ref) async {
+  final baseUrl = ref.watch(apiBaseUrlProvider);
   await ref.watch(sessionStorageProvider.future);
   return ApiClient(
+    baseUrl: baseUrl,
     tokenStorage: ref.watch(tokenStorageProvider),
     sessionStorage: await ref.watch(sessionStorageProvider.future),
   );

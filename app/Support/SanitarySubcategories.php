@@ -56,28 +56,16 @@ class SanitarySubcategories
 
     public static function khamatoLeafSlug(string $handle): ?string
     {
-        return match ($handle) {
-            'basin-mixers' => 'kitchen-mixers',
-            'bath-mixers', 'shower-mixers' => 'bathroom-mixers',
-            'bathroom-basins', 'decorative-basins' => 'basins',
-            'bathtubs', 'decorative-bathtubs' => 'bathtub-sets',
-            'sainteryfb', 'mobilia-units' => 'combination',
-            'toilets-seats', 'decorative-toilets', 'shower-trays', 'shower', 'shower-sets',
-            'grohe-offers', 'duravit-offers', 'drop-offers', 'sanitary' => 'sanitary-supplies',
-            default => null,
-        };
+        $mapped = config("product-scraper.khamato.sanitary_collection_subcategories.{$handle}");
+
+        return is_string($mapped) && $mapped !== '' ? $mapped : null;
     }
 
     public static function mahgoubLeafSlug(string $handle): ?string
     {
-        return match ($handle) {
-            'sanitary-type-basin' => 'basins',
-            'sanitary-units', 'sanitary-all' => 'combination',
-            'sanitary-concealed-tanks', 'sanitary-type-in-wall-tank' => 'concealed-sanitary-sets',
-            'sanitary-type-toilet', 'sanitary-type-wall-toilet', 'sanitary-type-bidet',
-            'sanitary-type-urinal', 'sanitary-type-seat', 'sanitary-fixtures' => 'sanitary-supplies',
-            default => null,
-        };
+        $mapped = config("product-scraper.mahgoub.sanitary_collection_subcategories.{$handle}");
+
+        return is_string($mapped) && $mapped !== '' ? $mapped : null;
     }
 
     /**

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/auth/session_manager.dart';
 import 'core/config/env.dart';
-import 'core/network/api_client.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/auth_provider.dart';
@@ -27,9 +26,6 @@ class _HomeBlendAppState extends ConsumerState<HomeBlendApp> {
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(apiClientProvider);
-    ref.watch(authProvider);
-
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(

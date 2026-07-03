@@ -28,7 +28,8 @@ class SedarProductScrapeTest extends TestCase
         $this->assertStringContainsString('ALNK600', $items->first()['name']);
         $this->assertSame('ستائر بينش بليت', $items->first()['category_name']);
         $this->assertSame('sedar-fabric-curtain-pinch-pleat', $items->first()['category_slug']);
-        $this->assertSame('textiles', $items->first()['parent_category_slug']);
+        $this->assertSame('pinch-pleat', $items->first()['parent_category_slug']);
+        $this->assertSame('textiles', $items->first()['grandparent_category_slug']);
         $this->assertSame(782.25, $items->first()['regular_price']);
         $this->assertSame(950.0, $items->first()['discount_price']);
         $this->assertNotEmpty($items->first()['image_urls']);

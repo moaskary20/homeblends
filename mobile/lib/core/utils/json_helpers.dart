@@ -41,7 +41,10 @@ List<T> parseList<T>(
   if (json is List) {
     return json.map((e) => fromJsonT(e as Map<String, dynamic>)).toList();
   }
-  return [];
+  if (json == null) {
+    return [];
+  }
+  throw FormatException('Unexpected list JSON: ${json.runtimeType}');
 }
 
 T parseData<T>(dynamic json, T Function(Map<String, dynamic>) fromJsonT) {

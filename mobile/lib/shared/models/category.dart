@@ -10,14 +10,26 @@ class Category {
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
-        id: json['id'] as int,
+        id: (json['id'] as num).toInt(),
         name: json['name'] as String,
         slug: json['slug'] as String,
         image: MediaUrl.resolve(json['image'] as String?),
-        children: (json['children'] as List<dynamic>? ?? [])
-            .map((e) => Category.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        children: _parseChildren(json['children']),
       );
+
+  static List<Category> _parseChildren(dynamic raw) {
+    if (raw is List) {
+      return raw
+          .map((e) => Category.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    if (raw is Map<String, dynamic> && raw['data'] is List) {
+      return (raw['data'] as List)
+          .map((e) => Category.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
+  }
 
   final int id;
   final String name;

@@ -25,10 +25,16 @@ class LoadingView extends StatelessWidget {
 }
 
 class ErrorView extends StatelessWidget {
-  const ErrorView({super.key, required this.message, this.onRetry});
+  const ErrorView({
+    super.key,
+    required this.message,
+    this.onRetry,
+    this.onSettings,
+  });
 
   final String message;
   final VoidCallback? onRetry;
+  final VoidCallback? onSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +51,15 @@ class ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppColors.text),
             ),
-            if (onRetry != null) ...[
+            if (onSettings != null) ...[
               const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: onSettings,
+                child: const Text('إعدادات الاتصال'),
+              ),
+            ],
+            if (onRetry != null) ...[
+              const SizedBox(height: 8),
               ElevatedButton(onPressed: onRetry, child: const Text('إعادة المحاولة')),
             ],
           ],

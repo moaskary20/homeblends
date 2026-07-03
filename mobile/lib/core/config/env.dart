@@ -6,7 +6,7 @@ import 'platform_api_host.dart'
 class Env {
   static const _apiBaseUrlFromDefine = String.fromEnvironment('API_BASE_URL');
 
-  static String get apiBaseUrl {
+  static String get defaultApiBaseUrl {
     if (_apiBaseUrlFromDefine.isNotEmpty) {
       return _apiBaseUrlFromDefine;
     }
@@ -15,6 +15,8 @@ class Env {
     }
     return platformDefaultApiBaseUrl();
   }
+
+  static String get apiBaseUrl => defaultApiBaseUrl;
 
   static const appLocale = String.fromEnvironment(
     'APP_LOCALE',

@@ -1,4 +1,4 @@
-import '../config/env.dart';
+import '../config/api_base_url.dart';
 
 /// Rewrites API image URLs to match the active API host (incl. port / emulator).
 class MediaUrl {
@@ -29,7 +29,7 @@ class MediaUrl {
   }
 
   static Uri? _assetBaseUri() {
-    final apiUri = Uri.tryParse(Env.apiBaseUrl);
+    final apiUri = Uri.tryParse(ApiBaseUrl.current);
     if (apiUri == null || apiUri.host.isEmpty) return null;
 
     var path = apiUri.path;

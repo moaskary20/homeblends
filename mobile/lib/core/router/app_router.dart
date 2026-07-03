@@ -13,6 +13,7 @@ import '../../features/checkout/checkout_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/orders/orders_screen.dart';
 import '../../features/cart/cart_provider.dart';
+import '../../features/splash/splash_screen.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key, required this.navigationShell});
@@ -83,10 +84,14 @@ final _shellNavigatorAccountKey =
     GlobalKey<NavigatorState>(debugLabel: 'account');
 
 final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/',
+    initialLocation: '/splash',
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (_, __) => const SplashScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             MainShell(navigationShell: navigationShell),
@@ -207,4 +212,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
   );
+  ref.onDispose(router.dispose);
+  return router;
 });

@@ -2,6 +2,8 @@
 
 namespace App\Services\ProductScraper;
 
+use App\Support\DepartmentSubcategories;
+use App\Support\ScraperCollectionLabels;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -57,7 +59,11 @@ class SedarScraperService
     /** @return array<string, string> */
     public function getCollectionOptions(): array
     {
-        return $this->collections;
+        return ScraperCollectionLabels::forDepartment(
+            $this->collections,
+            'textiles',
+            DepartmentSubcategories::sedarSubcategorySlug(...),
+        );
     }
 
     /** @return Collection<int, array{handle: string, message: string}> */
@@ -231,8 +237,13 @@ class SedarScraperService
             'slug' => Str::slug($name !== '' ? $name : $sku),
             'category_name' => $categoryName,
             'category_slug' => 'sedar-'.$collectionHandle,
-            'parent_category_name' => $this->parentCategory['name'],
-            'parent_category_slug' => $this->parentCategory['slug'],
+            'parent_category_name' => DepartmentSubcategories::canonicalName(
+                'textiles',
+                DepartmentSubcategories::sedarSubcategorySlug($collectionHandle)
+            ) ?? $categoryName,
+            'parent_category_slug' => DepartmentSubcategories::sedarSubcategorySlug($collectionHandle),
+            'grandparent_category_name' => $this->parentCategory['name'],
+            'grandparent_category_slug' => $this->parentCategory['slug'],
             'short_description' => Str::limit($plain !== '' ? $plain : $title, 500),
             'full_description' => $descriptionHtml !== '' ? $descriptionHtml : null,
             'main_image_url' => $imageUrls[0] ?? null,

@@ -237,6 +237,38 @@ return [
                 'image' => 'images/categories/porcelain.jpg',
             ],
         ],
+        'textiles' => [
+            'curtains-all' => [
+                'name' => 'الستائر — الكل',
+                'sort_order' => 1,
+                'description' => 'جميع أنواع الستائر والمنسوجات',
+                'image' => 'images/categories/textiles.jpg',
+            ],
+            'pinch-pleat' => [
+                'name' => 'ستائر بينش بليت',
+                'sort_order' => 2,
+                'description' => 'ستائر بينش بليت بتشطيبات عالية',
+                'image' => 'images/categories/textiles.jpg',
+            ],
+            'ripple-fold' => [
+                'name' => 'ستائر ويفي',
+                'sort_order' => 3,
+                'description' => 'ستائر ويفي عصرية',
+                'image' => 'images/categories/textiles.jpg',
+            ],
+            'blackout-curtains' => [
+                'name' => 'ستائر بلاك آوت',
+                'sort_order' => 4,
+                'description' => 'ستائر عازلة للضوء',
+                'image' => 'images/categories/textiles.jpg',
+            ],
+            'sheer-curtains' => [
+                'name' => 'ستائر شيفون',
+                'sort_order' => 5,
+                'description' => 'ستائر شيفون شفافة وأنيقة',
+                'image' => 'images/categories/textiles.jpg',
+            ],
+        ],
     ],
 
     /**

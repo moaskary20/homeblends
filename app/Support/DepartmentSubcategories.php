@@ -46,30 +46,34 @@ class DepartmentSubcategories
 
     public static function ariikaSubcategorySlug(string $handle): string
     {
-        $mapped = config("product-scraper.ariika.collection_subcategories.{$handle}");
-
-        if (is_string($mapped) && $mapped !== '') {
-            return $mapped;
-        }
-
-        return 'living-room';
+        return self::mappedSubcategorySlug('product-scraper.ariika.collection_subcategories', $handle, 'living-room');
     }
 
-    /** @return array<string, string> handle => menu subcategory slug */
-    public static function ariikaCollectionSubcategories(): array
+    public static function gemmaCeramicsSubcategorySlug(string $handle): string
     {
-        return config('product-scraper.ariika.collection_subcategories', []);
+        return self::mappedSubcategorySlug('product-scraper.gemma.collection_subcategories', $handle, 'indoor-flooring');
+    }
+
+    public static function cleopatraCeramicsSubcategorySlug(string $handle): string
+    {
+        return self::mappedSubcategorySlug('product-scraper.cleopatra.collection_subcategories', $handle, 'indoor-flooring');
+    }
+
+    public static function mahgoubCeramicsSubcategorySlug(string $handle): string
+    {
+        return self::mappedSubcategorySlug('product-scraper.mahgoub.ceramics_collection_subcategories', $handle, 'indoor-flooring');
+    }
+
+    public static function sedarSubcategorySlug(string $handle): string
+    {
+        return self::mappedSubcategorySlug('product-scraper.sedar.collection_subcategories', $handle, 'curtains-all');
     }
 
     public static function khamatoAccessorySubcategorySlug(string $handle): ?string
     {
-        return match ($handle) {
-            'bathroom-accessories' => 'bathroom-accessories',
-            'door-accessories' => 'door-accessories',
-            'furniture-accessories' => 'furniture-accessories',
-            'doors-and-kitchen-hardware' => 'doors-kitchen-hardware',
-            default => null,
-        };
+        $mapped = config("product-scraper.khamato.accessory_collection_subcategories.{$handle}");
+
+        return is_string($mapped) && $mapped !== '' ? $mapped : null;
     }
 
     public static function hansSubcategorySlug(string $handle): string
@@ -80,33 +84,17 @@ class DepartmentSubcategories
         };
     }
 
-    public static function gemmaCeramicsSubcategorySlug(string $handle): string
+    protected static function mappedSubcategorySlug(string $configKey, string $handle, string $fallback): string
     {
-        return match ($handle) {
-            'wall-ceramic', 'wall' => 'walls',
-            'outdoor' => 'outdoor-flooring',
-            'glazed-porcelain-matt', 'glazed-porcelain-polished' => 'porcelain',
-            default => 'indoor-flooring',
-        };
+        $mapped = config("{$configKey}.{$handle}");
+
+        return is_string($mapped) && $mapped !== '' ? $mapped : $fallback;
     }
 
-    public static function cleopatraCeramicsSubcategorySlug(string $handle): string
+    /** @return array<string, string> handle => menu subcategory slug */
+    public static function ariikaCollectionSubcategories(): array
     {
-        return match ($handle) {
-            'wall' => 'walls',
-            'floor', 'floor-and-wall', 'decor', 'marble-look', 'wood-look', 'stone-look', 'carrara', 'leaf' => 'indoor-flooring',
-            default => 'indoor-flooring',
-        };
-    }
-
-    public static function mahgoubCeramicsSubcategorySlug(string $handle): string
-    {
-        return match ($handle) {
-            'floor-porcelain', 'wall-porcelain', 'brand-porcelainosa' => 'porcelain',
-            'wall-ceramic' => 'walls',
-            'floor-ceramic' => 'indoor-flooring',
-            default => 'indoor-flooring',
-        };
+        return config('product-scraper.ariika.collection_subcategories', []);
     }
 
     /**
@@ -117,6 +105,10 @@ class DepartmentSubcategories
     public static function legacyParentMap(): array
     {
         $map = [];
+
+        foreach (config('product-scraper.sedar.collections', []) as $handle => $name) {
+            $map['sedar-'.$handle] = self::sedarSubcategorySlug($handle);
+        }
 
         foreach (config('product-scraper.ariika.furniture_collections', []) as $handle => $name) {
             $map['ariika-'.$handle] = self::ariikaSubcategorySlug($handle);
@@ -180,6 +172,10 @@ class DepartmentSubcategories
             }
 
             return self::mahgoubCeramicsSubcategorySlug($handle);
+        }
+
+        if (str_starts_with($slug, 'sedar-')) {
+            return self::sedarSubcategorySlug(substr($slug, 6));
         }
 
         if (str_starts_with($slug, 'ariika-')) {

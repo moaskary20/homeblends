@@ -4,6 +4,7 @@ namespace App\Services\ProductScraper;
 
 use App\Support\DepartmentSubcategories;
 use App\Support\SanitarySubcategories;
+use App\Support\ScraperCollectionLabels;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -74,8 +75,20 @@ class KhamatoScraperService
         $options = [];
 
         foreach ($this->collections as $handle => $name) {
-            $parent = $this->resolveParentCategory($handle);
-            $options[$handle] = $parent['name'].' — '.$name;
+            $accessorySubSlug = DepartmentSubcategories::khamatoAccessorySubcategorySlug($handle);
+
+            if ($accessorySubSlug !== null) {
+                $menuName = DepartmentSubcategories::canonicalName('accessories', $accessorySubSlug);
+                $options[$handle] = $menuName !== null ? "{$menuName} — {$name}" : $name;
+
+                continue;
+            }
+
+            $sanitaryLeaf = SanitarySubcategories::khamatoLeafSlug($handle);
+
+            $options[$handle] = $sanitaryLeaf !== null
+                ? ScraperCollectionLabels::sanitary($handle, $name, SanitarySubcategories::khamatoLeafSlug(...))
+                : $this->resolveParentCategory($handle)['name'].' — '.$name;
         }
 
         return $options;

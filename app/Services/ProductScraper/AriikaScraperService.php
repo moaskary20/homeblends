@@ -3,6 +3,7 @@
 namespace App\Services\ProductScraper;
 
 use App\Support\DepartmentSubcategories;
+use App\Support\ScraperCollectionLabels;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -51,15 +52,11 @@ class AriikaScraperService
     /** @return array<string, string> */
     public function getFurnitureCollectionOptions(): array
     {
-        $options = [];
-
-        foreach ($this->furnitureCollections as $handle => $ariikaLabel) {
-            $subSlug = DepartmentSubcategories::ariikaSubcategorySlug($handle);
-            $menuName = DepartmentSubcategories::canonicalName('athath', $subSlug) ?? $subSlug;
-            $options[$handle] = "{$menuName} — {$ariikaLabel}";
-        }
-
-        return $options;
+        return ScraperCollectionLabels::forDepartment(
+            $this->furnitureCollections,
+            'athath',
+            DepartmentSubcategories::ariikaSubcategorySlug(...),
+        );
     }
 
     /** @return Collection<int, array{handle: string, message: string}> */

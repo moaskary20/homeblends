@@ -5,6 +5,7 @@ namespace App\Services\ProductScraper;
 use App\Support\DepartmentSubcategories;
 use App\Support\MahgoubCategories;
 use App\Support\SanitarySubcategories;
+use App\Support\ScraperCollectionLabels;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -72,7 +73,27 @@ class MahgoubScraperService
     /** @return array<string, string> */
     public function getCollectionOptions(): array
     {
-        return $this->collections;
+        $options = [];
+
+        foreach ($this->collections as $handle => $name) {
+            $parentKey = MahgoubCategories::parentSlugForHandle($handle);
+
+            $options[$handle] = match ($parentKey) {
+                'ceramics' => ScraperCollectionLabels::forDepartment(
+                    [$handle => $name],
+                    'ceramics',
+                    DepartmentSubcategories::mahgoubCeramicsSubcategorySlug(...),
+                )[$handle],
+                'sanitary' => ScraperCollectionLabels::sanitary(
+                    $handle,
+                    $name,
+                    SanitarySubcategories::mahgoubLeafSlug(...),
+                ),
+                default => $name,
+            };
+        }
+
+        return $options;
     }
 
     /** @return Collection<int, array{handle: string, message: string}> */
