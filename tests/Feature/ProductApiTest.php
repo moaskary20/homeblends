@@ -42,4 +42,35 @@ class ProductApiTest extends TestCase
 
         $response->assertOk();
     }
+
+    public function test_products_filter_by_parent_category_includes_child_products(): void
+    {
+        $parent = Category::create([
+            'name' => 'أثاث',
+            'slug' => 'athath',
+            'is_active' => true,
+        ]);
+        $child = Category::create([
+            'name' => 'ليفينج روم',
+            'slug' => 'living-room',
+            'parent_id' => $parent->id,
+            'is_active' => true,
+        ]);
+
+        Product::create([
+            'category_id' => $child->id,
+            'name' => 'كنبة',
+            'slug' => 'sofa',
+            'sku' => 'SOFA-1',
+            'regular_price' => 1000,
+            'stock_quantity' => 5,
+            'status' => ProductStatus::Published,
+        ]);
+
+        $response = $this->getJson('/api/v1/products?category_slug=athath');
+
+        $response->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.slug', 'sofa');
+    }
 }

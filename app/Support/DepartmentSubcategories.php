@@ -46,12 +46,19 @@ class DepartmentSubcategories
 
     public static function ariikaSubcategorySlug(string $handle): string
     {
-        return match ($handle) {
-            'bedroom' => 'bedrooms',
-            'dining-room' => 'dining-rooms',
-            'outdoor-1' => 'outdoor',
-            default => 'living-room',
-        };
+        $mapped = config("product-scraper.ariika.collection_subcategories.{$handle}");
+
+        if (is_string($mapped) && $mapped !== '') {
+            return $mapped;
+        }
+
+        return 'living-room';
+    }
+
+    /** @return array<string, string> handle => menu subcategory slug */
+    public static function ariikaCollectionSubcategories(): array
+    {
+        return config('product-scraper.ariika.collection_subcategories', []);
     }
 
     public static function khamatoAccessorySubcategorySlug(string $handle): ?string

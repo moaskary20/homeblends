@@ -51,7 +51,15 @@ class AriikaScraperService
     /** @return array<string, string> */
     public function getFurnitureCollectionOptions(): array
     {
-        return $this->furnitureCollections;
+        $options = [];
+
+        foreach ($this->furnitureCollections as $handle => $ariikaLabel) {
+            $subSlug = DepartmentSubcategories::ariikaSubcategorySlug($handle);
+            $menuName = DepartmentSubcategories::canonicalName('athath', $subSlug) ?? $subSlug;
+            $options[$handle] = "{$menuName} — {$ariikaLabel}";
+        }
+
+        return $options;
     }
 
     /** @return Collection<int, array{handle: string, message: string}> */

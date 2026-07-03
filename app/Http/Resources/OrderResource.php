@@ -30,6 +30,32 @@ class OrderResource extends JsonResource
             'created_at' => $this->created_at,
             'items' => OrderItemResource::collection($this->whenLoaded('items')),
             'history' => OrderStatusHistoryResource::collection($this->whenLoaded('statusHistory')),
+            'payment_action' => $this->resolvePaymentAction(),
+        ];
+    }
+
+    protected function resolvePaymentAction(): ?array
+    {
+        if (! $this->relationLoaded('payments')) {
+            return null;
+        }
+
+        $payment = $this->payments->firstWhere('status', 'pending');
+
+        if (! $payment || ! is_array($payment->payload)) {
+            return null;
+        }
+
+        $approvalUrl = collect($payment->payload['links'] ?? [])
+            ->firstWhere('rel', 'approve')['href'] ?? null;
+
+        if (! $approvalUrl) {
+            return null;
+        }
+
+        return [
+            'type' => 'redirect',
+            'approval_url' => $approvalUrl,
         ];
     }
 }

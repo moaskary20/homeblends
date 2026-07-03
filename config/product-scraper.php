@@ -24,6 +24,20 @@ return [
             'coffee-tables' => 'ترابيزات القهوة',
             'outdoor-1' => 'أثاث خارجي',
         ],
+        /**
+         * Map each Ariika collection handle to a storefront subcategory under أثاث.
+         * Keys must match handles in furniture_collections.
+         */
+        'collection_subcategories' => [
+            'indoor-furniture' => 'living-room',
+            'furniture-1' => 'living-room',
+            'living-room-1' => 'living-room',
+            'indoor-sofas' => 'salons',
+            'bedroom' => 'bedrooms',
+            'dining-room' => 'dining-rooms',
+            'coffee-tables' => 'living-room',
+            'outdoor-1' => 'outdoor',
+        ],
     ],
 
     'sedar' => [

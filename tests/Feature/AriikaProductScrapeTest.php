@@ -94,10 +94,17 @@ class AriikaProductScrapeTest extends TestCase
             'is_active' => true,
         ]);
 
+        $livingRoom = \App\Models\Category::create([
+            'name' => 'ليفينج روم',
+            'slug' => 'living-room',
+            'parent_id' => $parent->id,
+            'is_active' => true,
+        ]);
+
         $trashed = \App\Models\Category::create([
             'name' => 'الأثاث الداخلي',
             'slug' => 'ariika-indoor-furniture',
-            'parent_id' => $parent->id,
+            'parent_id' => $livingRoom->id,
             'is_active' => true,
         ]);
         $trashed->delete();
@@ -119,7 +126,7 @@ class AriikaProductScrapeTest extends TestCase
         $child = \App\Models\Category::where('slug', 'ariika-indoor-furniture')->first();
         $this->assertNotNull($child);
         $this->assertNull($child->deleted_at);
-        $this->assertSame($parent->id, $child->parent_id);
+        $this->assertSame($livingRoom->id, $child->parent_id);
     }
 
     public function test_product_gallery_renders_all_images(): void

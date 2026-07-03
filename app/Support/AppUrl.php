@@ -15,6 +15,11 @@ class AppUrl
             }
         }
 
+        $request = static::request();
+        if ($request !== null) {
+            return rtrim($request->getSchemeAndHttpHost(), '/');
+        }
+
         $fallback = rtrim((string) config('app.url'), '/');
 
         return $fallback !== '' ? $fallback : 'http://localhost';

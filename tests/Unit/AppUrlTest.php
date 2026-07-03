@@ -86,6 +86,20 @@ class AppUrlTest extends TestCase
         $this->assertSame('https://homeblendstore.com', AppUrl::root());
     }
 
+    public function test_root_uses_request_host_for_local_api_server(): void
+    {
+        config(['app.url' => 'http://localhost']);
+        config(['app.public_url' => null]);
+
+        $this->app->instance('request', Request::create('http://127.0.0.1:8000/api/v1/categories'));
+
+        $this->assertSame('http://127.0.0.1:8000', AppUrl::root());
+        $this->assertSame(
+            'http://127.0.0.1:8000/images/categories/athath.jpg',
+            AppUrl::absolute('images/categories/athath.jpg')
+        );
+    }
+
     public function test_rewrite_cached_value_fixes_nested_localhost_urls(): void
     {
         $payload = [
