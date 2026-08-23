@@ -32,6 +32,8 @@ Route::get('/media/{width}/{path}', ImageThumbController::class)
 Route::middleware('shopApiSession')->group(function () {
     Route::get('/cart/preview', [CartController::class, 'preview'])->name('shop.cart.preview');
     Route::post('/cart/items', [CartController::class, 'store'])->name('shop.cart.items.store');
+    Route::patch('/cart/items/{cartItem}', [CartController::class, 'update'])->name('shop.cart.items.update');
+    Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy'])->name('shop.cart.items.destroy');
     Route::get('/wishlist/preview', [WishlistCompareController::class, 'wishlistPreview'])->name('shop.wishlist.preview');
     Route::post('/wishlist/{product}/toggle', [WishlistCompareController::class, 'toggleWishlist'])->name('shop.wishlist.toggle');
     Route::delete('/wishlist/{product}', [WishlistCompareController::class, 'removeWishlist'])->name('shop.wishlist.remove');

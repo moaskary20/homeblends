@@ -15,7 +15,8 @@ trait ResolvesCartSession
      */
     protected function resolveCartSessionId(Request $request): ?string
     {
-        $header = $this->normalizeCartSessionId($request->header('X-Session-Id'));
+        $header = $this->normalizeCartSessionId($request->header('X-Session-Id'))
+            ?? $this->normalizeCartSessionId($request->header('X-Shop-Session-Id'));
 
         $sessionCookie = config('session.cookie');
         $hasSessionCookie = is_string($sessionCookie)

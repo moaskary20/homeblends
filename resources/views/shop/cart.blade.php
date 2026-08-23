@@ -18,6 +18,8 @@
         <div id="cart-app"
              data-session-id="{{ session()->getId() }}"
              data-api="{{ url('/api/v1') }}"
+             data-cart-preview-url="{{ route('shop.cart.preview') }}"
+             data-cart-items-url="{{ url('/cart/items') }}"
              data-has-items="{{ $cartHasItems ? '1' : '0' }}"
              data-initial-count="{{ $totals['items_count'] ?? 0 }}"
              data-product-url-template="{{ route('shop.products.show', ['slug' => '__SLUG__']) }}"
@@ -95,6 +97,6 @@
     @if (file_exists(public_path('build/manifest.json')) && isset(json_decode(file_get_contents(public_path('build/manifest.json')), true)['resources/js/shop-cart.js']))
         @vite(['resources/js/shop-cart.js'])
     @else
-        <script src="{{ asset('js/shop-cart.js') }}" defer></script>
+        <script src="{{ asset('js/shop-cart.js') }}?v={{ is_file(public_path('js/shop-cart.js')) ? filemtime(public_path('js/shop-cart.js')) : time() }}" defer></script>
     @endif
 @endpush

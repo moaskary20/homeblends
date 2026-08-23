@@ -42,18 +42,28 @@ function setCartViewState(hasItems, { loading = false } = {}) {
 
 if (app) {
     const apiBase = app.dataset.api;
+    const cartPreviewUrl = app.dataset.cartPreviewUrl || `${apiBase}/cart`;
+    const cartItemsUrl = app.dataset.cartItemsUrl || `${apiBase}/cart/items`;
     const token = typeof window.shopAuthToken === 'function' ? window.shopAuthToken() : null;
     const initialHasItems = app.dataset.hasItems === '1';
 
-    const headers = () => ({
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    });
+    const buildHeaders = (extra = {}) => {
+        if (typeof window.shopGuestFetchHeaders === 'function') {
+            return window.shopGuestFetchHeaders(extra);
+        }
+
+        return {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': window.shopCsrfToken?.() || document.querySelector('meta[name="csrf-token"]')?.content || '',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...extra,
+        };
+    };
 
     const fetchOptions = (extra = {}) => ({
         credentials: 'same-origin',
-        headers: headers(),
+        headers: buildHeaders(extra.body ? { 'Content-Type': 'application/json' } : {}),
         ...extra,
     });
 
@@ -174,7 +184,7 @@ if (app) {
         }
 
         try {
-            const res = await fetch(`${apiBase}/cart`, fetchOptions());
+            const res = await fetch(cartPreviewUrl, fetchOptions());
             if (!res.ok) {
                 setCartViewState(initialHasItems);
                 bindCartLineEvents(document.getElementById('cart-items'));
@@ -190,10 +200,15 @@ if (app) {
 
     const updateQty = async (id, qty) => {
         const quantity = parseInt(qty, 10);
-        await fetch(`${apiBase}/cart/items/${id}`, fetchOptions({
+        const res = await fetch(`${cartItemsUrl}/${id}`, fetchOptions({
             method: quantity > 0 ? 'PATCH' : 'DELETE',
             ...(quantity > 0 ? { body: JSON.stringify({ quantity }) } : {}),
         }));
+
+        if (!res.ok) {
+            return;
+        }
+
         await loadCart();
     };
 
