@@ -20,11 +20,18 @@
     }
 
     $quantityMax = 99;
+
+    $pdpJsPath = public_path('js/shop-product-page.js');
+    $pdpCssPath = public_path('css/shop-product-page.css');
+    $pdpAssetVersion = max(
+        is_file($pdpJsPath) ? (int) filemtime($pdpJsPath) : 0,
+        is_file($pdpCssPath) ? (int) filemtime($pdpCssPath) : 0,
+    ) ?: time();
 @endphp
 
 @push('head')
     <link rel="stylesheet" href="{{ asset('css/shop-categories.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/shop-product-page.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/shop-product-page.css') }}?v={{ $pdpAssetVersion }}">
 @endpush
 
 @section('body_class')
