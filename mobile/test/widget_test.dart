@@ -9,6 +9,6 @@ void main() {
     await tester.pumpWidget(
       const ProviderScope(child: HomeBlendApp()),
     );
-    expect(find.text('هوم بلند'), findsOneWidget);
+    expect(find.byType(MaterialApp), findsOneWidget);
   });
 }

@@ -13,7 +13,7 @@ class CategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'image' => $this->imageUrl(480),
+            'image' => $this->imageUrl(ProductMedia::SIZE_CARD),
             'children' => CategoryResource::collection($this->whenLoaded('children')),
         ];
     }

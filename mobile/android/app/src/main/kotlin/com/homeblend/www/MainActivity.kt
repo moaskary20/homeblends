@@ -1,4 +1,4 @@
-package com.homeblend.homeblend_store
+package com.homeblend.www
 
 import io.flutter.embedding.android.FlutterActivity
 

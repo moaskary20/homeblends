@@ -20,15 +20,19 @@ flutter pub get
 flutter run
 ```
 
-التطبيق يختار عنوان API تلقائياً حسب المنصة. يمكنك تجاوزه عبر `--dart-define=API_BASE_URL=...`.
+التطبيق يتصل افتراضياً بـ **https://homeblendstore.com/api/v1**. يمكنك تجاوزه عبر `--dart-define=API_BASE_URL=...` أو من «إعدادات الاتصال» داخل التطبيق.
 
-### عناوين API حسب البيئة
+### عناوين API
 
-| البيئة | العنوان الافتراضي |
-|--------|-------------------|
-| Web / Linux / Windows / macOS / iOS Simulator | `http://127.0.0.1:8000/api/v1` |
+| البيئة | العنوان |
+|--------|---------|
+| الإنتاج (الافتراضي) | `https://homeblendstore.com/api/v1` |
+| تطوير محلي | `http://127.0.0.1:8000/api/v1` |
 | Android Emulator | `http://10.0.2.2:8000/api/v1` |
-| جهاز حقيقي | `http://<IP-الشبكة>:8000/api/v1` (مع `php artisan serve --host=0.0.0.0`) |
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
 
 ## الميزات
 
@@ -60,3 +64,40 @@ lib/
 flutter analyze
 flutter test
 ```
+
+## النشر على Google Play
+
+لا ترفع ملف **debug** — يجب بناء نسخة **release** موقّعة.
+
+### 1) مفاتيح التوقيع (مرة واحدة)
+
+تم إعداد التوقيع في `android/app/build.gradle.kts`. الملفات الحساسة (غير مرفوعة على Git):
+
+| الملف | الغرض |
+|-------|--------|
+| `android/upload-keystore.jks` | شهادة التوقيع |
+| `android/key.properties` | كلمات مرور الـ keystore |
+| `android/signing-credentials.local.txt` | نسخة احتياطية من بيانات التوقيع |
+
+احفظ `upload-keystore.jks` وكلمات المرور في مكان آمن — تحتاجها لكل تحديث على المتجر.
+
+إذا أعدت المشروع على جهاز جديد، انسخ `key.properties.example` إلى `key.properties` واملأ القيم.
+
+### 2) بناء App Bundle للرفع
+
+```bash
+cd mobile
+flutter build appbundle --release
+```
+
+الملف الجاهز للرفع:
+
+`build/app/outputs/bundle/release/app-release.aab`
+
+### 3) (اختياري) APK موقّع
+
+```bash
+flutter build apk --release
+```
+
+الملف: `build/app/outputs/flutter-apk/app-release.apk`

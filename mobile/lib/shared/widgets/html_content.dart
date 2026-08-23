@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme.dart';
 
 class HtmlContent extends StatelessWidget {
   const HtmlContent({super.key, required this.html});
@@ -23,6 +24,7 @@ class HtmlContent extends StatelessWidget {
           fontSize: FontSize(15),
           lineHeight: const LineHeight(1.6),
           color: AppColors.text,
+          fontFamily: AppTheme.fontFamily,
         ),
         'p': Style(margin: Margins.only(bottom: 10)),
         'ul': Style(margin: Margins.only(bottom: 10)),

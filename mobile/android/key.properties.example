@@ -1,0 +1,5 @@
+# Paths are relative to the android/ directory.
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=upload-keystore.jks

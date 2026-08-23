@@ -57,16 +57,12 @@ class _MainShellState extends ConsumerState<MainShell> {
     final cartCount = ref.watch(cartItemCountProvider);
     final selectedIndex = bottomNavIndexForPath(widget.location);
     final hideNav = shouldHideBottomNav(widget.location);
-    final bottomInset = hideNav ? 0.0 : 80.0;
+    final navClearance = hideNav ? 0.0 : bottomNavClearance(context);
 
     return Scaffold(
       extendBody: !hideNav,
-      body: MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          padding: MediaQuery.of(context).padding.copyWith(
-            bottom: MediaQuery.of(context).padding.bottom + bottomInset,
-          ),
-        ),
+      body: Padding(
+        padding: EdgeInsets.only(bottom: navClearance),
         child: widget.child,
       ),
       bottomNavigationBar: hideNav

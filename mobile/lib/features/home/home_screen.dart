@@ -6,6 +6,7 @@ import '../../core/network/api_exception.dart';
 import '../../core/providers/repositories.dart';
 import '../../shared/models/category.dart';
 import '../../shared/models/home.dart';
+import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/app_drawer.dart';
 import '../../shared/widgets/customer_reviews_carousel.dart';
 import '../../shared/widgets/three_d_drawer_scaffold.dart';
@@ -84,7 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onClose: () => _drawerKey.currentState?.closeDrawer(),
       ),
       appBar: AppBar(
-        title: const Text('هوم بلند'),
+        title: const AppLogo(),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),

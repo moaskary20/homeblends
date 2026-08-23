@@ -92,8 +92,8 @@ class _ServerSettingsFormState extends ConsumerState<_ServerSettingsForm> {
         ),
         const SizedBox(height: 8),
         const Text(
-          'على الهاتف الحقيقي استخدم IP جهاز الكمبيوتر على الشبكة المحلية، '
-          'مثال: http://192.168.1.10:8000/api/v1',
+          'العنوان الافتراضي للإنتاج: https://homeblendstore.com/api/v1\n'
+          'للتطوير المحلي: http://127.0.0.1:8000/api/v1',
           style: TextStyle(fontSize: 13),
         ),
         const SizedBox(height: 16),
@@ -101,7 +101,7 @@ class _ServerSettingsFormState extends ConsumerState<_ServerSettingsForm> {
           controller: _controller,
           decoration: const InputDecoration(
             labelText: 'عنوان API',
-            hintText: 'http://192.168.1.10:8000/api/v1',
+            hintText: 'https://homeblendstore.com/api/v1',
           ),
           keyboardType: TextInputType.url,
           textDirection: TextDirection.ltr,

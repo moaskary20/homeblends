@@ -1,6 +1,6 @@
 {
-    "name": "homeblend_store",
-    "short_name": "homeblend_store",
+    "name": "home blend",
+    "short_name": "home blend",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

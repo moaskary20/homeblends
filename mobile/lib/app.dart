@@ -29,7 +29,7 @@ class _HomeBlendAppState extends ConsumerState<HomeBlendApp> {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'هوم بلند',
+      title: Env.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       locale: Locale(Env.appLocale),

@@ -143,7 +143,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                   crossAxisCount: 2,
                                   mainAxisSpacing: 16,
                                   crossAxisSpacing: 14,
-                                  childAspectRatio: 0.78,
+                                  childAspectRatio: 0.72,
                                 ),
                                 delegate: SliverChildBuilderDelegate(
                                   (context, index) {

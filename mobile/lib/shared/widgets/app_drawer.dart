@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/env.dart';
 import '../../core/providers/repositories.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/category.dart';
@@ -64,8 +65,8 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const DrawerGlassHeader(
-              title: 'هوم بلند',
+            DrawerGlassHeader(
+              title: Env.appName,
               subtitle: 'تسوق حسب القسم',
             ),
             _DrawerActionTile(

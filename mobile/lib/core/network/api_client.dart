@@ -115,8 +115,7 @@ class ApiClient {
       return ApiException(
         'تعذر الاتصال بالخادم\n'
         'العنوان الحالي: ${ApiBaseUrl.current}\n'
-        'تأكد أن Laravel يعمل: php artisan serve --host=0.0.0.0\n'
-        'على الهاتف الحقيقي غيّر عنوان الخادم من «إعدادات الاتصال»',
+        'تحقق من اتصال الإنترنت أو غيّر عنوان الخادم من «إعدادات الاتصال»',
       );
     }
     return ApiException(error.message ?? 'حدث خطأ غير متوقع');

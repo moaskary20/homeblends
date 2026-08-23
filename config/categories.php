@@ -75,6 +75,7 @@ return [
         'lighting' => 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=900&q=80&auto=format',
         'carpets' => 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=900&q=80&auto=format',
         'textiles' => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=900&q=80&auto=format',
+        'accessories' => 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&q=80&auto=format',
         'living-room' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=900&q=80&auto=format',
         'bedrooms' => 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=900&q=80&auto=format',
         'dining-rooms' => 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=900&q=80&auto=format',

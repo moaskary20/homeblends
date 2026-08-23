@@ -256,3 +256,10 @@ bool shouldHideBottomNav(String path) {
       path == '/register' ||
       path == '/forgot-password';
 }
+
+/// Vertical space to reserve above the floating bottom navigation bar.
+double bottomNavClearance(BuildContext context) {
+  const barHeight = 72.0;
+  const outerPadding = 12.0;
+  return barHeight + outerPadding + MediaQuery.paddingOf(context).bottom;
+}
