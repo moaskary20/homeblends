@@ -94,9 +94,5 @@
 @endsection
 
 @push('scripts')
-    @if (file_exists(public_path('build/manifest.json')) && isset(json_decode(file_get_contents(public_path('build/manifest.json')), true)['resources/js/shop-cart.js']))
-        @vite(['resources/js/shop-cart.js'])
-    @else
-        <script src="{{ asset('js/shop-cart.js') }}?v={{ is_file(public_path('js/shop-cart.js')) ? filemtime(public_path('js/shop-cart.js')) : time() }}" defer></script>
-    @endif
+    <script src="{{ asset('js/shop-cart.js') }}?v={{ is_file(public_path('js/shop-cart.js')) ? filemtime(public_path('js/shop-cart.js')) : time() }}" defer></script>
 @endpush
