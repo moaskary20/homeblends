@@ -5,6 +5,11 @@
 
     <form id="checkout-form" class="grid md:grid-cols-2 gap-8 max-w-4xl"
           data-api="{{ url('/api/v1') }}"
+          data-checkout-url="{{ route('shop.checkout.store') }}"
+          data-login-url="{{ route('login') }}"
+          data-orders-url="{{ url('/orders') }}"
+          data-order-url-template="{{ route('shop.orders.show', ['orderNumber' => '__ORDER__']) }}"
+          data-login-required="{{ __('ecommerce.login_required_checkout') }}"
           data-session-id="{{ session()->getId() }}">
         @csrf
         <div class="space-y-4 bg-white p-6 rounded-xl shadow-sm">

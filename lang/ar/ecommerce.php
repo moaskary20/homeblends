@@ -262,6 +262,7 @@ return [
     'my_orders' => 'طلباتي',
     'login_to_view_orders' => 'سجّل الدخول لعرض طلباتك',
     'login' => 'تسجيل الدخول',
+    'login_required_checkout' => 'يجب تسجيل الدخول أولاً لإتمام الطلب',
     'no_orders' => 'لا توجد طلبات بعد',
     'no_tracking_yet' => 'لا يوجد سجل تتبع بعد',
     'tracking_page_hint' => 'تتبّع مسار طلباتك وتحديثاتها من لوحة إدارة المتجر',
