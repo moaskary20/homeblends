@@ -389,7 +389,15 @@
     font-weight: 700;
     color: #374151;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.15s, opacity 0.15s;
+    touch-action: manipulation;
+    position: relative;
+    z-index: 1;
+}
+
+.hb-pdp-qty-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
 }
 
 .hb-pdp-qty-btn:hover {
@@ -405,6 +413,14 @@
     text-align: center;
     font-weight: 700;
     font-size: 0.95rem;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.hb-pdp-qty-input::-webkit-outer-spin-button,
+.hb-pdp-qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .hb-pdp-actions-primary {

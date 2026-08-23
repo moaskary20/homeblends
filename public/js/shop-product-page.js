@@ -53,34 +53,97 @@
             showToast._timer = setTimeout(() => toast.classList.remove('is-visible'), 2800);
         }
 
-        function readQty() {
-            const min = parseInt(qtyInput?.min || '1', 10);
-            const max = parseInt(qtyInput?.max || '9999', 10);
-            const value = parseInt(qtyInput?.value || '1', 10);
+        function parseBound(value, fallback) {
+            const parsed = parseInt(String(value ?? ''), 10);
 
-            return Math.min(max, Math.max(min, Number.isFinite(value) ? value : 1));
+            return Number.isFinite(parsed) ? parsed : fallback;
+        }
+
+        function getMaxQty() {
+            const selectedVariant = variantSelect?.selectedOptions?.[0];
+            if (selectedVariant) {
+                const variantStock = parseBound(selectedVariant.dataset.stock, NaN);
+                if (Number.isFinite(variantStock) && variantStock > 0) {
+                    return variantStock;
+                }
+            }
+
+            const inputMax = parseBound(qtyInput?.max, NaN);
+            if (Number.isFinite(inputMax) && inputMax > 0) {
+                return inputMax;
+            }
+
+            return Math.max(1, parseBound(page.dataset.defaultMaxQty, 99));
+        }
+
+        function readQty() {
+            const min = parseBound(qtyInput?.min, 1);
+            const max = getMaxQty();
+            const value = parseBound(qtyInput?.value, 1);
+
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function updateQtyButtons() {
+            const min = parseBound(qtyInput?.min, 1);
+            const max = getMaxQty();
+            const current = readQty();
+
+            page.querySelectorAll('[data-qty-minus]').forEach((btn) => {
+                btn.disabled = current <= min;
+            });
+            page.querySelectorAll('[data-qty-plus]').forEach((btn) => {
+                btn.disabled = current >= max;
+            });
         }
 
         function writeQty(value) {
             if (!qtyInput) {
                 return;
             }
-            qtyInput.value = String(value);
+
+            const min = parseBound(qtyInput.min, 1);
+            const max = getMaxQty();
+            const next = Math.min(max, Math.max(min, value));
+
+            qtyInput.max = String(max);
+            qtyInput.value = String(next);
+            qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
+            updateQtyButtons();
         }
 
-        page.querySelectorAll('[data-qty-minus]').forEach((btn) => {
-            btn.addEventListener('click', (event) => {
+        function adjustQty(delta) {
+            writeQty(readQty() + delta);
+        }
+
+        const qtyControl = page.querySelector('.hb-pdp-qty-control');
+        if (qtyControl) {
+            qtyControl.addEventListener('click', (event) => {
+                const minus = event.target.closest('[data-qty-minus]');
+                const plus = event.target.closest('[data-qty-plus]');
+
+                if (!minus && !plus) {
+                    return;
+                }
+
                 event.preventDefault();
-                writeQty(Math.max(parseInt(qtyInput?.min || '1', 10), readQty() - 1));
+                adjustQty(minus ? -1 : 1);
             });
+        }
+
+        qtyInput?.addEventListener('input', () => {
+            writeQty(readQty());
         });
 
-        page.querySelectorAll('[data-qty-plus]').forEach((btn) => {
-            btn.addEventListener('click', (event) => {
-                event.preventDefault();
-                writeQty(Math.min(parseInt(qtyInput?.max || '9999', 10), readQty() + 1));
-            });
+        qtyInput?.addEventListener('blur', () => {
+            writeQty(readQty());
         });
+
+        variantSelect?.addEventListener('change', () => {
+            writeQty(readQty());
+        });
+
+        writeQty(readQty());
 
         document.querySelectorAll('[data-pdp-tab]').forEach((tab) => {
             tab.addEventListener('click', () => {

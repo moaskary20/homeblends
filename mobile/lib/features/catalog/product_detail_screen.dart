@@ -100,7 +100,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   int get _maxQuantity {
     final variant = _activeVariant;
-    if (variant != null && variant.stockQuantity > 0) {
+    if (variant != null) {
       return variant.stockQuantity;
     }
     return _product?.stockQuantity ?? 0;

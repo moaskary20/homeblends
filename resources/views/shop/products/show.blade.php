@@ -7,7 +7,19 @@
     $comparePrice = $isFlash
         ? (float) ($flashPricing['compare_price'] ?? 0)
         : ($hasDiscount ? (float) $product->regular_price : 0);
-    $inStock = $product->stock_quantity > 0;
+
+    $defaultVariant = $product->variants->firstWhere('is_default', true) ?? $product->variants->first();
+    $availableStock = $defaultVariant
+        ? (int) $defaultVariant->stock_quantity
+        : (int) $product->stock_quantity;
+
+    if ($product->variants->isNotEmpty()) {
+        $inStock = $product->variants->contains(fn ($variant) => (int) $variant->stock_quantity > 0);
+    } else {
+        $inStock = $availableStock > 0;
+    }
+
+    $maxQty = max(1, $availableStock > 0 ? $availableStock : (int) $product->stock_quantity);
 @endphp
 
 @push('head')
@@ -28,6 +40,7 @@
              data-cart-add-url="{{ url('/cart/items') }}"
              data-session-id="{{ session()->getId() }}"
              data-in-stock="{{ $inStock ? '1' : '0' }}"
+             data-default-max-qty="{{ $maxQty }}"
              data-cart-url="{{ route('shop.cart') }}"
              data-added-label="{{ __('ecommerce.added_to_cart') }}"
              data-error-label="{{ __('ecommerce.add_to_cart_error') }}">
@@ -121,7 +134,10 @@
                         <label class="hb-pdp-variant-label" for="variant-select">{{ __('ecommerce.choose_variant') }}</label>
                         <select id="variant-select" class="hb-pdp-variant-select">
                             @foreach($product->variants as $variant)
-                                <option value="{{ $variant->id }}" data-price="{{ $variant->price }}">
+                                <option value="{{ $variant->id }}"
+                                        data-price="{{ $variant->price }}"
+                                        data-stock="{{ max(0, (int) $variant->stock_quantity) }}"
+                                        @selected($defaultVariant?->id === $variant->id)>
                                     {{ $variant->sku }} — {{ number_format($variant->price, 2) }} {{ __('ecommerce.currency') }}
                                 </option>
                             @endforeach
@@ -132,7 +148,7 @@
                         <span class="hb-pdp-qty-label">{{ __('ecommerce.quantity') }}</span>
                         <div class="hb-pdp-qty-control">
                             <button type="button" class="hb-pdp-qty-btn" data-qty-minus aria-label="-">−</button>
-                            <input type="number" class="hb-pdp-qty-input" id="product-qty" value="1" min="1" max="{{ max(1, $product->stock_quantity) }}" aria-label="{{ __('ecommerce.quantity') }}">
+                            <input type="number" class="hb-pdp-qty-input" id="product-qty" value="1" min="1" max="{{ $maxQty }}" step="1" inputmode="numeric" aria-label="{{ __('ecommerce.quantity') }}">
                             <button type="button" class="hb-pdp-qty-btn" data-qty-plus aria-label="+">+</button>
                         </div>
                     </div>
