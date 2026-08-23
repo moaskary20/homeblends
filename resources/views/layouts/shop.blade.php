@@ -21,7 +21,8 @@
     <style>body { font-family: 'Cairo', sans-serif; }</style>
 </head>
 <body class="@yield('body_class', 'bg-[#f5f0e6]') text-gray-900 min-h-screen flex flex-col hb-shop-has-mobile-nav"
-      data-user-authenticated="{{ auth()->check() ? '1' : '0' }}">
+      data-user-authenticated="{{ auth()->check() ? '1' : '0' }}"
+      data-cart-add-url="{{ url('/cart/items') }}">
     @php
         $navCategories = $navCategories ?? \Illuminate\Support\Facades\Cache::remember(
             'shop.nav.categories',

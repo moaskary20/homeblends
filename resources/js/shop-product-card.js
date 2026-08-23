@@ -188,6 +188,9 @@ document.addEventListener('click', async (e) => {
     e.stopPropagation();
 
     const apiBase = cartBtn.dataset.api;
+    const cartAddUrl = cartBtn.dataset.cartAddUrl
+        || document.body?.dataset.cartAddUrl
+        || `${apiBase}/cart/items`;
     const productId = parseInt(cartBtn.dataset.productId, 10);
     const token = typeof window.shopAuthToken === 'function' ? window.shopAuthToken() : null;
     const originalHtml = cartBtn.innerHTML;
@@ -196,15 +199,20 @@ document.addEventListener('click', async (e) => {
     cartBtn.disabled = true;
 
     try {
-        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-        const res = await fetch(`${apiBase}/cart/items`, {
+        const headers = typeof window.shopGuestFetchHeaders === 'function'
+            ? window.shopGuestFetchHeaders({ 'Content-Type': 'application/json' })
+            : {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            };
+
+        const res = await fetch(cartAddUrl, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': csrf,
+                ...headers,
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: JSON.stringify({ product_id: productId, quantity: 1 }),

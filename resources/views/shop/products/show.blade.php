@@ -25,7 +25,9 @@
     <article class="hb-pdp" data-product-page
              data-product-id="{{ $product->id }}"
              data-api="{{ url('/api/v1') }}"
+             data-cart-add-url="{{ url('/cart/items') }}"
              data-session-id="{{ session()->getId() }}"
+             data-in-stock="{{ $inStock ? '1' : '0' }}"
              data-cart-url="{{ route('shop.cart') }}"
              data-added-label="{{ __('ecommerce.added_to_cart') }}"
              data-error-label="{{ __('ecommerce.add_to_cart_error') }}">
@@ -261,5 +263,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/shop-product-page.js') }}" defer></script>
+    <script src="{{ asset('js/shop-product-page.js') }}?v={{ filemtime(public_path('js/shop-product-page.js')) }}" defer></script>
 @endpush
