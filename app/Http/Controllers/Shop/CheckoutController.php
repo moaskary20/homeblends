@@ -36,6 +36,7 @@ class CheckoutController extends Controller
         $checkoutDefaults = [
             'first_name' => old('first_name', $defaultAddress?->first_name ?? ($nameParts[0] ?? '')),
             'last_name' => old('last_name', $defaultAddress?->last_name ?? ($nameParts[1] ?? '')),
+            'email' => old('email', $user?->email ?? ''),
             'phone' => old('phone', $defaultAddress?->phone ?? $user?->phone ?? ''),
             'alternate_phone' => old('alternate_phone', $defaultAddress?->alternate_phone ?? $user?->alternate_phone ?? ''),
             'address_line_1' => old('address_line_1', $defaultAddress?->address_line_1 ?? ''),

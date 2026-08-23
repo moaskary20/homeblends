@@ -106,6 +106,7 @@ if (form) {
         const shippingAddress = {
             first_name: fd.get('first_name'),
             last_name: fd.get('last_name'),
+            email: fd.get('email'),
             phone: fd.get('phone'),
             alternate_phone: fd.get('alternate_phone') || null,
             address_line_1: fd.get('address_line_1'),

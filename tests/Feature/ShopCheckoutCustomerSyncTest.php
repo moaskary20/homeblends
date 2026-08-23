@@ -44,7 +44,11 @@ class ShopCheckoutCustomerSyncTest extends TestCase
         ]);
         app(PaymentGatewayService::class)->clearCache();
 
-        $user = User::factory()->create(['phone' => null, 'alternate_phone' => null]);
+        $user = User::factory()->create([
+            'phone' => null,
+            'alternate_phone' => null,
+            'email' => 'old@example.com',
+        ]);
         $category = Category::create(['name' => 'Cat', 'slug' => 'cat', 'is_active' => true]);
         $product = Product::create([
             'category_id' => $category->id,
@@ -68,6 +72,7 @@ class ShopCheckoutCustomerSyncTest extends TestCase
             'shipping_address' => [
                 'first_name' => 'أحمد',
                 'last_name' => 'محمد',
+                'email' => 'ahmed@example.com',
                 'phone' => '01012345678',
                 'alternate_phone' => '01198765432',
                 'address_line_1' => '12 شارع النيل',
@@ -80,6 +85,7 @@ class ShopCheckoutCustomerSyncTest extends TestCase
             'billing_address' => [
                 'first_name' => 'أحمد',
                 'last_name' => 'محمد',
+                'email' => 'ahmed@example.com',
                 'phone' => '01012345678',
                 'alternate_phone' => '01198765432',
                 'address_line_1' => '12 شارع النيل',
@@ -99,6 +105,7 @@ class ShopCheckoutCustomerSyncTest extends TestCase
         $response->assertCreated();
 
         $user->refresh();
+        $this->assertSame('ahmed@example.com', $user->email);
         $this->assertSame('01012345678', $user->phone);
         $this->assertSame('01198765432', $user->alternate_phone);
 

@@ -19,6 +19,12 @@ class PlaceOrderRequest extends FormRequest
             'shipping_address' => ['required', 'array'],
             'shipping_address.first_name' => ['required', 'string', 'max:100'],
             'shipping_address.last_name' => ['required', 'string', 'max:100'],
+            'shipping_address.email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($this->user()?->id),
+            ],
             'shipping_address.phone' => ['required', 'string', 'max:30'],
             'shipping_address.alternate_phone' => ['nullable', 'string', 'max:30'],
             'shipping_address.address_line_1' => ['required', 'string', 'max:255'],

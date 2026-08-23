@@ -29,6 +29,12 @@
                 </div>
             </div>
 
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.email') }}</label>
+                <input name="email" type="email" value="{{ $checkoutDefaults['email'] }}" required
+                       autocomplete="email" class="w-full border rounded-lg px-3 py-2">
+            </div>
+
             <div class="grid sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.phone') }}</label>
@@ -146,5 +152,5 @@
 @endsection
 
 @push('scripts')
-    @vite(['resources/js/shop-checkout.js'])
+    <script src="{{ asset('js/shop-checkout.js') }}?v={{ is_file(public_path('js/shop-checkout.js')) ? filemtime(public_path('js/shop-checkout.js')) : time() }}" defer></script>
 @endpush

@@ -11,10 +11,17 @@ class CustomerProfileService
     {
         $normalized = $this->normalizeShippingAddress($shippingAddress);
 
-        $user->update([
+        $userUpdates = [
             'phone' => $normalized['phone'],
             'alternate_phone' => $normalized['alternate_phone'],
-        ]);
+        ];
+
+        if ($normalized['email'] !== $user->email) {
+            $userUpdates['email'] = $normalized['email'];
+            $userUpdates['email_verified_at'] = null;
+        }
+
+        $user->update($userUpdates);
 
         $addressPayload = [
             'label' => __('ecommerce.default_shipping_address'),
@@ -50,6 +57,7 @@ class CustomerProfileService
         return [
             'first_name' => trim((string) ($shippingAddress['first_name'] ?? '')),
             'last_name' => trim((string) ($shippingAddress['last_name'] ?? '')),
+            'email' => strtolower(trim((string) ($shippingAddress['email'] ?? ''))),
             'phone' => trim((string) ($shippingAddress['phone'] ?? '')),
             'alternate_phone' => filled($shippingAddress['alternate_phone'] ?? null)
                 ? trim((string) $shippingAddress['alternate_phone'])
