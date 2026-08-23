@@ -14,21 +14,23 @@ class ProductPolicy
 
     public function view(?User $user, Product $product): bool
     {
-        return $product->status->value === 'published' || $user?->can('products.view');
+        return $product->status->value === 'published'
+            || $user?->is_admin
+            || $user?->can('products.view');
     }
 
     public function create(User $user): bool
     {
-        return $user->can('products.create');
+        return $user->is_admin || $user->can('products.create');
     }
 
     public function update(User $user, Product $product): bool
     {
-        return $user->can('products.update');
+        return $user->is_admin || $user->can('products.update');
     }
 
     public function delete(User $user, Product $product): bool
     {
-        return $user->can('products.delete');
+        return $user->is_admin || $user->can('products.delete');
     }
 }

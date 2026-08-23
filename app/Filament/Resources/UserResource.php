@@ -308,15 +308,26 @@ class UserResource extends Resource
 
     public static function syncAdminRole(User $user): void
     {
-        $adminRole = Role::findByName('admin', 'web');
+        $adminRole = Role::query()
+            ->where('name', 'admin')
+            ->where('guard_name', 'web')
+            ->first();
 
         if ($user->is_admin) {
-            $user->assignRole($adminRole);
+            if (! $adminRole) {
+                throw new \RuntimeException(
+                    'Admin role (name=admin, guard_name=web) is missing. Run: php artisan db:seed --class=Database\\Seeders\\RolePermissionSeeder'
+                );
+            }
+
+            if (! $user->hasRole($adminRole)) {
+                $user->assignRole($adminRole);
+            }
 
             return;
         }
 
-        if ($user->hasRole('admin')) {
+        if ($adminRole && $user->hasRole($adminRole)) {
             $user->removeRole($adminRole);
         }
     }
