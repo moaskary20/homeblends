@@ -58,6 +58,14 @@
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">{{ __('ecommerce.alternate_phone') }}</label>
+                    <input type="text" name="alternate_phone" value="{{ old('alternate_phone', $user->alternate_phone) }}"
+                           class="w-full border border-gray-200 rounded-lg px-3 py-2">
+                    @error('alternate_phone')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
                 <button type="submit" class="hb-account-btn-primary">{{ __('ecommerce.save_changes') }}</button>
             </form>
         </section>

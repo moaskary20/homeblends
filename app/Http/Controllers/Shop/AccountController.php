@@ -30,6 +30,7 @@ class AccountController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
+            'alternate_phone' => ['nullable', 'string', 'max:30'],
         ]);
 
         $request->user()->update($data);

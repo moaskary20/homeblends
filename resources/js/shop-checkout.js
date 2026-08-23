@@ -107,8 +107,12 @@ if (form) {
             first_name: fd.get('first_name'),
             last_name: fd.get('last_name'),
             phone: fd.get('phone'),
+            alternate_phone: fd.get('alternate_phone') || null,
             address_line_1: fd.get('address_line_1'),
+            address_line_2: fd.get('address_line_2') || null,
             city: fd.get('city'),
+            state: fd.get('state') || null,
+            postal_code: fd.get('postal_code') || null,
             country: fd.get('country'),
         };
 

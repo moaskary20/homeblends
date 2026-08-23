@@ -13,13 +13,70 @@
           data-session-id="{{ session()->getId() }}">
         @csrf
         <div class="space-y-4 bg-white p-6 rounded-xl shadow-sm">
-            <h2 class="font-bold text-lg">عنوان الشحن</h2>
-            <input name="first_name" placeholder="الاسم الأول" required class="w-full border rounded-lg px-3 py-2">
-            <input name="last_name" placeholder="اسم العائلة" required class="w-full border rounded-lg px-3 py-2">
-            <input name="phone" placeholder="الهاتف" required class="w-full border rounded-lg px-3 py-2">
-            <input name="address_line_1" placeholder="العنوان" required class="w-full border rounded-lg px-3 py-2">
-            <input name="city" placeholder="المدينة" required class="w-full border rounded-lg px-3 py-2">
-            <input type="hidden" name="country" value="EG">
+            <h2 class="font-bold text-lg">{{ __('ecommerce.shipping_address') }}</h2>
+            <p class="text-sm text-gray-600">{{ __('ecommerce.checkout_address_hint') }}</p>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.first_name') }}</label>
+                    <input name="first_name" value="{{ $checkoutDefaults['first_name'] }}" required
+                           class="w-full border rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.last_name') }}</label>
+                    <input name="last_name" value="{{ $checkoutDefaults['last_name'] }}" required
+                           class="w-full border rounded-lg px-3 py-2">
+                </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.phone') }}</label>
+                    <input name="phone" type="tel" value="{{ $checkoutDefaults['phone'] }}" required
+                           placeholder="01xxxxxxxxx" class="w-full border rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.alternate_phone') }}</label>
+                    <input name="alternate_phone" type="tel" value="{{ $checkoutDefaults['alternate_phone'] }}"
+                           placeholder="01xxxxxxxxx" class="w-full border rounded-lg px-3 py-2">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.address_line_1') }}</label>
+                <input name="address_line_1" value="{{ $checkoutDefaults['address_line_1'] }}" required
+                       placeholder="{{ __('ecommerce.address_line_1_hint') }}"
+                       class="w-full border rounded-lg px-3 py-2">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.address_line_2') }}</label>
+                <input name="address_line_2" value="{{ $checkoutDefaults['address_line_2'] }}"
+                       placeholder="{{ __('ecommerce.address_line_2_hint') }}"
+                       class="w-full border rounded-lg px-3 py-2">
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.city') }}</label>
+                    <input name="city" value="{{ $checkoutDefaults['city'] }}" required
+                           class="w-full border rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.state') }}</label>
+                    <input name="state" value="{{ $checkoutDefaults['state'] }}"
+                           placeholder="{{ __('ecommerce.state_hint') }}"
+                           class="w-full border rounded-lg px-3 py-2">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.postal_code') }}</label>
+                <input name="postal_code" value="{{ $checkoutDefaults['postal_code'] }}"
+                       class="w-full border rounded-lg px-3 py-2">
+            </div>
+
+            <input type="hidden" name="country" value="{{ $checkoutDefaults['country'] }}">
         </div>
         <div class="space-y-4 bg-white p-6 rounded-xl shadow-sm">
             <h2 class="font-bold text-lg">الدفع والشحن</h2>

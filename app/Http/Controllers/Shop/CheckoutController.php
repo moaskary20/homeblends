@@ -28,9 +28,33 @@ class CheckoutController extends Controller
             ->min('min_order_amount');
         $paymentGateways = $this->paymentGateways->getActive();
 
+        $user = auth()->user();
+        $defaultAddress = $user?->addresses()->where('is_default', true)->first()
+            ?? $user?->addresses()->latest('id')->first();
+        $nameParts = preg_split('/\s+/u', trim($user?->name ?? ''), 2) ?: [];
+
+        $checkoutDefaults = [
+            'first_name' => old('first_name', $defaultAddress?->first_name ?? ($nameParts[0] ?? '')),
+            'last_name' => old('last_name', $defaultAddress?->last_name ?? ($nameParts[1] ?? '')),
+            'phone' => old('phone', $defaultAddress?->phone ?? $user?->phone ?? ''),
+            'alternate_phone' => old('alternate_phone', $defaultAddress?->alternate_phone ?? $user?->alternate_phone ?? ''),
+            'address_line_1' => old('address_line_1', $defaultAddress?->address_line_1 ?? ''),
+            'address_line_2' => old('address_line_2', $defaultAddress?->address_line_2 ?? ''),
+            'city' => old('city', $defaultAddress?->city ?? ''),
+            'state' => old('state', $defaultAddress?->state ?? ''),
+            'postal_code' => old('postal_code', $defaultAddress?->postal_code ?? ''),
+            'country' => old('country', $defaultAddress?->country ?? 'EG'),
+        ];
+
         $seo = app(SeoService::class)->forPrivatePage(__('ecommerce.checkout'));
 
-        return view('shop.checkout', compact('shippingRates', 'freeShippingMin', 'paymentGateways', 'seo'));
+        return view('shop.checkout', compact(
+            'shippingRates',
+            'freeShippingMin',
+            'paymentGateways',
+            'checkoutDefaults',
+            'seo',
+        ));
     }
 
     public function store(PlaceOrderRequest $request): JsonResponse

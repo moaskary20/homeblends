@@ -18,6 +18,7 @@ use App\Services\Payment\PaymentService;
 use App\Services\Affiliate\AffiliateCommissionService;
 use App\Services\Affiliate\AffiliateTrackingService;
 use App\Services\Bundle\BundleService;
+use App\Services\Customer\CustomerProfileService;
 use App\Services\FlashSale\FlashSaleService;
 use App\Services\Shipping\ShippingService;
 use App\Services\Tax\TaxService;
@@ -49,8 +50,13 @@ class CheckoutService
         ?int $loyaltyPointsToRedeem = 0,
         ?string $notes = null,
     ): Order {
+        $normalizedShipping = app(CustomerProfileService::class)->normalizeShippingAddress($shippingAddress);
+        $normalizedBilling = $billingAddress
+            ? app(CustomerProfileService::class)->normalizeShippingAddress($billingAddress)
+            : $normalizedShipping;
+
         return DB::transaction(function () use (
-            $cart, $user, $shippingAddress, $billingAddress,
+            $cart, $user, $normalizedShipping, $normalizedBilling,
             $shippingRateId, $couponCode, $gateway, $loyaltyPointsToRedeem, $notes
         ) {
             $cart->load(['items.product', 'items.variant']);
@@ -71,7 +77,7 @@ class CheckoutService
                 $shippingRateId,
                 $totals['subtotal'],
                 $cartWeight,
-                $shippingAddress['country'] ?? 'EG'
+                $normalizedShipping['country']
             );
             $discount = $couponCode
                 ? $this->couponService->calculateDiscount($couponCode, $user->id, $totals['subtotal'])
@@ -89,7 +95,7 @@ class CheckoutService
                 : 0;
 
             $subtotalAfterDiscount = max(0, $eligibleForPoints - $loyaltyDiscount);
-            $tax = $this->taxService->calculate($subtotalAfterDiscount, $shippingAddress['country'] ?? 'EG');
+            $tax = $this->taxService->calculate($subtotalAfterDiscount, $normalizedShipping['country']);
             $totalBeforeFee = $subtotalAfterDiscount + $shipping['amount'] + $tax;
 
             $gatewayConfig = $this->paymentGateways->assertAvailableForOrder($gateway->value, $totalBeforeFee);
@@ -105,8 +111,8 @@ class CheckoutService
                 'affiliate_id' => $affiliateAttribution['affiliate_id'] ?? null,
                 'affiliate_click_id' => $affiliateAttribution['affiliate_click_id'] ?? null,
                 'status' => OrderStatus::Pending,
-                'billing_address' => $billingAddress,
-                'shipping_address' => $shippingAddress,
+                'billing_address' => $normalizedBilling,
+                'shipping_address' => $normalizedShipping,
                 'shipping_rate_id' => $shippingRateId,
                 'shipping_method' => $shipping['name'],
                 'subtotal' => $totals['subtotal'],
@@ -180,6 +186,8 @@ class CheckoutService
             ]);
 
             $cart->items()->delete();
+
+            app(CustomerProfileService::class)->syncFromCheckout($user, $normalizedShipping);
 
             $order = $order->load(['items', 'payments', 'user']);
             $this->notifications->orderPlaced($order);
