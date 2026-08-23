@@ -294,10 +294,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         selected: selected,
                         onSelected: (_) => setState(() {
                           _selectedVariant = variant;
-                          if (_quantity > variant.stockQuantity &&
-                              variant.stockQuantity > 0) {
-                            _quantity = variant.stockQuantity;
-                          }
                         }),
                       );
                     }).toList(),
@@ -315,7 +311,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                     Text('$_quantity'),
                     IconButton(
-                      onPressed: _inStock && _quantity < _maxQuantity
+                      onPressed: _quantity < 99
                           ? () => setState(() => _quantity++)
                           : null,
                       icon: const Icon(Icons.add_circle_outline),

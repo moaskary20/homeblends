@@ -13,7 +13,7 @@ class ShopProductQuantityTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_product_page_uses_variant_stock_for_quantity_max(): void
+    public function test_product_page_allows_quantity_up_to_cart_limit_regardless_of_stock(): void
     {
         $category = Category::create(['name' => 'Cat', 'slug' => 'cat', 'is_active' => true]);
         $product = Product::create([
@@ -30,7 +30,7 @@ class ShopProductQuantityTest extends TestCase
             'product_id' => $product->id,
             'sku' => 'VAR-L',
             'price' => 100,
-            'stock_quantity' => 8,
+            'stock_quantity' => 1,
             'is_default' => true,
         ]);
 
@@ -38,7 +38,7 @@ class ShopProductQuantityTest extends TestCase
 
         $response->assertOk()
             ->assertSee('data-qty-plus', false)
-            ->assertSee('data-stock="8"', false)
-            ->assertSee('max="8"', false);
+            ->assertSee('max="99"', false)
+            ->assertDontSee('max="1"', false);
     }
 }

@@ -59,41 +59,23 @@
             return Number.isFinite(parsed) ? parsed : fallback;
         }
 
-        function getMaxQty() {
-            const selectedVariant = variantSelect?.selectedOptions?.[0];
-            if (selectedVariant) {
-                const variantStock = parseBound(selectedVariant.dataset.stock, NaN);
-                if (Number.isFinite(variantStock) && variantStock > 0) {
-                    return variantStock;
-                }
-            }
-
-            const inputMax = parseBound(qtyInput?.max, NaN);
-            if (Number.isFinite(inputMax) && inputMax > 0) {
-                return inputMax;
-            }
-
-            return Math.max(1, parseBound(page.dataset.defaultMaxQty, 99));
-        }
+        const QTY_MIN = 1;
+        const QTY_MAX = parseBound(qtyInput?.max, 99);
 
         function readQty() {
-            const min = parseBound(qtyInput?.min, 1);
-            const max = getMaxQty();
-            const value = parseBound(qtyInput?.value, 1);
+            const value = parseBound(qtyInput?.value, QTY_MIN);
 
-            return Math.min(max, Math.max(min, value));
+            return Math.min(QTY_MAX, Math.max(QTY_MIN, value));
         }
 
         function updateQtyButtons() {
-            const min = parseBound(qtyInput?.min, 1);
-            const max = getMaxQty();
             const current = readQty();
 
             page.querySelectorAll('[data-qty-minus]').forEach((btn) => {
-                btn.disabled = current <= min;
+                btn.disabled = current <= QTY_MIN;
             });
             page.querySelectorAll('[data-qty-plus]').forEach((btn) => {
-                btn.disabled = current >= max;
+                btn.disabled = current >= QTY_MAX;
             });
         }
 
@@ -102,11 +84,8 @@
                 return;
             }
 
-            const min = parseBound(qtyInput.min, 1);
-            const max = getMaxQty();
-            const next = Math.min(max, Math.max(min, value));
+            const next = Math.min(QTY_MAX, Math.max(QTY_MIN, value));
 
-            qtyInput.max = String(max);
             qtyInput.value = String(next);
             qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
             updateQtyButtons();

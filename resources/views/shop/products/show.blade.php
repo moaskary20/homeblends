@@ -19,7 +19,7 @@
         $inStock = $availableStock > 0;
     }
 
-    $maxQty = max(1, $availableStock > 0 ? $availableStock : (int) $product->stock_quantity);
+    $quantityMax = 99;
 @endphp
 
 @push('head')
@@ -40,7 +40,6 @@
              data-cart-add-url="{{ url('/cart/items') }}"
              data-session-id="{{ session()->getId() }}"
              data-in-stock="{{ $inStock ? '1' : '0' }}"
-             data-default-max-qty="{{ $maxQty }}"
              data-cart-url="{{ route('shop.cart') }}"
              data-added-label="{{ __('ecommerce.added_to_cart') }}"
              data-error-label="{{ __('ecommerce.add_to_cart_error') }}">
@@ -148,7 +147,7 @@
                         <span class="hb-pdp-qty-label">{{ __('ecommerce.quantity') }}</span>
                         <div class="hb-pdp-qty-control">
                             <button type="button" class="hb-pdp-qty-btn" data-qty-minus aria-label="-">−</button>
-                            <input type="number" class="hb-pdp-qty-input" id="product-qty" value="1" min="1" max="{{ $maxQty }}" step="1" inputmode="numeric" aria-label="{{ __('ecommerce.quantity') }}">
+                            <input type="number" class="hb-pdp-qty-input" id="product-qty" value="1" min="1" max="{{ $quantityMax }}" step="1" inputmode="numeric" aria-label="{{ __('ecommerce.quantity') }}">
                             <button type="button" class="hb-pdp-qty-btn" data-qty-plus aria-label="+">+</button>
                         </div>
                     </div>
@@ -279,5 +278,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/shop-product-page.js') }}?v={{ filemtime(public_path('js/shop-product-page.js')) }}" defer></script>
+    <script src="{{ asset('js/shop-product-page.js') }}?v={{ $pdpAssetVersion }}" defer></script>
 @endpush
