@@ -8,13 +8,16 @@ use App\Filament\Resources\ProductResource\RelationManagers\FlashSalesRelationMa
 use App\Filament\Resources\ProductResource\RelationManagers\ImagesRelationManager;
 use App\Filament\Resources\ProductResource\RelationManagers\RelatedProductsRelationManager;
 use App\Filament\Resources\ProductResource\RelationManagers\VariantsRelationManager;
+use App\Models\Category;
 use App\Models\Product;
 use Filament\Forms;
-use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class ProductResource extends Resource
 {
@@ -150,7 +153,10 @@ class ProductResource extends Resource
                 Tables\Columns\ImageColumn::make('main_image')->label(__('ecommerce.image')),
                 Tables\Columns\TextColumn::make('name')->label(__('ecommerce.name'))->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('sku')->label(__('ecommerce.sku'))->searchable(),
-                Tables\Columns\TextColumn::make('category.name')->label(__('ecommerce.categories')),
+                Tables\Columns\TextColumn::make('category.name')
+                    ->label(__('ecommerce.category'))
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('regular_price')->label(__('ecommerce.regular_price'))->money('EGP', locale: 'ar'),
                 Tables\Columns\TextColumn::make('discount_price')
                     ->label(__('ecommerce.discount_price'))
@@ -173,16 +179,80 @@ class ProductResource extends Resource
                     ->formatStateUsing(fn ($state) => $state instanceof ProductStatus ? $state->label() : $state),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('category_id')
+                    ->label(__('ecommerce.category'))
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->options(fn (): array => static::categoryFilterOptions())
+                    ->query(function (Builder $query, array $data): Builder {
+                        $selected = collect($data['values'] ?? [])
+                            ->filter(fn ($value) => filled($value))
+                            ->map(fn ($value) => (int) $value)
+                            ->unique()
+                            ->values();
+
+                        if ($selected->isEmpty()) {
+                            return $query;
+                        }
+
+                        $categoryIds = $selected
+                            ->flatMap(fn (int $categoryId) => static::categoryIdsIncludingDescendants($categoryId))
+                            ->unique()
+                            ->all();
+
+                        return $query->whereIn('category_id', $categoryIds);
+                    }),
                 Tables\Filters\SelectFilter::make('status')
                     ->label(__('ecommerce.status'))
                     ->options(collect(ProductStatus::cases())->mapWithKeys(fn ($c) => [$c->value => $c->label()])),
-                Tables\Filters\SelectFilter::make('category_id')
-                    ->label(__('ecommerce.categories'))
-                    ->relationship('category', 'name'),
                 Tables\Filters\TernaryFilter::make('is_featured')->label(__('ecommerce.is_featured')),
             ])
+            ->filtersLayout(FiltersLayout::AboveContent)
+            ->persistFiltersInSession()
             ->actions([Tables\Actions\EditAction::make()])
             ->bulkActions([Tables\Actions\DeleteBulkAction::make()]);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected static function categoryFilterOptions(): array
+    {
+        return Category::query()
+            ->with('parent:id,name')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get(['id', 'name', 'parent_id'])
+            ->mapWithKeys(function (Category $category) {
+                $label = $category->parent
+                    ? $category->parent->name.' › '.$category->name
+                    : $category->name;
+
+                return [$category->id => $label];
+            })
+            ->all();
+    }
+
+    /**
+     * @return Collection<int, int>
+     */
+    protected static function categoryIdsIncludingDescendants(int $categoryId): Collection
+    {
+        $ids = collect([$categoryId]);
+        $frontier = [$categoryId];
+
+        while ($frontier !== []) {
+            $children = Category::query()
+                ->whereIn('parent_id', $frontier)
+                ->pluck('id')
+                ->all();
+
+            $frontier = array_values(array_diff($children, $ids->all()));
+            $ids = $ids->merge($frontier);
+        }
+
+        return $ids->unique()->values();
     }
 
     public static function getRelations(): array
