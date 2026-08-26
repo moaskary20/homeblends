@@ -76,4 +76,49 @@ class EmailSettingsPageTest extends TestCase
         $this->assertSame('smtps', Config::get('mail.mailers.smtp.scheme'));
         $this->assertSame(465, (int) Config::get('mail.mailers.smtp.port'));
     }
+
+    public function test_admin_can_send_test_email_action(): void
+    {
+        \Illuminate\Support\Facades\Notification::fake();
+
+        $admin = User::factory()->create([
+            'is_admin' => true,
+            'email' => 'admin-test@homeblendstore.com',
+        ]);
+
+        $settings = app(SettingsService::class);
+        $settings->set('mail_host', 'smtp-relay.brevo.com', 'mail');
+        $settings->set('mail_port', '587', 'mail');
+        $settings->set('mail_encryption', 'tls', 'mail');
+        $settings->set('mail_username', 'shop@homeblendstore.com', 'mail');
+        $settings->set('mail_password', 'xsmtpsib-test-key', 'mail');
+        $settings->set('mail_from_address', 'noreply@homeblendstore.com', 'mail');
+        $settings->set('mail_from_name', 'هوم بلند', 'mail');
+        $settings->set('new_order_notification_emails', ['orders@homeblendstore.com'], 'notifications');
+
+        $this->actingAs($admin);
+
+        Livewire::test(EmailSettingsPage::class)
+            ->assertFormSet([
+                'test_email_to' => 'orders@homeblendstore.com',
+            ])
+            ->fillForm([
+                'test_email_to' => 'probe@homeblendstore.com',
+                'mail_host' => 'smtp-relay.brevo.com',
+                'mail_port' => '587',
+                'mail_encryption' => 'tls',
+                'mail_username' => 'shop@homeblendstore.com',
+                'mail_from_address' => 'noreply@homeblendstore.com',
+                'mail_from_name' => 'هوم بلند',
+            ])
+            ->call('sendTestEmail')
+            ->assertNotified();
+
+        \Illuminate\Support\Facades\Notification::assertSentOnDemand(
+            \App\Notifications\TestEmailNotification::class,
+            function ($notification, $channels, $notifiable): bool {
+                return ($notifiable->routes['mail'] ?? null) === 'probe@homeblendstore.com';
+            }
+        );
+    }
 }
