@@ -27,7 +27,10 @@ class NotificationDispatcher
         }
 
         if ($this->settings->isEnabled('notify_order_placed_admin')) {
-            $this->notifyAdmins(new NewOrderAdminNotification($order));
+            $this->notifyAdmins(
+                new NewOrderAdminNotification($order),
+                $this->settings->newOrderNotificationEmails()
+            );
         }
     }
 
@@ -45,7 +48,10 @@ class NotificationDispatcher
         $refund->loadMissing(['order', 'user']);
 
         if ($this->settings->isEnabled('notify_refund_admin')) {
-            $this->notifyAdmins(new NewRefundAdminNotification($refund));
+            $this->notifyAdmins(
+                new NewRefundAdminNotification($refund),
+                $this->settings->adminAlertEmails()
+            );
         }
     }
 
@@ -54,11 +60,17 @@ class NotificationDispatcher
         $return->loadMissing(['order', 'user']);
 
         if ($this->settings->isEnabled('notify_return_admin')) {
-            $this->notifyAdmins(new NewReturnAdminNotification($return));
+            $this->notifyAdmins(
+                new NewReturnAdminNotification($return),
+                $this->settings->adminAlertEmails()
+            );
         }
     }
 
-    protected function notifyAdmins(object $notification): void
+    /**
+     * @param  list<string>  $extraEmails
+     */
+    protected function notifyAdmins(object $notification, array $extraEmails = []): void
     {
         $admins = $this->settings->adminRecipients()->filter(fn (User $u) => $u->exists);
 
@@ -66,9 +78,20 @@ class NotificationDispatcher
             Notification::send($admins, $notification);
         }
 
-        $extra = $this->settings->get('admin_notification_email');
-        if (filled($extra)) {
-            Notification::route('mail', $extra)->notify($notification);
+        $alreadyNotified = $admins
+            ->pluck('email')
+            ->map(fn ($email) => strtolower(trim((string) $email)))
+            ->filter()
+            ->all();
+
+        foreach ($extraEmails as $email) {
+            $normalized = strtolower(trim($email));
+            if ($normalized === '' || in_array($normalized, $alreadyNotified, true)) {
+                continue;
+            }
+
+            Notification::route('mail', $normalized)->notify($notification);
+            $alreadyNotified[] = $normalized;
         }
     }
 }

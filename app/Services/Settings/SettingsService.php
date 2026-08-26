@@ -46,6 +46,7 @@ class SettingsService
         'notify_refund_admin' => true,
         'notify_return_admin' => true,
         'admin_notification_email' => '',
+        'new_order_notification_emails' => [],
     ];
 
     public function get(string $key, mixed $default = null): mixed
@@ -90,6 +91,22 @@ class SettingsService
             $settings[$key] = $this->get($key, $default);
         }
 
+        $emails = $settings['new_order_notification_emails'] ?? [];
+        if (! is_array($emails)) {
+            $emails = filled($emails) ? [(string) $emails] : [];
+        }
+
+        if ($emails === [] && filled($settings['admin_notification_email'] ?? null)) {
+            $emails = [(string) $settings['admin_notification_email']];
+        }
+
+        $settings['new_order_notification_emails'] = collect($emails)
+            ->map(fn ($email) => strtolower(trim((string) $email)))
+            ->filter(fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->unique()
+            ->values()
+            ->all();
+
         return $settings;
     }
 
@@ -121,13 +138,21 @@ class SettingsService
             return;
         }
 
-        Config::set('mail.default', $this->get('mail_mailer', 'smtp'));
+        $port = (int) $this->get('mail_port', 587);
+        $encryption = strtolower((string) $this->get('mail_encryption', 'tls'));
+        $scheme = match (true) {
+            $encryption === 'ssl', $port === 465 => 'smtps',
+            default => null,
+        };
+
+        Config::set('mail.default', $this->get('mail_mailer', 'smtp') ?: 'smtp');
+        Config::set('mail.mailers.smtp.transport', 'smtp');
+        Config::set('mail.mailers.smtp.scheme', $scheme);
         Config::set('mail.mailers.smtp.host', $this->get('mail_host'));
-        Config::set('mail.mailers.smtp.port', (int) $this->get('mail_port', 587));
-        $encryption = $this->get('mail_encryption', 'tls');
-        Config::set('mail.mailers.smtp.encryption', $encryption === 'none' ? null : $encryption);
+        Config::set('mail.mailers.smtp.port', $port);
         Config::set('mail.mailers.smtp.username', $this->get('mail_username'));
         Config::set('mail.mailers.smtp.password', $this->get('mail_password'));
+        Config::set('mail.mailers.smtp.encryption', in_array($encryption, ['tls', 'ssl'], true) ? $encryption : null);
         Config::set('mail.from.address', $this->get('mail_from_address'));
         Config::set('mail.from.name', $this->get('mail_from_name', config('app.name')));
     }
@@ -136,7 +161,13 @@ class SettingsService
     {
         return filled($this->get('mail_host'))
             && filled($this->get('mail_username'))
-            && filled($this->get('mail_password'));
+            && filled($this->get('mail_password'))
+            && filled($this->get('mail_from_address'));
+    }
+
+    public function mailPasswordIsSet(): bool
+    {
+        return filled(Setting::getValue('mail_password'));
     }
 
     public function notificationsEnabled(): bool
@@ -155,16 +186,50 @@ class SettingsService
 
     public function adminRecipients(): Collection
     {
-        $email = $this->get('admin_notification_email');
-
-        $admins = User::query()
+        return User::query()
             ->where(function ($query) {
                 $query->where('is_admin', true)
                     ->orWhereHas('roles', fn ($q) => $q->where('name', 'admin'));
             })
-            ->get();
+            ->get()
+            ->unique('email')
+            ->values();
+    }
 
-        return $admins->unique('email');
+    /**
+     * @return list<string>
+     */
+    public function newOrderNotificationEmails(): array
+    {
+        $emails = collect($this->get('new_order_notification_emails', []))
+            ->whenEmpty(function () {
+                $legacy = $this->get('admin_notification_email');
+
+                return filled($legacy) ? collect([$legacy]) : collect();
+            })
+            ->map(fn ($email) => strtolower(trim((string) $email)))
+            ->filter(fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->unique()
+            ->values()
+            ->all();
+
+        return $emails;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function adminAlertEmails(): array
+    {
+        $emails = collect($this->get('admin_notification_email'))
+            ->merge($this->get('new_order_notification_emails', []))
+            ->map(fn ($email) => strtolower(trim((string) $email)))
+            ->filter(fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->unique()
+            ->values()
+            ->all();
+
+        return $emails;
     }
 
     protected function defaultFor(string $key): mixed
