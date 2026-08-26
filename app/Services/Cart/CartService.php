@@ -8,6 +8,7 @@ use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\FlashSale\FlashSaleService;
+use App\Services\Inventory\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -72,17 +73,19 @@ class CartService
     {
         $pricing = app(FlashSaleService::class);
         $pricing->assertCanPurchase($product, $variant, $quantity);
-        $unitPrice = $pricing->resolveUnitPrice($product, $variant)['price'];
 
-        return DB::transaction(function () use ($cart, $product, $quantity, $variant, $unitPrice) {
+        return DB::transaction(function () use ($cart, $product, $quantity, $variant, $pricing) {
             $item = CartItem::query()->firstOrNew([
                 'cart_id' => $cart->id,
                 'product_id' => $product->id,
                 'product_variant_id' => $variant?->id,
             ]);
 
-            $item->quantity = ($item->exists ? $item->quantity : 0) + $quantity;
-            $item->unit_price = $unitPrice;
+            $nextQuantity = ($item->exists ? $item->quantity : 0) + $quantity;
+            app(InventoryService::class)->assertAvailable($product, $nextQuantity, $variant);
+
+            $item->quantity = $nextQuantity;
+            $item->unit_price = $pricing->resolveUnitPrice($product, $variant)['price'];
             $item->save();
 
             return $item->load(['product', 'variant']);
@@ -95,6 +98,12 @@ class CartService
             $item->delete();
 
             return null;
+        }
+
+        $item->loadMissing(['product', 'variant']);
+
+        if ($item->product && ! $item->product_bundle_id) {
+            app(InventoryService::class)->assertAvailable($item->product, $quantity, $item->variant);
         }
 
         $item->update(['quantity' => $quantity]);

@@ -13,6 +13,7 @@ use App\Repositories\Contracts\CouponRepositoryInterface;
 use App\Services\Coupon\CouponService;
 use App\Services\Loyalty\LoyaltyService;
 use App\Services\FlashSale\FlashSaleService;
+use App\Services\Inventory\InventoryService;
 use App\Services\Notifications\NotificationDispatcher;
 use App\Services\Shipping\ShippingService;
 use App\Services\Tax\TaxService;
@@ -273,12 +274,12 @@ class AdminOrderService
             return;
         }
 
-        foreach ($lines as $line) {
-            $available = $line['variant']
-                ? $line['variant']->stock_quantity
-                : $line['product']->stock_quantity;
+        $inventory = app(InventoryService::class);
 
-            if ($line['quantity'] > $available) {
+        foreach ($lines as $line) {
+            try {
+                $inventory->assertAvailable($line['product'], (int) $line['quantity'], $line['variant']);
+            } catch (ValidationException $e) {
                 throw ValidationException::withMessages([
                     'items' => [__('ecommerce.insufficient_stock', ['product' => $line['product_name']])],
                 ]);
@@ -291,11 +292,11 @@ class AdminOrderService
      */
     protected function decrementStock(array $line): void
     {
-        if ($line['variant']) {
-            $line['variant']->decrement('stock_quantity', $line['quantity']);
-        } else {
-            $line['product']->decrement('stock_quantity', $line['quantity']);
-        }
+        app(InventoryService::class)->decrement(
+            $line['product'],
+            (int) $line['quantity'],
+            $line['variant']
+        );
     }
 
     /**

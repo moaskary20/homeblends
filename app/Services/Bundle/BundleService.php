@@ -7,6 +7,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\ProductBundle;
+use App\Services\Inventory\InventoryService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -150,14 +151,11 @@ class BundleService
     public function decrementStock(ProductBundle $bundle, int $bundleQuantity): void
     {
         $bundle->loadMissing(['items.product', 'items.variant']);
+        $inventory = app(InventoryService::class);
 
         foreach ($bundle->items as $item) {
             $qty = $item->quantity * $bundleQuantity;
-            if ($item->variant) {
-                $item->variant->decrement('stock_quantity', $qty);
-            } else {
-                $item->product->decrement('stock_quantity', $qty);
-            }
+            $inventory->decrement($item->product, $qty, $item->variant);
         }
     }
 

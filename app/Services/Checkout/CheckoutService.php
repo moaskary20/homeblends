@@ -20,6 +20,7 @@ use App\Services\Affiliate\AffiliateTrackingService;
 use App\Services\Bundle\BundleService;
 use App\Services\Customer\CustomerProfileService;
 use App\Services\FlashSale\FlashSaleService;
+use App\Services\Inventory\InventoryService;
 use App\Services\Shipping\ShippingService;
 use App\Services\Tax\TaxService;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +62,26 @@ class CheckoutService
         ) {
             $cart->load(['items.product', 'items.variant']);
             $totals = $this->cartService->getTotals($cart);
+            $inventory = app(InventoryService::class);
+
+            foreach ($cart->items as $item) {
+                if ($item->product_bundle_id) {
+                    continue;
+                }
+
+                if (! $item->product) {
+                    throw new \InvalidArgumentException(__('ecommerce.insufficient_stock', [
+                        'product' => __('ecommerce.product'),
+                    ]));
+                }
+
+                try {
+                    $inventory->assertAvailable($item->product, (int) $item->quantity, $item->variant);
+                } catch (\Illuminate\Validation\ValidationException $e) {
+                    throw new \InvalidArgumentException(collect($e->errors())->flatten()->first()
+                        ?: __('ecommerce.insufficient_stock', ['product' => $item->product->name]));
+                }
+            }
 
             $cartWeight = $cart->items->sum(function ($item) {
                 if ($item->product_bundle_id && is_array($item->bundle_snapshot)) {
@@ -198,10 +219,10 @@ class CheckoutService
 
     protected function decrementStock($item): void
     {
-        if ($item->variant) {
-            $item->variant->decrement('stock_quantity', $item->quantity);
-        } else {
-            $item->product->decrement('stock_quantity', $item->quantity);
-        }
+        app(InventoryService::class)->decrement(
+            $item->product,
+            (int) $item->quantity,
+            $item->variant
+        );
     }
 }
