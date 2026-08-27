@@ -18,17 +18,12 @@ class NewOrderAdminNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        $channels = [];
-
-        if ($notifiable->email ?? false) {
-            $channels[] = 'mail';
-        }
-
+        // Admin users: Filament database only. Mail is sent to configured alert emails.
         if ($notifiable->exists ?? false) {
-            $channels[] = 'database';
+            return ['database'];
         }
 
-        return $channels ?: ['mail'];
+        return ['mail'];
     }
 
     public function toMail(object $notifiable): MailMessage

@@ -68,30 +68,36 @@ class NotificationDispatcher
     }
 
     /**
+     * In-app (database) alerts go to admin users.
+     * Email alerts go only to the configured addresses (not every admin account email).
+     *
      * @param  list<string>  $extraEmails
      */
     protected function notifyAdmins(object $notification, array $extraEmails = []): void
     {
         $admins = $this->settings->adminRecipients()->filter(fn (User $u) => $u->exists);
 
-        if ($admins->isNotEmpty()) {
-            Notification::send($admins, $notification);
+        foreach ($admins as $admin) {
+            $admin->notify($notification);
         }
 
-        $alreadyNotified = $admins
-            ->pluck('email')
+        $mailEmails = collect($extraEmails)
             ->map(fn ($email) => strtolower(trim((string) $email)))
-            ->filter()
-            ->all();
+            ->filter(fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->unique()
+            ->values();
 
-        foreach ($extraEmails as $email) {
-            $normalized = strtolower(trim($email));
-            if ($normalized === '' || in_array($normalized, $alreadyNotified, true)) {
-                continue;
-            }
+        if ($mailEmails->isEmpty()) {
+            $mailEmails = $admins
+                ->pluck('email')
+                ->map(fn ($email) => strtolower(trim((string) $email)))
+                ->filter(fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL))
+                ->unique()
+                ->values();
+        }
 
-            Notification::route('mail', $normalized)->notify($notification);
-            $alreadyNotified[] = $normalized;
+        foreach ($mailEmails as $email) {
+            Notification::route('mail', $email)->notify($notification);
         }
     }
 }
