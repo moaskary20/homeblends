@@ -287,12 +287,31 @@ class EmailSettingsPage extends Page implements HasForms
         } catch (Throwable $e) {
             report($e);
 
+            $body = $e->getMessage();
+            if (str_contains($body, 'Unauthorized IP') || str_contains($body, '525')) {
+                $serverIp = $this->detectPublicIp() ?: '38.242.251.149';
+                $body = __('ecommerce.mail_test_unauthorized_ip', ['ip' => $serverIp]);
+            }
+
             Notification::make()
                 ->title(__('ecommerce.test_email_failed'))
-                ->body($e->getMessage())
+                ->body($body)
                 ->danger()
                 ->persistent()
                 ->send();
+        }
+    }
+
+    protected function detectPublicIp(): ?string
+    {
+        try {
+            $ip = trim((string) @file_get_contents('https://api.ipify.org', false, stream_context_create([
+                'http' => ['timeout' => 3],
+            ])));
+
+            return filter_var($ip, FILTER_VALIDATE_IP) ?: null;
+        } catch (Throwable) {
+            return null;
         }
     }
 

@@ -18,7 +18,9 @@ class TestEmailNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(__('ecommerce.mail_test_subject'))
-            ->line(__('ecommerce.mail_test_body'));
+            ->subject(__('ecommerce.mail_test_subject').' — '.now()->format('Y-m-d H:i'))
+            ->line(__('ecommerce.mail_test_body'))
+            ->line('From: '.(string) config('mail.from.address'))
+            ->line('Time: '.now()->toDateTimeString());
     }
 }
