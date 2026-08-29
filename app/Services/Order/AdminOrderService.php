@@ -2,18 +2,19 @@
 
 namespace App\Services\Order;
 
+use App\Enums\AffiliateCommissionStatus;
 use App\Enums\CouponType;
 use App\Enums\OrderStatus;
-use App\Models\Coupon;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
 use App\Repositories\Contracts\CouponRepositoryInterface;
 use App\Services\Coupon\CouponService;
-use App\Services\Loyalty\LoyaltyService;
 use App\Services\FlashSale\FlashSaleService;
 use App\Services\Inventory\InventoryService;
+use App\Services\Loyalty\LoyaltyService;
 use App\Services\Notifications\NotificationDispatcher;
 use App\Services\Shipping\ShippingService;
 use App\Services\Tax\TaxService;
@@ -227,6 +228,234 @@ class AdminOrderService
 
             return $order;
         });
+    }
+
+    public function removeItem(Order $order, OrderItem $item, ?User $actor = null): Order
+    {
+        if ((int) $item->order_id !== (int) $order->id) {
+            throw ValidationException::withMessages([
+                'items' => [__('ecommerce.order_item_not_in_order')],
+            ]);
+        }
+
+        if (in_array($order->status, [OrderStatus::Cancelled, OrderStatus::Refunded], true)) {
+            throw ValidationException::withMessages([
+                'items' => [__('ecommerce.cannot_edit_order_items')],
+            ]);
+        }
+
+        return DB::transaction(function () use ($order, $item, $actor) {
+            $order->load(['items']);
+
+            if ($order->items->count() <= 1) {
+                throw ValidationException::withMessages([
+                    'items' => [__('ecommerce.cannot_remove_last_order_item')],
+                ]);
+            }
+
+            $originalSubtotal = (float) $order->subtotal;
+            $originalDiscount = (float) $order->discount_amount;
+
+            $this->restoreItemStock($item);
+            $this->reverseFlashSaleForItem($item);
+
+            $productName = $item->product_name;
+            $item->delete();
+
+            $order = $this->recalculateTotals(
+                $order->fresh(['items.product', 'coupon', 'user', 'payments', 'affiliateCommission']),
+                $originalSubtotal,
+                $originalDiscount
+            );
+
+            $order->statusHistory()->create([
+                'status' => $order->status->value,
+                'comment' => __('ecommerce.order_item_removed_history', [
+                    'product' => $productName,
+                ]),
+                'user_id' => $actor?->id,
+            ]);
+
+            return $order->fresh(['items', 'user']);
+        });
+    }
+
+    public function recalculateTotals(Order $order, ?float $originalSubtotal = null, ?float $originalDiscount = null): Order
+    {
+        $order->loadMissing(['items.product', 'coupon', 'user', 'payments', 'affiliateCommission']);
+
+        $subtotal = round((float) $order->items->sum('total'), 2);
+        $weight = $order->items->sum(
+            fn (OrderItem $item) => (float) ($item->product?->weight ?? 0) * (int) $item->quantity
+        );
+        $country = strtoupper($order->shipping_address['country'] ?? 'EG');
+
+        $coupon = $order->coupon;
+        $couponDiscount = 0;
+        $freeShippingFromCoupon = false;
+
+        if ($coupon) {
+            if ($this->couponService->stillAppliesToSubtotal($coupon, $subtotal)) {
+                $couponDiscount = $this->couponService->discountAmount($coupon, $subtotal);
+                $freeShippingFromCoupon = $coupon->type === CouponType::FreeShipping;
+            } else {
+                $this->couponService->releaseUsageForOrder($coupon, $order->id);
+                $order->coupon_id = null;
+            }
+        }
+
+        $vipDiscount = 0;
+        if ($order->user) {
+            $vipDiscount = $this->loyaltyService->calculateVipDiscount($order->user, $subtotal);
+        }
+
+        $loyaltyDiscount = $order->loyalty_points_redeemed
+            ? $this->loyaltyService->redeemValue((int) $order->loyalty_points_redeemed)
+            : 0;
+
+        $computedDiscount = $couponDiscount + $vipDiscount + $loyaltyDiscount;
+        $hadCoupon = $coupon !== null || $order->coupon_id !== null;
+        $manualDiscount = 0.0;
+
+        if ($computedDiscount <= 0 && ! $hadCoupon && $originalDiscount && $originalSubtotal && $originalSubtotal > 0) {
+            $manualDiscount = round($originalDiscount * ($subtotal / $originalSubtotal), 2);
+        }
+
+        $discountTotal = min($subtotal, $computedDiscount + $manualDiscount);
+
+        $subtotalAfterDiscount = max(0, $subtotal - $discountTotal);
+
+        $shippingAmount = (float) $order->shipping_amount;
+        $shippingName = $order->shipping_method;
+
+        if ($freeShippingFromCoupon || (! $order->shipping_rate_id && (float) $order->shipping_amount === 0.0)) {
+            $shippingAmount = 0;
+        } elseif ($order->shipping_rate_id) {
+            try {
+                $shipping = $this->shippingService->calculate(
+                    (int) $order->shipping_rate_id,
+                    $subtotal,
+                    $weight,
+                    $country
+                );
+                $shippingAmount = $shipping['amount'];
+                $shippingName = $shipping['name'];
+            } catch (\InvalidArgumentException) {
+                if ($this->shippingService->qualifiesForFreeShipping($subtotal)) {
+                    $shippingAmount = 0;
+                }
+            }
+        }
+
+        $tax = $this->taxService->calculate($subtotalAfterDiscount, $country);
+        $paymentFee = $this->paymentFee($order);
+        $total = round($subtotalAfterDiscount + $shippingAmount + $tax + $paymentFee, 2);
+
+        $loyaltyPointsEarned = $order->user
+            ? $this->loyaltyService->calculateEarnedPoints($total)
+            : (int) $order->loyalty_points_earned;
+
+        $this->syncLoyaltyPointsEarned($order, $loyaltyPointsEarned);
+
+        $order->update([
+            'subtotal' => $subtotal,
+            'discount_amount' => $discountTotal,
+            'shipping_amount' => $shippingAmount,
+            'shipping_method' => $shippingName,
+            'tax_amount' => $tax,
+            'total' => $total,
+            'coupon_id' => $order->coupon_id,
+            'loyalty_points_earned' => $loyaltyPointsEarned,
+        ]);
+
+        $order->payments()
+            ->where('status', 'pending')
+            ->update(['amount' => $total]);
+
+        $this->syncPendingAffiliateCommission($order->fresh(['affiliateCommission']));
+
+        return $order->fresh(['items', 'user', 'coupon']);
+    }
+
+    protected function restoreItemStock(OrderItem $item): void
+    {
+        $product = $item->product_id
+            ? Product::withTrashed()->find($item->product_id)
+            : null;
+
+        if (! $product) {
+            return;
+        }
+
+        $variant = $item->product_variant_id
+            ? ProductVariant::query()->find($item->product_variant_id)
+            : null;
+
+        app(InventoryService::class)->increment($product, (int) $item->quantity, $variant);
+    }
+
+    protected function reverseFlashSaleForItem(OrderItem $item): void
+    {
+        $product = $item->product;
+
+        if (! $product) {
+            return;
+        }
+
+        $entry = app(FlashSaleService::class)->findActiveEntry($product, $item->variant);
+
+        if ($entry) {
+            app(FlashSaleService::class)->reverseSale($entry, (int) $item->quantity);
+        }
+    }
+
+    protected function paymentFee(Order $order): float
+    {
+        $payment = $order->payments->first();
+
+        if (! $payment || ! is_array($payment->payload)) {
+            return 0;
+        }
+
+        return (float) ($payment->payload['payment_fee'] ?? 0);
+    }
+
+    protected function syncLoyaltyPointsEarned(Order $order, int $newPoints): void
+    {
+        $user = $order->user;
+        $previous = (int) $order->loyalty_points_earned;
+        $diff = $newPoints - $previous;
+
+        if (! $user || $diff === 0) {
+            return;
+        }
+
+        try {
+            $this->loyaltyService->adjustPoints(
+                $user,
+                $diff,
+                __('ecommerce.order_totals_recalculated'),
+            );
+        } catch (\InvalidArgumentException) {
+            // Customer may have already spent the originally awarded points.
+        }
+    }
+
+    protected function syncPendingAffiliateCommission(Order $order): void
+    {
+        $commission = $order->affiliateCommission;
+
+        if (! $commission || $commission->status !== AffiliateCommissionStatus::Pending) {
+            return;
+        }
+
+        $orderAmount = max(0, round((float) $order->subtotal - (float) $order->discount_amount, 2));
+        $amount = round($orderAmount * ((float) $commission->commission_rate / 100), 2);
+
+        $commission->update([
+            'order_amount' => $orderAmount,
+            'commission_amount' => $amount,
+        ]);
     }
 
     /**

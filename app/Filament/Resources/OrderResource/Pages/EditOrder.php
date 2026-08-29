@@ -9,6 +9,7 @@ use App\Services\Notifications\NotificationDispatcher;
 use App\Services\Order\OrderService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Livewire\Attributes\On;
 
 class EditOrder extends EditRecord
 {
@@ -19,6 +20,13 @@ class EditOrder extends EditRecord
     protected ?string $previousStatus = null;
 
     protected ?string $previousTracking = null;
+
+    #[On('refreshOrderForm')]
+    public function refreshOrderForm(): void
+    {
+        $this->record = $this->record->fresh();
+        $this->fillForm();
+    }
 
     protected function getHeaderActions(): array
     {

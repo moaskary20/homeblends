@@ -100,6 +100,20 @@ class FlashSaleService
         $this->clearCaches();
     }
 
+    public function reverseSale(FlashSaleProduct $entry, int $quantity): void
+    {
+        if ($quantity <= 0) {
+            return;
+        }
+
+        $toReverse = min($quantity, max(0, (int) $entry->quantity_sold));
+
+        if ($toReverse > 0) {
+            $entry->decrement('quantity_sold', $toReverse);
+            $this->clearCaches();
+        }
+    }
+
     public function getActiveSales(): Collection
     {
         return Cache::remember('flash_sales.active', 300, function () {

@@ -58,4 +58,21 @@ class InventoryService
             $product->refresh();
         }
     }
+
+    public function increment(Product $product, int $quantity, ?ProductVariant $variant = null): void
+    {
+        if ($quantity <= 0) {
+            return;
+        }
+
+        if ($variant) {
+            ProductVariant::query()->whereKey($variant->id)->increment('stock_quantity', $quantity);
+            $variant->refresh();
+
+            return;
+        }
+
+        Product::query()->whereKey($product->id)->increment('stock_quantity', $quantity);
+        $product->refresh();
+    }
 }

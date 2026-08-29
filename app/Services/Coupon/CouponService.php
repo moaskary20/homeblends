@@ -53,4 +53,35 @@ class CouponService
         $coupon->usages()->create(['user_id' => $userId, 'order_id' => $orderId]);
         $coupon->increment('used_count');
     }
+
+    public function discountAmount(Coupon $coupon, float $subtotal): float
+    {
+        if ($coupon->min_cart_amount && $subtotal < (float) $coupon->min_cart_amount) {
+            return 0;
+        }
+
+        return match ($coupon->type) {
+            CouponType::Fixed => min((float) $coupon->value, $subtotal),
+            CouponType::Percentage => round($subtotal * ((float) $coupon->value / 100), 2),
+            CouponType::FreeShipping => 0,
+        };
+    }
+
+    public function stillAppliesToSubtotal(Coupon $coupon, float $subtotal): bool
+    {
+        if ($coupon->min_cart_amount && $subtotal < (float) $coupon->min_cart_amount) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function releaseUsageForOrder(Coupon $coupon, int $orderId): void
+    {
+        $deleted = $coupon->usages()->where('order_id', $orderId)->delete();
+
+        if ($deleted > 0 && $coupon->used_count > 0) {
+            $coupon->decrement('used_count', min((int) $deleted, (int) $coupon->used_count));
+        }
+    }
 }
