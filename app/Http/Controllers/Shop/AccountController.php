@@ -89,6 +89,7 @@ class AccountController extends Controller
     {
         $orders = Order::query()
             ->where('user_id', $request->user()->id)
+            ->with('items')
             ->latest()
             ->paginate(10);
 

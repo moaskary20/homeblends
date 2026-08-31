@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\OrderResource\RelationManagers;
 
+use App\Enums\OrderItemFulfillmentStatus;
 use App\Enums\OrderStatus;
+use App\Filament\Resources\OrderResource\Pages\ViewOrder;
 use App\Models\OrderItem;
 use App\Services\Order\AdminOrderService;
 use Filament\Notifications\Notification;
@@ -21,6 +23,11 @@ class OrderItemsRelationManager extends RelationManager
         return __('ecommerce.order_items');
     }
 
+    public function isReadOnly(): bool
+    {
+        return false;
+    }
+
     public function table(Table $table): Table
     {
         return $table
@@ -31,6 +38,16 @@ class OrderItemsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('quantity')->label(__('ecommerce.quantity')),
                 Tables\Columns\TextColumn::make('unit_price')->money('EGP', locale: 'ar')->label(__('ecommerce.regular_price')),
                 Tables\Columns\TextColumn::make('total')->money('EGP', locale: 'ar')->label(__('ecommerce.total')),
+                Tables\Columns\SelectColumn::make('fulfillment_status')
+                    ->label(__('ecommerce.item_fulfillment_status'))
+                    ->options(OrderItemFulfillmentStatus::options())
+                    ->selectablePlaceholder(false)
+                    ->afterStateUpdated(function (): void {
+                        Notification::make()
+                            ->title(__('ecommerce.item_status_updated'))
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->actions([
                 Tables\Actions\Action::make('remove')
@@ -41,7 +58,7 @@ class OrderItemsRelationManager extends RelationManager
                     ->modalHeading(__('ecommerce.remove_order_item'))
                     ->modalDescription(__('ecommerce.remove_order_item_confirm'))
                     ->modalSubmitActionLabel(__('ecommerce.remove_order_item'))
-                    ->hidden(fn (): bool => $this->isReadOnly() || in_array(
+                    ->hidden(fn (): bool => $this->getPageClass() === ViewOrder::class || in_array(
                         $this->getOwnerRecord()->status,
                         [OrderStatus::Cancelled, OrderStatus::Refunded],
                         true

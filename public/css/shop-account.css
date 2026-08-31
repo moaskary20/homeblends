@@ -1602,3 +1602,105 @@
         flex-shrink: 0;
     }
 }
+
+.hb-purchases-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.hb-purchases-order {
+    background: #fff;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+    overflow: hidden;
+}
+
+.hb-purchases-order-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.hb-purchases-order-number {
+    font-weight: 700;
+    color: #3d3830;
+}
+
+.hb-purchases-order-number:hover {
+    color: #b45309;
+}
+
+.hb-purchases-order-date {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.2rem;
+}
+
+.hb-purchases-order-aside {
+    text-align: end;
+}
+
+.hb-purchases-order-total {
+    font-weight: 700;
+    margin-top: 0.35rem;
+    color: #3d3830;
+}
+
+.hb-purchases-items {
+    list-style: none;
+    margin: 0;
+    padding: 0.35rem 0;
+}
+
+.hb-purchases-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+}
+
+.hb-purchases-item + .hb-purchases-item {
+    border-top: 1px solid #f9fafb;
+}
+
+.hb-purchases-item-name {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.hb-purchases-item-qty {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 0.15rem;
+}
+
+.hb-purchases-items--compact {
+    border: 1px solid #f3f4f6;
+    border-radius: 0.75rem;
+    padding: 0.15rem 0;
+}
+
+.hb-purchases-items--compact .hb-purchases-item {
+    padding: 0.65rem 0.85rem;
+}
+
+.hb-item-status-pill {
+    display: inline-block;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.hb-item-status-pill.is-pending { background: #f3f4f6; color: #4b5563; }
+.hb-item-status-pill.is-preparing { background: #fef3c7; color: #b45309; }
+.hb-item-status-pill.is-shipped { background: #e0e7ff; color: #4338ca; }
+.hb-item-status-pill.is-delivered { background: #dcfce7; color: #15803d; }
+

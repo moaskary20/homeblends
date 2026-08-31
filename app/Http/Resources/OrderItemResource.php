@@ -15,6 +15,8 @@ class OrderItemResource extends JsonResource
             'quantity' => $this->quantity,
             'unit_price' => $this->unit_price,
             'total' => $this->total,
+            'fulfillment_status' => $this->fulfillment_status?->value,
+            'fulfillment_status_label' => $this->fulfillment_status?->label(),
         ];
     }
 }

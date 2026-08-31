@@ -34,6 +34,19 @@
                 </div>
             </div>
 
+            @if($contract->orderItems->isNotEmpty())
+                <ul class="hb-purchases-items hb-purchases-items--compact mb-4">
+                    @foreach($contract->orderItems as $item)
+                        <li class="hb-purchases-item">
+                            <div class="hb-purchases-item-meta">
+                                <p class="hb-purchases-item-name">{{ $item->product_name }}</p>
+                            </div>
+                            @include('shop.partials.item-fulfillment-badge', ['item' => $item])
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>

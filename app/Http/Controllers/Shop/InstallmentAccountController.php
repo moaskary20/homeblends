@@ -18,7 +18,7 @@ class InstallmentAccountController extends Controller
     {
         $contracts = InstallmentContract::query()
             ->where('user_id', $request->user()->id)
-            ->with(['offer', 'order', 'installments'])
+            ->with(['offer', 'order', 'installments', 'orderItems'])
             ->latest()
             ->get();
 

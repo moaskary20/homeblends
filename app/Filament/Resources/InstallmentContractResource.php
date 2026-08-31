@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\InstallmentContractStatus;
 use App\Enums\InstallmentPaymentStatus;
 use App\Filament\Resources\InstallmentContractResource\Pages;
+use App\Filament\Resources\InstallmentContractResource\RelationManagers\OrderItemsRelationManager;
 use App\Models\InstallmentContract;
 use App\Services\Installment\InstallmentPaymentService;
 use Filament\Infolists;
@@ -116,6 +117,13 @@ class InstallmentContractResource extends Resource
                         }
                     }),
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            OrderItemsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

@@ -45,6 +45,11 @@ class InstallmentContract extends Model
         return $this->hasMany(InstallmentPayment::class)->orderBy('sequence');
     }
 
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class, 'order_id', 'order_id');
+    }
+
     public function paidTotal(): float
     {
         return (float) $this->installments

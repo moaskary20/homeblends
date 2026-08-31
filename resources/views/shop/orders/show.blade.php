@@ -40,6 +40,7 @@
                 <tr class="border-b text-gray-500">
                     <th class="text-right py-2">{{ __('ecommerce.product') }}</th>
                     <th class="text-right py-2">{{ __('ecommerce.quantity') }}</th>
+                    <th class="text-right py-2">{{ __('ecommerce.item_fulfillment_status') }}</th>
                     <th class="text-right py-2">{{ __('ecommerce.total') }}</th>
                 </tr>
             </thead>
@@ -48,6 +49,9 @@
                     <tr class="border-b">
                         <td class="py-2">{{ $item->product_name }}</td>
                         <td class="py-2">{{ $item->quantity }}</td>
+                        <td class="py-2">
+                            @include('shop.partials.item-fulfillment-badge', ['item' => $item])
+                        </td>
                         <td class="py-2">{{ number_format($item->total, 2) }} ج.م</td>
                     </tr>
                 @endforeach

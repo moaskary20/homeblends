@@ -181,7 +181,19 @@ return new class extends Migration
 
     protected function hasForeignKey(string $table, string $name): bool
     {
-        $database = Schema::getConnection()->getDatabaseName();
+        $connection = Schema::getConnection();
+
+        if ($connection->getDriverName() !== 'mysql') {
+            foreach (Schema::getForeignKeys($table) as $foreignKey) {
+                if (($foreignKey['name'] ?? null) === $name) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        $database = $connection->getDatabaseName();
 
         return collect(DB::select(
             'select CONSTRAINT_NAME from information_schema.TABLE_CONSTRAINTS

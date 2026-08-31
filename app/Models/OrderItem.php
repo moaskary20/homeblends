@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrderItemFulfillmentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -9,7 +10,8 @@ class OrderItem extends Model
 {
     protected $fillable = [
         'order_id', 'product_id', 'product_variant_id', 'offer_id', 'offer_product_id',
-        'product_name', 'sku', 'quantity', 'unit_price', 'total', 'variant_snapshot', 'offer_snapshot',
+        'product_name', 'sku', 'quantity', 'unit_price', 'total', 'fulfillment_status',
+        'variant_snapshot', 'offer_snapshot',
     ];
 
     protected function casts(): array
@@ -17,10 +19,15 @@ class OrderItem extends Model
         return [
             'unit_price' => 'decimal:2',
             'total' => 'decimal:2',
+            'fulfillment_status' => OrderItemFulfillmentStatus::class,
             'variant_snapshot' => 'array',
             'offer_snapshot' => 'array',
         ];
     }
+
+    protected $attributes = [
+        'fulfillment_status' => 'pending',
+    ];
 
     public function order(): BelongsTo
     {
