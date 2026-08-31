@@ -25,6 +25,7 @@
             </div>
             <a href="{{ route('shop.account.profile') }}" role="menuitem">👤 {{ __('ecommerce.my_account') }}</a>
             <a href="{{ route('shop.account.purchases') }}" role="menuitem">🛍️ {{ __('ecommerce.my_purchases') }}</a>
+            <a href="{{ route('shop.account.installments') }}" role="menuitem">📅 {{ __('ecommerce.my_installments') }}</a>
             <a href="{{ route('shop.account.points') }}" role="menuitem">⭐ {{ __('ecommerce.my_points') }}</a>
             <a href="{{ route('shop.account.tracking') }}" role="menuitem">📦 {{ __('ecommerce.track_orders') }}</a>
             <a href="{{ route('shop.account.favorites') }}" role="menuitem">

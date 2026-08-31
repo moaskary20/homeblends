@@ -8,12 +8,14 @@ use App\Http\Requests\Cart\AddToCartRequest;
 use App\Http\Requests\Cart\UpdateCartItemRequest;
 use App\Http\Resources\CartResource;
 use App\Models\CartItem;
+use App\Models\Offer;
 use App\Models\Product;
 use App\Models\ProductBundle;
 use App\Models\ProductVariant;
 use App\Services\Bundle\BundleService;
 use App\Services\Cart\CartService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
 {
@@ -24,7 +26,7 @@ class CartController extends Controller
     public function show(Request $request)
     {
         $cart = $this->resolveCart($request);
-        $cart->load(['items.product.images', 'items.variant', 'items.bundle']);
+        $cart->load(['items.product.images', 'items.variant', 'items.bundle', 'items.offerProduct.offer']);
 
         return response()->json([
             'cart' => new CartResource($cart),
@@ -52,15 +54,49 @@ class CartController extends Controller
         ]);
     }
 
+    public function storeOffer(Request $request, string $slug)
+    {
+        $offer = Offer::query()
+            ->where('slug', $slug)
+            ->with(['products.product', 'products.variant', 'products.offer'])
+            ->firstOrFail();
+
+        abort_unless($offer->isRunning(), 404);
+
+        $months = $request->filled('installment_months')
+            ? $request->integer('installment_months')
+            : $offer->defaultPlanMonths();
+
+        $cart = $this->resolveCart($request);
+        $cart = $this->cartService->addOffer($cart, $offer, $months);
+
+        return response()->json([
+            'cart' => new CartResource($cart),
+            'totals' => $this->cartService->getTotals($cart),
+        ]);
+    }
+
     public function store(AddToCartRequest $request)
     {
+        if ($request->filled('offer_product_id')) {
+            throw ValidationException::withMessages([
+                'offer_product_id' => [__('ecommerce.offer_must_buy_set')],
+            ]);
+        }
+
         $cart = $this->resolveCart($request);
         $product = Product::findOrFail($request->product_id);
         $variant = $request->product_variant_id
             ? ProductVariant::where('product_id', $product->id)->findOrFail($request->product_variant_id)
             : null;
 
-        $item = $this->cartService->addItem($cart, $product, $request->integer('quantity', 1), $variant);
+        $item = $this->cartService->addItem(
+            $cart,
+            $product,
+            $request->integer('quantity', 1),
+            $variant,
+            null,
+        );
         $cart->load(['items.product']);
 
         return response()->json([
@@ -84,10 +120,10 @@ class CartController extends Controller
     {
         $this->authorizeCartItem($request, $cartItem);
         $cart = $cartItem->cart;
-        $cartItem->delete();
+        $this->cartService->removeItem($cartItem);
 
         return response()->json([
-            'totals' => $this->cartService->getTotals($cart),
+            'totals' => $this->cartService->getTotals($cart->fresh('items')),
         ]);
     }
 
@@ -107,7 +143,7 @@ class CartController extends Controller
         abort_unless($user, 401);
 
         $cart = $this->cartService->restoreFromSaved($user->id);
-        $cart->load(['items.product.images', 'items.variant', 'items.bundle']);
+        $cart->load(['items.product.images', 'items.variant', 'items.bundle', 'items.offerProduct.offer']);
 
         return response()->json([
             'cart' => new CartResource($cart),

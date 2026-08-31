@@ -12,3 +12,4 @@ Artisan::command('inspire', function () {
 Schedule::job(new RecoverAbandonedCartsJob)->daily();
 Schedule::command('sitemap:generate')->daily();
 Schedule::command('loyalty:expire')->daily();
+Schedule::command('installments:remind')->daily();

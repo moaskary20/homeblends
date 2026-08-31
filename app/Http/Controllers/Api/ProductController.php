@@ -44,6 +44,7 @@ class ProductController extends Controller
             return $this->products->findBySlug($slug, [
                 'category', 'images', 'variants',
                 'activeFlashSaleEntry.flashSale',
+                'activeOfferEntry.offer',
                 'reviews' => fn ($q) => $q->approved(),
             ]);
         });

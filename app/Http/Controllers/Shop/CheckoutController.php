@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkout\PlaceOrderRequest;
 use App\Http\Resources\OrderResource;
+use App\Models\FreeShippingRule;
 use App\Services\Cart\CartService;
 use App\Services\Checkout\CheckoutService;
+use App\Services\Offer\OfferService;
 use App\Services\Payment\PaymentGatewayService;
 use App\Services\Seo\SeoService;
 use App\Services\Shipping\ShippingService;
@@ -23,7 +25,7 @@ class CheckoutController extends Controller
     public function show(ShippingService $shippingService)
     {
         $shippingRates = $shippingService->getAvailableRates('EG');
-        $freeShippingMin = \App\Models\FreeShippingRule::query()
+        $freeShippingMin = FreeShippingRule::query()
             ->where('is_active', true)
             ->min('min_order_amount');
         $paymentGateways = $this->paymentGateways->getActive();
@@ -48,6 +50,8 @@ class CheckoutController extends Controller
         ];
 
         $seo = app(SeoService::class)->forPrivatePage(__('ecommerce.checkout'));
+        $cart = $this->cartService->resolveForRequest(request());
+        $installmentPreview = app(OfferService::class)->cartInstallmentPreview($cart);
 
         return view('shop.checkout', compact(
             'shippingRates',
@@ -55,6 +59,7 @@ class CheckoutController extends Controller
             'paymentGateways',
             'checkoutDefaults',
             'seo',
+            'installmentPreview',
         ));
     }
 
@@ -73,6 +78,7 @@ class CheckoutController extends Controller
                 gateway: $this->paymentGateways->resolveDriver($request->payment_gateway),
                 loyaltyPointsToRedeem: $request->integer('loyalty_points', 0),
                 notes: $request->notes,
+                payInInstallments: $request->boolean('pay_in_installments'),
             );
         } catch (\InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);

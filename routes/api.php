@@ -3,13 +3,16 @@
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\AffiliateController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BundleController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\CouponController;
-use App\Http\Controllers\Api\BundleController;
+use App\Http\Controllers\Api\FlashSaleController;
 use App\Http\Controllers\Api\HomeController as ApiHomeController;
+use App\Http\Controllers\Api\InstallmentController;
 use App\Http\Controllers\Api\LoyaltyController;
+use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentGatewayController;
 use App\Http\Controllers\Api\ProductController;
@@ -45,6 +48,10 @@ Route::prefix('v1')->group(function () {
     Route::get('flash-sales/products', [FlashSaleController::class, 'products']);
     Route::get('flash-sales/{slug}', [FlashSaleController::class, 'show']);
 
+    Route::get('offers', [OfferController::class, 'index']);
+    Route::get('offers/products', [OfferController::class, 'products']);
+    Route::get('offers/{slug}', [OfferController::class, 'show']);
+
     Route::get('payment-gateways', [PaymentGatewayController::class, 'index']);
 
     Route::get('shipping-rates', [ShippingController::class, 'index']);
@@ -53,6 +60,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('shopApiSession')->group(function () {
         Route::get('cart', [CartController::class, 'show']);
         Route::post('cart/bundles', [CartController::class, 'storeBundle']);
+        Route::post('cart/offers/{slug}', [CartController::class, 'storeOffer']);
         Route::post('cart/items', [CartController::class, 'store']);
         Route::patch('cart/items/{cartItem}', [CartController::class, 'update']);
         Route::delete('cart/items/{cartItem}', [CartController::class, 'destroy']);
@@ -78,6 +86,9 @@ Route::prefix('v1')->group(function () {
         Route::get('orders/{id}', [OrderController::class, 'show']);
         Route::get('orders/{id}/tracking', [OrderController::class, 'tracking']);
         Route::get('orders/{id}/invoice', [OrderController::class, 'invoice']);
+
+        Route::get('installments', [InstallmentController::class, 'index']);
+        Route::post('installments/{installmentPayment}/pay', [InstallmentController::class, 'pay']);
 
         Route::get('refunds', [RefundController::class, 'index']);
         Route::post('refunds', [RefundController::class, 'store']);

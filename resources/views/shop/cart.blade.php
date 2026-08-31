@@ -1,7 +1,7 @@
 @extends('layouts.shop')
 
 @push('head')
-    <link rel="stylesheet" href="{{ asset('css/shop-cart.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/shop-cart.css') }}?v={{ is_file(public_path('css/shop-cart.css')) ? filemtime(public_path('css/shop-cart.css')) : time() }}">
 @endpush
 
 @section('content')
@@ -14,7 +14,7 @@
 
         <h1 class="text-3xl font-bold text-[#3d3830] mb-8">{{ __('ecommerce.cart') }}</h1>
 
-        @php $cartHasItems = $cart->items->isNotEmpty(); @endphp
+        @php $cartHasItems = $displayLines->isNotEmpty(); @endphp
         <div id="cart-app"
              data-session-id="{{ session()->getId() }}"
              data-api="{{ url('/api/v1') }}"
@@ -24,6 +24,9 @@
              data-initial-count="{{ $totals['items_count'] ?? 0 }}"
              data-product-url-template="{{ route('shop.products.show', ['slug' => '__SLUG__']) }}"
              data-bundles-url="{{ route('shop.bundles.index') }}"
+             data-offer-url-template="{{ route('shop.offers.show', ['slug' => '__SLUG__']) }}"
+             data-offer-badge="{{ __('ecommerce.installment_badge') }}"
+             data-offer-qty-locked="{{ __('ecommerce.offer_cart_qty_fixed') }}"
              class="hb-cart-layout">
 
             <div class="hb-cart-main">
@@ -40,8 +43,8 @@
                 </div>
 
                 <div id="cart-items" class="{{ $cartHasItems ? '' : 'hb-cart-hidden' }} bg-white rounded-xl shadow-sm overflow-hidden">
-                    @foreach($cart->items as $item)
-                        @include('shop.partials.cart-line', ['item' => $item])
+                    @foreach($displayLines as $line)
+                        @include('shop.partials.cart-line', ['line' => $line])
                     @endforeach
                 </div>
             </div>

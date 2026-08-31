@@ -9,7 +9,7 @@ class CartItem extends Model
 {
     protected $fillable = [
         'cart_id', 'product_id', 'product_variant_id', 'product_bundle_id',
-        'quantity', 'unit_price', 'bundle_snapshot',
+        'offer_product_id', 'quantity', 'unit_price', 'bundle_snapshot',
     ];
 
     protected function casts(): array
@@ -28,6 +28,16 @@ class CartItem extends Model
     public function isBundleLine(): bool
     {
         return $this->product_bundle_id !== null;
+    }
+
+    public function isOfferLine(): bool
+    {
+        return $this->offer_product_id !== null;
+    }
+
+    public function offerProduct(): BelongsTo
+    {
+        return $this->belongsTo(OfferProduct::class);
     }
 
     public function cart(): BelongsTo

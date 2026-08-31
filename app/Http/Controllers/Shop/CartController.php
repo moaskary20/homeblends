@@ -13,6 +13,7 @@ use App\Models\ProductVariant;
 use App\Services\Cart\CartService;
 use App\Services\Seo\SeoService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
 {
@@ -22,11 +23,12 @@ class CartController extends Controller
     {
         $cart = $cartService->resolveForRequest($request);
 
-        $cart->load(['items.product.images', 'items.variant', 'items.bundle']);
+        $cart->load(['items.product.images', 'items.variant', 'items.bundle', 'items.offerProduct.offer']);
         $totals = $cartService->getTotals($cart);
 
         return view('shop.cart', [
             'cart' => $cart,
+            'displayLines' => $cartService->displayLines($cart),
             'totals' => $totals,
             'seo' => app(SeoService::class)->forCart(),
         ]);
@@ -35,7 +37,7 @@ class CartController extends Controller
     public function preview(Request $request, CartService $cartService)
     {
         $cart = $cartService->resolveForRequest($request);
-        $cart->load(['items.product.images', 'items.variant', 'items.bundle']);
+        $cart->load(['items.product.images', 'items.variant', 'items.bundle', 'items.offerProduct.offer']);
 
         return response()->json([
             'cart' => new CartResource($cart),
@@ -45,13 +47,25 @@ class CartController extends Controller
 
     public function store(AddToCartRequest $request, CartService $cartService)
     {
+        if ($request->filled('offer_product_id')) {
+            throw ValidationException::withMessages([
+                'offer_product_id' => [__('ecommerce.offer_must_buy_set')],
+            ]);
+        }
+
         $cart = $cartService->resolveForRequest($request);
         $product = Product::findOrFail($request->product_id);
         $variant = $request->product_variant_id
             ? ProductVariant::where('product_id', $product->id)->findOrFail($request->product_variant_id)
             : null;
 
-        $item = $cartService->addItem($cart, $product, $request->integer('quantity', 1), $variant);
+        $item = $cartService->addItem(
+            $cart,
+            $product,
+            $request->integer('quantity', 1),
+            $variant,
+            null,
+        );
         $cart->load(['items.product']);
 
         return response()->json([
@@ -75,10 +89,10 @@ class CartController extends Controller
     {
         $this->authorizeCartItem($request, $cartItem);
         $cart = $cartItem->cart;
-        $cartItem->delete();
+        $cartService->removeItem($cartItem);
 
         return response()->json([
-            'totals' => $cartService->getTotals($cart),
+            'totals' => $cartService->getTotals($cart->fresh('items')),
         ]);
     }
 

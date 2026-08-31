@@ -4,10 +4,13 @@ namespace App\Services\Seo;
 
 use App\Data\SeoMeta;
 use App\Models\Category;
+use App\Models\Offer;
 use App\Models\Product;
 use App\Models\ProductBundle;
 use App\Services\Settings\SettingsService;
+use App\Support\AppUrl;
 use App\Support\ProductMedia;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class SeoService
@@ -123,6 +126,46 @@ class SeoService
             ogType: 'product',
             ogImage: $image,
             schema: $schemas,
+        );
+    }
+
+    public function forOffersIndex(): SeoMeta
+    {
+        return $this->pageMeta(
+            title: __('ecommerce.installment_offers'),
+            description: __('ecommerce.offers_section'),
+            canonical: route('shop.offers.index'),
+            schema: [
+                $this->organizationSchema(),
+                $this->breadcrumbSchema([
+                    ['name' => $this->siteName(), 'url' => route('shop.home')],
+                    ['name' => __('ecommerce.installment_offers'), 'url' => route('shop.offers.index')],
+                ]),
+            ],
+        );
+    }
+
+    public function forOffer(Offer $offer): SeoMeta
+    {
+        $title = $offer->name;
+        $description = Str::limit(strip_tags($offer->description ?: ''), 160) ?: $this->defaultDescription();
+        $canonical = route('shop.offers.show', $offer->slug);
+        $image = ProductMedia::url($offer->banner_image) ?? $this->defaultOgImage();
+
+        return $this->pageMeta(
+            title: $title,
+            description: $description,
+            canonical: $canonical,
+            ogType: 'product',
+            ogImage: $image,
+            schema: [
+                $this->organizationSchema(),
+                $this->breadcrumbSchema([
+                    ['name' => $this->siteName(), 'url' => route('shop.home')],
+                    ['name' => __('ecommerce.installment_offers'), 'url' => route('shop.offers.index')],
+                    ['name' => $offer->name, 'url' => $canonical],
+                ]),
+            ],
         );
     }
 
@@ -302,7 +345,7 @@ class SeoService
     }
 
     /**
-     * @return array<int, array{loc: string, lastmod: ?\Carbon\Carbon, priority: float, changefreq: string}>
+     * @return array<int, array{loc: string, lastmod: ?Carbon, priority: float, changefreq: string}>
      */
     public function sitemapEntries(): array
     {
@@ -464,7 +507,7 @@ class SeoService
     {
         $path = $this->settings->get('seo_default_og_image');
 
-        return $path ? \App\Support\AppUrl::normalize(\App\Support\AppUrl::absolute('storage/'.$path)) : null;
+        return $path ? AppUrl::normalize(AppUrl::absolute('storage/'.$path)) : null;
     }
 
     protected function organizationSchema(): array
@@ -476,7 +519,7 @@ class SeoService
             '@type' => 'Organization',
             'name' => $this->settings->get('seo_organization_name') ?: $this->siteName(),
             'url' => url('/'),
-            'logo' => $logo ? \App\Support\AppUrl::normalize(\App\Support\AppUrl::absolute('storage/'.$logo)) : null,
+            'logo' => $logo ? AppUrl::normalize(AppUrl::absolute('storage/'.$logo)) : null,
         ]);
     }
 

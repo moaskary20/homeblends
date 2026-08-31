@@ -28,6 +28,9 @@ function escapeHtml(text) {
 }
 
 function productImage(item) {
+    if (item.is_offer_set && item.offer?.banner_image) {
+        return item.offer.banner_image;
+    }
     const p = item.product;
     if (!p) {
         return null;
@@ -43,6 +46,17 @@ function productImage(item) {
 }
 
 function productUrl(item, root) {
+    if (item.is_offer_set) {
+        if (item.offer?.url) {
+            return item.offer.url;
+        }
+        const slug = item.offer?.slug;
+        const template = root.dataset.offerUrlTemplate || '/offers/__SLUG__';
+        if (slug) {
+            return template.replace('__SLUG__', slug);
+        }
+        return '/offers';
+    }
     if (item.is_bundle) {
         return root.dataset.bundlesUrl || '/bundles';
     }
@@ -57,11 +71,16 @@ function productUrl(item, root) {
 
 function renderMiniCartItem(item, root) {
     const currency = root.dataset.currency || 'ج.م';
-    const title = item.is_bundle
-        ? (item.bundle?.name || item.product?.name || 'باقة')
-        : (item.product?.name || '');
+    const title = item.is_offer_set
+        ? (item.offer?.name || 'عرض')
+        : (item.is_bundle
+            ? (item.bundle?.name || item.product?.name || 'باقة')
+            : (item.product?.name || ''));
     const img = productImage(item);
     const url = productUrl(item, root);
+    const meta = item.is_offer_set && item.offer?.meta
+        ? item.offer.meta
+        : `${item.quantity} × ${Number(item.unit_price).toFixed(2)} ${currency}`;
 
     return `
         <li class="hb-mini-cart-item">
@@ -72,7 +91,7 @@ function renderMiniCartItem(item, root) {
             </a>
             <div class="hb-mini-cart-item-info">
                 <a href="${url}" class="hb-mini-cart-item-title">${escapeHtml(title)}</a>
-                <span class="hb-mini-cart-item-meta">${item.quantity} × ${Number(item.unit_price).toFixed(2)} ${currency}</span>
+                <span class="hb-mini-cart-item-meta">${escapeHtml(meta)}</span>
             </div>
             <span class="hb-mini-cart-item-price">${Number(item.subtotal).toFixed(2)}</span>
         </li>

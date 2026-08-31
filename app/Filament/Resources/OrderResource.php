@@ -6,8 +6,8 @@ use App\Enums\OrderStatus;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers\OrderItemsRelationManager;
 use App\Filament\Resources\OrderResource\RelationManagers\StatusHistoriesRelationManager;
-use App\Models\Order;
 use App\Http\Controllers\Admin\OrderInvoiceController;
+use App\Models\Order;
 use App\Services\Order\OrderService;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -77,6 +77,7 @@ class OrderResource extends Resource
                     Forms\Components\Select::make('payment_status')
                         ->label(__('ecommerce.payment_status'))
                         ->options([
+                            'partial' => __('ecommerce.payment_partial'),
                             'pending' => __('ecommerce.payment_pending'),
                             'paid' => __('ecommerce.payment_paid'),
                             'failed' => __('ecommerce.payment_failed'),

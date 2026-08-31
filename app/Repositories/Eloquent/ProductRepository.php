@@ -14,10 +14,10 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         parent::__construct($model);
     }
 
-    public function paginate(int $perPage = 15, array $filters = []): \Illuminate\Pagination\LengthAwarePaginator
+    public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $query = $this->model->newQuery()
-            ->with(['category', 'images', 'activeFlashSaleEntry.flashSale'])
+            ->with(['category', 'images', 'activeFlashSaleEntry.flashSale', 'activeOfferEntry.offer'])
             ->published();
 
         return $this->applyFilters($query, $filters)->paginate($perPage);
@@ -26,7 +26,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     public function getFeatured(int $limit = 8): Collection
     {
         $query = fn () => $this->model->newQuery()
-            ->with(['category', 'images', 'activeFlashSaleEntry.flashSale'])
+            ->with(['category', 'images', 'activeFlashSaleEntry.flashSale', 'activeOfferEntry.offer'])
             ->published()
             ->latest();
 
@@ -52,7 +52,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     public function search(string $term, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->model->newQuery()
-            ->with(['category', 'images', 'variants', 'activeFlashSaleEntry.flashSale'])
+            ->with(['category', 'images', 'variants', 'activeFlashSaleEntry.flashSale', 'activeOfferEntry.offer'])
             ->published()
             ->where(function ($q) use ($term) {
                 $q->where('name', 'like', "%{$term}%")

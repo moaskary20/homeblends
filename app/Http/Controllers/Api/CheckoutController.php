@@ -38,6 +38,7 @@ class CheckoutController extends Controller
                 gateway: $this->paymentGateways->resolveDriver($request->payment_gateway),
                 loyaltyPointsToRedeem: $request->integer('loyalty_points', 0),
                 notes: $request->notes,
+                payInInstallments: $request->boolean('pay_in_installments'),
             );
         } catch (\InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);

@@ -88,6 +88,20 @@
         </section>
     @endif
 
+    @if(($offers ?? collect())->isNotEmpty())
+        <section class="hb-home-section max-w-[1400px] mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="hb-section-title mb-0">{{ __('ecommerce.offers_section') }}</h2>
+                <a href="{{ route('shop.offers.index') }}" class="text-amber-800 font-semibold hover:underline">{{ __('ecommerce.view_all_offers') }} →</a>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach($offers->take(4) as $offer)
+                    @include('shop.partials.offer-card', ['offer' => $offer])
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     @if($bundles->isNotEmpty())
         <section class="hb-home-section max-w-[1400px] mx-auto">
             <div class="flex justify-between items-center mb-6">

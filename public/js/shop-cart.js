@@ -68,6 +68,9 @@ if (app) {
     });
 
     const productImage = (item) => {
+        if (item.is_offer_set && item.offer?.banner_image) {
+            return item.offer.banner_image;
+        }
         const p = item.product;
         if (!p) return null;
         if (p.main_image) return p.main_image;
@@ -79,8 +82,16 @@ if (app) {
 
     const productUrlTemplate = app.dataset.productUrlTemplate || '';
     const bundlesUrl = app.dataset.bundlesUrl || '/bundles';
+    const offerUrlTemplate = app.dataset.offerUrlTemplate || '/offers/__SLUG__';
 
     const productUrl = (item) => {
+        if (item.is_offer_set) {
+            const slug = item.offer?.slug;
+            if (slug) {
+                return (item.offer.url || offerUrlTemplate.replace('__SLUG__', slug));
+            }
+            return item.offer?.url || '/offers';
+        }
         if (item.is_bundle) return bundlesUrl;
         const slug = item.product?.slug;
         if (!slug || !productUrlTemplate) return bundlesUrl;
@@ -89,25 +100,39 @@ if (app) {
 
     const renderLine = (item) => {
         const isBundle = item.is_bundle;
-        const title = isBundle
-            ? (item.bundle?.name || item.product?.name || 'باقة')
-            : (item.product?.name || '');
+        const isOfferSet = item.is_offer_set;
+        const title = isOfferSet
+            ? (item.offer?.name || 'عرض')
+            : (isBundle
+                ? (item.bundle?.name || item.product?.name || 'باقة')
+                : (item.product?.name || ''));
         const img = productImage(item);
         const url = productUrl(item);
-        const badge = isBundle
-            ? '<span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">باقة</span> '
-            : '';
+        const badge = isOfferSet
+            ? `<span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">${escapeHtml(app.dataset.offerBadge || 'تقسيط')}</span> `
+            : (isBundle
+                ? '<span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">باقة</span> '
+                : '');
         const included = isBundle && Array.isArray(item.bundle?.items) && item.bundle.items.length
             ? `<ul class="text-sm text-gray-500 mt-2 list-disc list-inside">${item.bundle.items.map((row) =>
                 `<li>${escapeHtml(row.product_name || '')} × ${row.quantity || 1}</li>`).join('')}</ul>`
             : '';
-        const variantSku = !isBundle && item.product?.sku
+        const offerMeta = isOfferSet && item.offer?.meta
+            ? `<p class="text-sm text-amber-800 mt-1">${escapeHtml(item.offer.meta)}</p>`
+            : '';
+        const variantSku = !isBundle && !isOfferSet && item.product?.sku
             ? `<p class="text-sm text-gray-500 mt-1">${escapeHtml(item.product.sku)}</p>`
             : '';
+        const qtyControls = item.qty_locked || isOfferSet
+            ? `<span class="text-sm text-gray-500">${escapeHtml(app.dataset.offerQtyLocked || 'طقم كامل')}</span>`
+            : `<label class="text-sm text-gray-500">الكمية</label>
+               <input type="number" min="0" max="99" value="${item.quantity}"
+                      class="qty-input border border-gray-200 rounded-lg w-20 px-2 py-1 text-center"
+                      data-id="${item.id}">`;
 
         return `
-            <div class="hb-cart-line p-4 flex flex-wrap gap-4 border-b border-gray-100 last:border-0" data-cart-line data-id="${item.id}">
-                <a href="${url}" class="hb-cart-line-image shrink-0">
+            <div class="hb-cart-line p-4 flex flex-wrap gap-4 border-b border-gray-100 last:border-0 ${isOfferSet ? 'is-offer-set' : ''}" data-cart-line data-id="${item.id}">
+                <a href="${url}" class="hb-cart-line-image shrink-0 ${isOfferSet ? 'is-offer' : ''}">
                     ${img
                         ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(title)}" loading="lazy">`
                         : '<span class="hb-cart-line-placeholder">🛒</span>'}
@@ -117,6 +142,7 @@ if (app) {
                         <div>
                             ${badge}
                             <a href="${url}" class="font-semibold text-[#3d3830] hover:text-amber-700 block mt-1">${escapeHtml(title)}</a>
+                            ${offerMeta}
                             ${included}
                             ${variantSku}
                         </div>
@@ -125,10 +151,7 @@ if (app) {
                         </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 mt-3">
-                        <label class="text-sm text-gray-500">الكمية</label>
-                        <input type="number" min="0" max="99" value="${item.quantity}"
-                               class="qty-input border border-gray-200 rounded-lg w-20 px-2 py-1 text-center"
-                               data-id="${item.id}">
+                        ${qtyControls}
                         <button type="button" class="remove-btn text-red-600 text-sm hover:underline" data-id="${item.id}">حذف</button>
                     </div>
                 </div>

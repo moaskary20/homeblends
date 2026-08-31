@@ -91,6 +91,7 @@
     <nav class="hb-nav">
         <div class="hb-header-inner hb-header-nav-inner">
             <a href="{{ route('shop.products.index') }}">{{ __('ecommerce.new_featured') }}</a>
+            <a href="{{ route('shop.offers.index') }}" class="{{ request()->routeIs('shop.offers.*') ? 'is-active' : '' }}">{{ __('ecommerce.installment_offers') }}</a>
             <a href="{{ route('shop.categories.index') }}">{{ __('ecommerce.departments') }}</a>
             <a href="{{ route('shop.products.index') }}">{{ __('Products') }}</a>
             @include('shop.partials.nav-category-links', ['navCategories' => $navCategories])

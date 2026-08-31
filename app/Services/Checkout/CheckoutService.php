@@ -9,22 +9,26 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Repositories\Contracts\CouponRepositoryInterface;
-use App\Services\Cart\CartService;
-use App\Services\Coupon\CouponService;
-use App\Services\Loyalty\LoyaltyService;
-use App\Services\Notifications\NotificationDispatcher;
-use App\Services\Payment\PaymentGatewayService;
-use App\Services\Payment\PaymentService;
 use App\Services\Affiliate\AffiliateCommissionService;
 use App\Services\Affiliate\AffiliateTrackingService;
 use App\Services\Bundle\BundleService;
+use App\Services\Cart\CartService;
+use App\Services\Coupon\CouponService;
 use App\Services\Customer\CustomerProfileService;
 use App\Services\FlashSale\FlashSaleService;
+use App\Services\Installment\InstallmentPaymentService;
+use App\Services\Installment\InstallmentScheduler;
 use App\Services\Inventory\InventoryService;
+use App\Services\Loyalty\LoyaltyService;
+use App\Services\Notifications\NotificationDispatcher;
+use App\Services\Offer\OfferService;
+use App\Services\Payment\PaymentGatewayService;
+use App\Services\Payment\PaymentService;
 use App\Services\Shipping\ShippingService;
 use App\Services\Tax\TaxService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CheckoutService
 {
@@ -50,6 +54,7 @@ class CheckoutService
         PaymentGatewayDriver $gateway,
         ?int $loyaltyPointsToRedeem = 0,
         ?string $notes = null,
+        bool $payInInstallments = false,
     ): Order {
         $normalizedShipping = app(CustomerProfileService::class)->normalizeShippingAddress($shippingAddress);
         $normalizedBilling = $billingAddress
@@ -58,11 +63,22 @@ class CheckoutService
 
         return DB::transaction(function () use (
             $cart, $user, $normalizedShipping, $normalizedBilling,
-            $shippingRateId, $couponCode, $gateway, $loyaltyPointsToRedeem, $notes
+            $shippingRateId, $couponCode, $gateway, $loyaltyPointsToRedeem, $notes, $payInInstallments
         ) {
-            $cart->load(['items.product', 'items.variant']);
+            $cart->load(['items.product', 'items.variant', 'items.offerProduct.offer']);
             $totals = $this->cartService->getTotals($cart);
             $inventory = app(InventoryService::class);
+            $offerService = app(OfferService::class);
+
+            $installmentOffer = null;
+            if ($payInInstallments) {
+                try {
+                    $installmentOffer = $offerService->assertCartEligibleForInstallment($cart);
+                } catch (ValidationException $e) {
+                    throw new \InvalidArgumentException(collect($e->errors())->flatten()->first()
+                        ?: __('ecommerce.installment_offer_only'));
+                }
+            }
 
             foreach ($cart->items as $item) {
                 if ($item->product_bundle_id) {
@@ -77,7 +93,10 @@ class CheckoutService
 
                 try {
                     $inventory->assertAvailable($item->product, (int) $item->quantity, $item->variant);
-                } catch (\Illuminate\Validation\ValidationException $e) {
+                    if ($item->offerProduct) {
+                        $offerService->assertCanPurchase($item->offerProduct, (int) $item->quantity);
+                    }
+                } catch (ValidationException $e) {
                     throw new \InvalidArgumentException(collect($e->errors())->flatten()->first()
                         ?: __('ecommerce.insufficient_stock', ['product' => $item->product->name]));
                 }
@@ -161,22 +180,29 @@ class CheckoutService
                 $order->items()->create([
                     'product_id' => $item->product_id,
                     'product_variant_id' => $item->product_variant_id,
+                    'offer_id' => $item->offerProduct?->offer_id,
+                    'offer_product_id' => $item->offer_product_id,
                     'product_name' => $item->product->name,
                     'sku' => $item->variant?->sku ?? $item->product->sku,
                     'quantity' => $item->quantity,
                     'unit_price' => $item->unit_price,
                     'total' => $item->subtotal,
                     'variant_snapshot' => $item->variant?->toArray(),
+                    'offer_snapshot' => $item->offerProduct?->toSnapshot(),
                 ]);
 
                 $this->decrementStock($item);
 
-                $flashEntry = app(FlashSaleService::class)->findActiveEntry(
-                    $item->product,
-                    $item->variant
-                );
-                if ($flashEntry) {
-                    app(FlashSaleService::class)->recordSale($flashEntry, $item->quantity);
+                if ($item->offerProduct) {
+                    $offerService->recordSale($item->offerProduct, $item->quantity);
+                } else {
+                    $flashEntry = app(FlashSaleService::class)->findActiveEntry(
+                        $item->product,
+                        $item->variant
+                    );
+                    if ($flashEntry) {
+                        app(FlashSaleService::class)->recordSale($flashEntry, $item->quantity);
+                    }
                 }
             }
 
@@ -200,11 +226,29 @@ class CheckoutService
 
             app(AffiliateCommissionService::class)->recordForOrder($order);
 
-            $this->paymentService->initiate($order, $gateway, [
+            $chargeAmount = $total;
+            $installmentContract = null;
+
+            if ($installmentOffer) {
+                $installmentContract = app(InstallmentScheduler::class)
+                    ->createFromCheckout($order, $user, $installmentOffer, $cart);
+                $extras = (float) $shipping['amount'] + (float) $tax + (float) $paymentFee;
+                $chargeAmount = app(InstallmentPaymentService::class)
+                    ->dueNowAmount($installmentContract, $extras);
+                $order->update(['payment_status' => 'pending']);
+            }
+
+            $payment = $this->paymentService->initiate($order, $gateway, [
                 'gateway_name' => $gatewayConfig->displayName(),
                 'payment_fee' => $paymentFee,
                 'instructions' => $gatewayConfig->instructions,
-            ]);
+                'pay_in_installments' => (bool) $installmentOffer,
+            ], amount: $chargeAmount);
+
+            if ($installmentContract) {
+                app(InstallmentPaymentService::class)
+                    ->attachCheckoutPayment($installmentContract, $payment);
+            }
 
             $cart->items()->delete();
 

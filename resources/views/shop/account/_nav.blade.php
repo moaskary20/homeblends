@@ -10,6 +10,7 @@
         @foreach([
             'profile' => ['route' => 'shop.account.profile', 'label' => __('ecommerce.my_account'), 'icon' => '👤'],
             'purchases' => ['route' => 'shop.account.purchases', 'label' => __('ecommerce.my_purchases'), 'icon' => '🛍️'],
+            'installments' => ['route' => 'shop.account.installments', 'label' => __('ecommerce.my_installments'), 'icon' => '📅'],
             'points' => ['route' => 'shop.account.points', 'label' => __('ecommerce.my_points'), 'icon' => '⭐'],
             'tracking' => ['route' => 'shop.account.tracking', 'label' => __('ecommerce.track_orders'), 'icon' => '📦'],
             'favorites' => ['route' => 'shop.account.favorites', 'label' => __('ecommerce.my_favorites'), 'icon' => '❤️'],

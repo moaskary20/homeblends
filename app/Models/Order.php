@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
@@ -53,6 +54,11 @@ class Order extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function installmentContracts(): HasMany
+    {
+        return $this->hasMany(InstallmentContract::class);
+    }
+
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class);
@@ -78,7 +84,7 @@ class Order extends Model
         return $this->belongsTo(AffiliateClick::class, 'affiliate_click_id');
     }
 
-    public function affiliateCommission(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function affiliateCommission(): HasOne
     {
         return $this->hasOne(AffiliateCommission::class);
     }

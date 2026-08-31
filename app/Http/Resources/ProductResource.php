@@ -39,6 +39,19 @@ class ProductResource extends JsonResource
             'effective_price' => $this->effective_price,
             'is_flash_sale' => $flash !== null,
             'flash_sale' => $flash,
+            'is_installment_offer' => $this->relationLoaded('activeOfferEntry') && $this->activeOfferEntry?->hasStock(),
+            'installment_offer' => $this->when(
+                $this->relationLoaded('activeOfferEntry') && $this->activeOfferEntry?->hasStock(),
+                fn () => [
+                    'offer_product_id' => $this->activeOfferEntry->id,
+                    'offer_price' => $this->activeOfferEntry->offer_price,
+                    'installment_months' => $this->activeOfferEntry->offer?->defaultPlanMonths(),
+                    'installment_plans' => $this->activeOfferEntry->offer?->planMonths(),
+                    'monthly_amount' => $this->activeOfferEntry->monthlyAmount(),
+                    'offer_slug' => $this->activeOfferEntry->offer?->slug,
+                    'offer_name' => $this->activeOfferEntry->offer?->name,
+                ]
+            ),
             'stock_quantity' => $this->stock_quantity,
             'weight' => $this->weight,
             'dimensions' => $this->dimensions,

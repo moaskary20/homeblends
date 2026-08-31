@@ -34,6 +34,19 @@
     object-fit: cover;
 }
 
+.hb-cart-line-image.is-offer {
+    background: #fff7ed;
+}
+
+.hb-cart-line-image.is-offer img {
+    object-fit: contain;
+    padding: 0.35rem;
+}
+
+.hb-cart-line.is-offer-set {
+    background: #fffdf8;
+}
+
 .hb-cart-line-placeholder {
     display: flex;
     align-items: center;

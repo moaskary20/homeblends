@@ -130,6 +130,48 @@
             @empty
                 <p class="text-sm text-red-600">{{ __('ecommerce.payment_gateway_unavailable') }}</p>
             @endforelse
+            @if(!empty($installmentPreview['eligible']))
+                <div class="border border-amber-200 rounded-xl p-4 bg-amber-50 space-y-3">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" name="pay_in_installments" value="1" id="pay_in_installments" class="mt-1" checked>
+                        <span class="flex-1">
+                            <span class="font-semibold block text-[#3d3830]">{{ __('ecommerce.pay_in_installments') }}</span>
+                            <span class="text-sm text-gray-600 block mt-0.5">{{ __('ecommerce.installment_selected_plan') }}</span>
+                            <span class="block mt-1 text-amber-900 font-bold">
+                                {{ __('ecommerce.installment_plan_option', ['count' => $installmentPreview['months']]) }}
+                            </span>
+                            <span class="block text-sm text-amber-800">
+                                {{ __('ecommerce.installment_monthly_each', [
+                                    'amount' => number_format($installmentPreview['monthly_amount'], 2),
+                                ]) }}
+                            </span>
+                            @if($installmentPreview['offer']?->name)
+                                <span class="block text-xs text-gray-600 mt-1">{{ $installmentPreview['offer']->name }}</span>
+                            @endif
+                        </span>
+                    </label>
+
+                    <div id="installment-schedule" class="border-t border-amber-200 pt-3 space-y-2">
+                        <p class="text-sm font-semibold text-[#3d3830]">{{ __('ecommerce.installment_schedule') }}</p>
+                        <ol class="max-h-64 overflow-y-auto divide-y divide-amber-100 bg-white rounded-lg border border-amber-100">
+                            @foreach($installmentPreview['schedule'] as $row)
+                                <li class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                                    <span>
+                                        <span class="font-medium text-[#3d3830] block">
+                                            {{ __('ecommerce.installment_month_n', ['n' => $row['sequence']]) }}
+                                        </span>
+                                        <span class="text-xs text-gray-500">{{ $row['due_date'] }}</span>
+                                    </span>
+                                    <span class="font-semibold text-amber-800 whitespace-nowrap">
+                                        {{ number_format($row['amount'], 2) }} {{ __('ecommerce.currency') }}
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ol>
+                        <p class="text-xs text-gray-600">{{ __('ecommerce.installment_first_with_shipping') }}</p>
+                    </div>
+                </div>
+            @endif
             <div id="loyalty-section" class="hidden border rounded-lg p-4 bg-amber-50 space-y-2">
                 <p class="font-semibold text-sm">{{ __('ecommerce.loyalty_redeem') }}</p>
                 <p id="loyalty-balance" class="text-sm text-gray-600"></p>

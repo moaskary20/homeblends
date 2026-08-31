@@ -215,7 +215,13 @@ document.addEventListener('click', async (e) => {
                 ...headers,
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
-            body: JSON.stringify({ product_id: productId, quantity: 1 }),
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: 1,
+                ...(cartBtn.dataset.offerProductId
+                    ? { offer_product_id: parseInt(cartBtn.dataset.offerProductId, 10) }
+                    : {}),
+            }),
         });
 
         if (!res.ok) {

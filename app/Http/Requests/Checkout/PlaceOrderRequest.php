@@ -42,6 +42,7 @@ class PlaceOrderRequest extends FormRequest
             ],
             'loyalty_points' => ['integer', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'pay_in_installments' => ['sometimes', 'boolean'],
         ];
     }
 }

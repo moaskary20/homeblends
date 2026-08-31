@@ -45,6 +45,7 @@ class SettingsService
         'notify_order_status_customer' => true,
         'notify_refund_admin' => true,
         'notify_return_admin' => true,
+        'notify_installment_due_customer' => true,
         'admin_notification_email' => '',
         'new_order_notification_emails' => [],
     ];

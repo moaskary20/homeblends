@@ -80,6 +80,11 @@
                     @elseif($hasDiscount)
                         <span class="hb-pdp-badge is-discount">{{ __('ecommerce.discount_badge') }}</span>
                     @endif
+                    @if(!empty($offerEntry) && $offerEntry->hasStock())
+                        <span class="hb-pdp-badge is-discount">
+                            {{ $offerEntry->offer?->plansLabel() }}
+                        </span>
+                    @endif
                     <span class="hb-pdp-badge {{ $inStock ? 'is-stock-ok' : 'is-stock-no' }}">
                         {{ $inStock ? __('ecommerce.product_in_stock') : __('ecommerce.out_of_stock') }}
                     </span>
@@ -118,6 +123,17 @@
 
                 @if($product->short_description)
                     <p class="hb-pdp-short">{{ $product->short_description }}</p>
+                @endif
+
+                @if(!empty($offerEntry) && $offerEntry->offer)
+                    <div class="mt-4 mb-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                        <p class="font-semibold text-amber-900">{{ __('ecommerce.installment_available') }}</p>
+                        <p class="text-sm text-amber-800 mt-1">{{ __('ecommerce.offer_set_hint') }}</p>
+                        <a href="{{ route('shop.offers.show', $offerEntry->offer->slug) }}"
+                           class="mt-3 inline-flex w-full items-center justify-center bg-amber-700 text-white py-2 rounded-lg font-semibold">
+                            {{ __('ecommerce.offer_buy_set') }}
+                        </a>
+                    </div>
                 @endif
 
                 <div class="hb-pdp-meta">

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Cart extends Model
 {
     protected $fillable = [
-        'user_id', 'session_id', 'saved_for_later', 'coupon_code', 'abandoned_at',
+        'user_id', 'session_id', 'saved_for_later', 'coupon_code', 'installment_months', 'abandoned_at',
     ];
 
     protected function casts(): array
@@ -17,6 +17,7 @@ class Cart extends Model
         return [
             'saved_for_later' => 'boolean',
             'abandoned_at' => 'datetime',
+            'installment_months' => 'integer',
         ];
     }
 

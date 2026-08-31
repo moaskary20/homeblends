@@ -2,21 +2,23 @@
 
 use App\Http\Controllers\Media\ImageThumbController;
 use App\Http\Controllers\RobotsController;
-use App\Http\Controllers\SitemapController;
-use App\Http\Controllers\Shop\CartController;
-use App\Http\Controllers\Shop\CheckoutController;
-use App\Http\Controllers\Shop\OrderController as ShopOrderController;
-use App\Http\Controllers\Shop\HomeController;
 use App\Http\Controllers\Shop\AboutController;
-use App\Http\Controllers\Shop\DesignTeamController;
-use App\Http\Controllers\Shop\ContactController;
-use App\Http\Controllers\Shop\LegalPageController;
+use App\Http\Controllers\Shop\AccountController;
 use App\Http\Controllers\Shop\AffiliateController;
 use App\Http\Controllers\Shop\BundleController;
-use App\Http\Controllers\Shop\AccountController;
+use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CategoryController;
+use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\ContactController;
+use App\Http\Controllers\Shop\DesignTeamController;
+use App\Http\Controllers\Shop\HomeController;
+use App\Http\Controllers\Shop\InstallmentAccountController;
+use App\Http\Controllers\Shop\LegalPageController;
+use App\Http\Controllers\Shop\OfferController;
+use App\Http\Controllers\Shop\OrderController as ShopOrderController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\WishlistCompareController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -37,6 +39,7 @@ Route::middleware('shopApiSession')->group(function () {
     Route::get('/wishlist/preview', [WishlistCompareController::class, 'wishlistPreview'])->name('shop.wishlist.preview');
     Route::post('/wishlist/{product}/toggle', [WishlistCompareController::class, 'toggleWishlist'])->name('shop.wishlist.toggle');
     Route::delete('/wishlist/{product}', [WishlistCompareController::class, 'removeWishlist'])->name('shop.wishlist.remove');
+    Route::post('/offers/{slug}/cart', [OfferController::class, 'addToCart'])->name('shop.offers.cart');
     Route::post('/compare/{product}/toggle', [WishlistCompareController::class, 'toggleCompare'])->name('shop.compare.toggle');
     Route::delete('/compare/{product}', [WishlistCompareController::class, 'removeCompare'])->name('shop.compare.remove');
     Route::delete('/compare', [WishlistCompareController::class, 'clearCompare'])->name('shop.compare.clear');
@@ -48,6 +51,8 @@ Route::group([
     'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
 ], function () {
     Route::get('/', HomeController::class)->name('shop.home');
+    Route::get('/offers', [OfferController::class, 'index'])->name('shop.offers.index');
+    Route::get('/offers/{slug}', [OfferController::class, 'show'])->name('shop.offers.show');
     Route::get('/bundles', [BundleController::class, 'index'])->name('shop.bundles.index');
     Route::get('/bundles/{slug}', [BundleController::class, 'show'])->name('shop.bundles.show');
     Route::get('/categories', [CategoryController::class, 'index'])->name('shop.categories.index');
@@ -67,6 +72,8 @@ Route::group([
         Route::post('/avatar', [AccountController::class, 'updateAvatar'])->name('avatar.update');
         Route::delete('/avatar', [AccountController::class, 'removeAvatar'])->name('avatar.remove');
         Route::get('/purchases', [AccountController::class, 'purchases'])->name('purchases');
+        Route::get('/installments', [InstallmentAccountController::class, 'index'])->name('installments');
+        Route::post('/installments/{installmentPayment}/pay', [InstallmentAccountController::class, 'pay'])->name('installments.pay');
         Route::get('/points', [AccountController::class, 'points'])->name('points');
         Route::post('/points/redeem', [AccountController::class, 'redeemPoints'])->name('points.redeem');
         Route::get('/tracking', [AccountController::class, 'tracking'])->name('tracking');

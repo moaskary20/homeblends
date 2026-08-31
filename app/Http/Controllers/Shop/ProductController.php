@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Services\FlashSale\FlashSaleService;
 use App\Services\Seo\SeoService;
 use App\Services\Shop\CompareListService;
 use App\Services\Shop\WishlistService;
@@ -24,12 +24,15 @@ class ProductController extends Controller
         $product = $products->findBySlug($slug, [
             'category', 'images', 'variants',
             'activeFlashSaleEntry.flashSale',
+            'activeOfferEntry.offer',
             'reviews' => fn ($q) => $q->approved(),
         ]);
 
         $flashPricing = $product
-            ? app(\App\Services\FlashSale\FlashSaleService::class)->resolveUnitPrice($product)
+            ? app(FlashSaleService::class)->resolveUnitPrice($product)
             : null;
+
+        $offerEntry = $product?->activeOfferEntry;
 
         abort_unless($product, 404);
 
@@ -45,6 +48,7 @@ class ProductController extends Controller
         return view('shop.products.show', compact(
             'product',
             'flashPricing',
+            'offerEntry',
             'seo',
             'inWishlist',
             'inCompare',

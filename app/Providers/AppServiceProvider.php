@@ -5,19 +5,23 @@ namespace App\Providers;
 use App\Models\BundleItem;
 use App\Models\FlashSale;
 use App\Models\FlashSaleProduct;
+use App\Models\Offer;
+use App\Models\OfferProduct;
 use App\Models\Order;
 use App\Models\PaymentGateway;
 use App\Models\ProductBundle;
 use App\Observers\BundleItemObserver;
+use App\Observers\FlashSaleObserver;
+use App\Observers\FlashSaleProductObserver;
+use App\Observers\OfferObserver;
+use App\Observers\OfferProductObserver;
 use App\Observers\OrderAffiliateObserver;
 use App\Observers\PaymentGatewayObserver;
 use App\Observers\ProductBundleObserver;
-use App\Observers\FlashSaleObserver;
-use App\Observers\FlashSaleProductObserver;
 use App\Services\Cart\CartService;
+use App\Services\Settings\SettingsService;
 use App\Services\Shop\CompareListService;
 use App\Services\Shop\WishlistService;
-use App\Services\Settings\SettingsService;
 use App\Support\AppUrl;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Carbon;
@@ -55,6 +59,8 @@ class AppServiceProvider extends ServiceProvider
 
         FlashSale::observe(FlashSaleObserver::class);
         FlashSaleProduct::observe(FlashSaleProductObserver::class);
+        Offer::observe(OfferObserver::class);
+        OfferProduct::observe(OfferProductObserver::class);
         ProductBundle::observe(ProductBundleObserver::class);
         BundleItem::observe(BundleItemObserver::class);
 

@@ -2,6 +2,7 @@
 
 namespace App\Services\Notifications;
 
+use App\Models\InstallmentPayment;
 use App\Models\Order;
 use App\Models\RefundRequest;
 use App\Models\ReturnRequest;
@@ -9,6 +10,7 @@ use App\Models\User;
 use App\Notifications\Admin\NewOrderAdminNotification;
 use App\Notifications\Admin\NewRefundAdminNotification;
 use App\Notifications\Admin\NewReturnAdminNotification;
+use App\Notifications\Installments\InstallmentDueNotification;
 use App\Notifications\Orders\OrderPlacedNotification;
 use App\Notifications\Orders\OrderStatusUpdatedNotification;
 use App\Services\Settings\SettingsService;
@@ -65,6 +67,20 @@ class NotificationDispatcher
                 $this->settings->adminAlertEmails()
             );
         }
+    }
+
+    public function installmentDue(InstallmentPayment $installment, string $kind = 'due'): bool
+    {
+        $installment->loadMissing(['contract.user', 'contract.order']);
+        $user = $installment->contract?->user;
+
+        if (! $user || ! $this->settings->isEnabled('notify_installment_due_customer')) {
+            return false;
+        }
+
+        $user->notify(new InstallmentDueNotification($installment, $kind));
+
+        return true;
     }
 
     /**

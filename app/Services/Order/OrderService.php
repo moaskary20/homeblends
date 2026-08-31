@@ -5,6 +5,7 @@ namespace App\Services\Order;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\Installment\InstallmentScheduler;
 use App\Services\Notifications\NotificationDispatcher;
 use Illuminate\Support\Facades\DB;
 
@@ -31,8 +32,9 @@ class OrderService
                 $order->update(['payment_status' => 'refunded']);
             }
 
-            if ($status === OrderStatus::Cancelled && $order->payment_status === 'pending') {
+            if ($status === OrderStatus::Cancelled && in_array($order->payment_status, ['pending', 'partial'], true)) {
                 $order->update(['payment_status' => 'failed']);
+                app(InstallmentScheduler::class)->cancelForOrder($order);
             }
 
             $historyComment = $comment ?? __('ecommerce.order_status_changed', [

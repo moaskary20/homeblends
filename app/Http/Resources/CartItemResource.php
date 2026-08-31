@@ -15,6 +15,10 @@ class CartItemResource extends JsonResource
             'unit_price' => $this->unit_price,
             'subtotal' => $this->subtotal,
             'is_bundle' => $this->isBundleLine(),
+            'is_offer' => $this->isOfferLine(),
+            'is_offer_set' => false,
+            'qty_locked' => $this->isOfferLine(),
+            'offer_product_id' => $this->offer_product_id,
             'bundle' => $this->when($this->isBundleLine(), fn () => [
                 'id' => $this->product_bundle_id,
                 'name' => $this->bundle_snapshot['name'] ?? $this->bundle?->name,

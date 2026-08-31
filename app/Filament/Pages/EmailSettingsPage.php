@@ -194,6 +194,8 @@ class EmailSettingsPage extends Page implements HasForms
                             ->label(__('ecommerce.notify_refund_admin')),
                         Forms\Components\Toggle::make('notify_return_admin')
                             ->label(__('ecommerce.notify_return_admin')),
+                        Forms\Components\Toggle::make('notify_installment_due_customer')
+                            ->label(__('ecommerce.notify_installment_due_customer')),
                         Forms\Components\TextInput::make('admin_notification_email')
                             ->label(__('ecommerce.admin_notification_email'))
                             ->email()

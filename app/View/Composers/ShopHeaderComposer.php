@@ -21,12 +21,13 @@ class ShopHeaderComposer
             try {
                 $cartService = app(CartService::class);
                 $cart = $cartService->resolveForRequest(request());
-                $cart->load(['items.product.images', 'items.variant', 'items.bundle']);
+                $cart->load(['items.product.images', 'items.variant', 'items.bundle', 'items.offerProduct.offer']);
                 $totals = $cartService->getTotals($cart);
                 $count = (int) $totals['items_count'];
                 $cartSubtotal = (float) $totals['subtotal'];
-                $cartPreviewItems = $cart->items->take(5);
-                $cartHasMore = $cart->items->count() > 5;
+                $displayLines = $cartService->displayLines($cart);
+                $cartPreviewItems = $displayLines->take(5);
+                $cartHasMore = $displayLines->count() > 5;
             } catch (\Throwable) {
                 $count = 0;
             }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -62,6 +63,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Order::class);
     }
 
+    public function installmentContracts(): HasMany
+    {
+        return $this->hasMany(InstallmentContract::class);
+    }
+
     public function carts(): HasMany
     {
         return $this->hasMany(Cart::class);
@@ -82,7 +88,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->affiliate && $this->affiliate->isActive();
     }
 
-    public function canAccessPanel(\Filament\Panel $panel): bool
+    public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'affiliate') {
             return $this->affiliate && $this->affiliate->isActive();

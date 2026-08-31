@@ -132,6 +132,7 @@ if (form) {
                 payment_gateway: fd.get('payment_gateway'),
                 loyalty_points: loyaltyPoints,
                 notes: fd.get('notes'),
+                pay_in_installments: fd.get('pay_in_installments') === '1',
             }),
         });
 
@@ -160,4 +161,12 @@ if (form) {
             err.classList.remove('hidden');
         }
     });
+
+    const installmentBox = document.getElementById('pay_in_installments');
+    const installmentSchedule = document.getElementById('installment-schedule');
+    const syncInstallment = () => {
+        installmentSchedule?.classList.toggle('hidden', !installmentBox?.checked);
+    };
+    installmentBox?.addEventListener('change', syncInstallment);
+    syncInstallment();
 }

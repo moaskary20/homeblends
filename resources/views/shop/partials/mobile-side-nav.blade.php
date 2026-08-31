@@ -31,6 +31,9 @@
         <a href="{{ route('shop.products.index') }}" class="hb-side-nav-link {{ request()->routeIs('shop.products.*') ? 'is-active' : '' }}">
             {{ __('ecommerce.new_featured') }}
         </a>
+        <a href="{{ route('shop.offers.index') }}" class="hb-side-nav-link {{ request()->routeIs('shop.offers.*') ? 'is-active' : '' }}">
+            {{ __('ecommerce.installment_offers') }}
+        </a>
         <a href="{{ route('shop.categories.index') }}" class="hb-side-nav-link {{ request()->routeIs('shop.categories.*') ? 'is-active' : '' }}">
             {{ __('ecommerce.departments') }}
         </a>

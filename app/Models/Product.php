@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\HasSlug;
 use App\Enums\ProductStatus;
+use App\Services\FlashSale\FlashSaleService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -75,6 +76,19 @@ class Product extends Model
     public function flashSaleEntries(): HasMany
     {
         return $this->hasMany(FlashSaleProduct::class);
+    }
+
+    public function offerEntries(): HasMany
+    {
+        return $this->hasMany(OfferProduct::class);
+    }
+
+    public function activeOfferEntry(): HasOne
+    {
+        return $this->hasOne(OfferProduct::class, 'product_id')
+            ->inActiveOffer()
+            ->whereNull('product_variant_id')
+            ->orderBy('offer_price');
     }
 
     public function activeFlashSaleEntry(): HasOne
@@ -153,7 +167,7 @@ class Product extends Model
     {
         return $this->relationLoaded('activeFlashSaleEntry')
             ? (bool) ($this->activeFlashSaleEntry?->hasStock())
-            : app(\App\Services\FlashSale\FlashSaleService::class)->findActiveEntry($this) !== null;
+            : app(FlashSaleService::class)->findActiveEntry($this) !== null;
     }
 
     public function isLowStock(): bool

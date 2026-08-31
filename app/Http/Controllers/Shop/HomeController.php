@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Bundle\BundleService;
-use App\Services\Shop\CategoryBrowseService;
-use App\Services\Shop\HomepageService;
+use App\Services\FlashSale\FlashSaleService;
+use App\Services\Offer\OfferService;
+use App\Services\Seo\SeoService;
 use App\Services\Shop\CatalogShowcaseService;
+use App\Services\Shop\CategoryBrowseService;
 use App\Services\Shop\ComfortSpotlightService;
 use App\Services\Shop\CustomerReviewsService;
+use App\Services\Shop\HomepageService;
 use App\Services\Shop\PopularCollectionsService;
-use App\Services\Seo\SeoService;
-use App\Services\FlashSale\FlashSaleService;
 use App\Support\AppUrl;
 use Illuminate\Support\Facades\Cache;
 
@@ -28,6 +29,7 @@ class HomeController extends Controller
         $categoryTree = Cache::remember('shop.categories', 7200, fn () => $categories->getTree());
         $flashProducts = app(FlashSaleService::class)->getHighlightedProducts(8);
         $flashSales = app(FlashSaleService::class)->getActiveSales();
+        $offers = app(OfferService::class)->getActiveOffers();
         $bundles = app(BundleService::class)->getActiveBundles()->take(4);
 
         $seo = app(SeoService::class)->forHome();
@@ -75,6 +77,7 @@ class HomeController extends Controller
             'categoryTree',
             'flashProducts',
             'flashSales',
+            'offers',
             'bundles',
             'seo',
             'homepage',

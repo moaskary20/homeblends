@@ -1,5 +1,4 @@
 @php
-    use App\Support\ProductMedia;
     $cartPreviewItems = $cartPreviewItems ?? collect();
     $cartItemsCount = (int) ($cartItemsCount ?? 0);
     $cartSubtotal = (float) ($cartSubtotal ?? 0);
@@ -21,7 +20,8 @@
      data-subtotal-label="{{ __('ecommerce.subtotal') }}"
      data-items-label="{{ __('ecommerce.items_count_label') }}"
      data-product-url-template="{{ route('shop.products.show', ['slug' => '__SLUG__']) }}"
-     data-bundles-url="{{ route('shop.bundles.index') }}">
+     data-bundles-url="{{ route('shop.bundles.index') }}"
+     data-offer-url-template="{{ route('shop.offers.show', ['slug' => '__SLUG__']) }}">
     <a href="{{ route('shop.cart') }}" class="hb-icon-btn hb-cart-icon-wrap" title="{{ __('ecommerce.cart') }}" aria-label="{{ __('ecommerce.cart') }}">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
         <span data-cart-count class="hb-cart-badge {{ $cartItemsCount < 1 ? 'hb-cart-hidden' : '' }}">{{ $cartItemsCount > 99 ? '99+' : $cartItemsCount }}</span>
@@ -45,15 +45,14 @@
                 </div>
             @else
                 <ul class="hb-mini-cart-items">
-                    @foreach($cartPreviewItems as $item)
+                    @foreach($cartPreviewItems as $line)
                         @php
-                            $isBundle = $item->isBundleLine();
-                            $product = $item->product;
-                            $thumb = $product ? ProductMedia::productThumbnail($product) : null;
-                            $title = $isBundle
-                                ? ($item->bundle_snapshot['name'] ?? $item->bundle?->name ?? __('ecommerce.product_bundles'))
-                                : ($product?->name ?? '');
-                            $productUrl = $product && ! $isBundle ? route('shop.products.show', $product->slug) : route('shop.bundles.index');
+                            $title = $line->title;
+                            $thumb = $line->imageUrl;
+                            $productUrl = $line->url;
+                            $meta = $line->isOfferSet
+                                ? $line->meta
+                                : ($line->quantity.' × '.number_format($line->unitPrice, 2).' '.__('ecommerce.currency'));
                         @endphp
                         <li class="hb-mini-cart-item">
                             <a href="{{ $productUrl }}" class="hb-mini-cart-item-thumb">
@@ -65,9 +64,9 @@
                             </a>
                             <div class="hb-mini-cart-item-info">
                                 <a href="{{ $productUrl }}" class="hb-mini-cart-item-title">{{ $title }}</a>
-                                <span class="hb-mini-cart-item-meta">{{ $item->quantity }} × {{ number_format($item->unit_price, 2) }} {{ __('ecommerce.currency') }}</span>
+                                <span class="hb-mini-cart-item-meta">{{ $meta }}</span>
                             </div>
-                            <span class="hb-mini-cart-item-price">{{ number_format($item->subtotal, 2) }}</span>
+                            <span class="hb-mini-cart-item-price">{{ number_format($line->subtotal, 2) }}</span>
                         </li>
                     @endforeach
                 </ul>

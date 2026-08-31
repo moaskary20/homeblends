@@ -11,12 +11,18 @@ use App\Services\Payment\Gateways\PayPalGateway;
 
 class PaymentService
 {
-    public function initiate(Order $order, PaymentGatewayDriver $gateway, array $meta = []): Payment
-    {
+    public function initiate(
+        Order $order,
+        PaymentGatewayDriver $gateway,
+        array $meta = [],
+        ?float $amount = null,
+        ?int $installmentPaymentId = null,
+    ): Payment {
         $payment = Payment::create([
             'order_id' => $order->id,
+            'installment_payment_id' => $installmentPaymentId,
             'gateway' => $gateway->value,
-            'amount' => $order->total,
+            'amount' => $amount ?? $order->total,
             'currency' => $order->currency,
             'status' => 'pending',
             'payload' => $meta ?: null,

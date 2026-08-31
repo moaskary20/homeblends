@@ -19,6 +19,12 @@
     $salePrice = $flashPrice ?? $product->effective_price;
     $isFlash = $flashPrice !== null;
     $hasTimedDiscount = ! $isFlash && $product->hasActiveTimedDiscount();
+    $activeOfferEntry = $offerEntry ?? (
+        ($product->relationLoaded('activeOfferEntry') && $product->activeOfferEntry?->hasStock())
+            ? $product->activeOfferEntry
+            : null
+    );
+    $isOffer = $activeOfferEntry !== null;
     if ($hasTimedDiscount) {
         $comparePrice = (float) $product->regular_price;
     }
@@ -31,6 +37,10 @@
     @if($isFlash)
         <span class="absolute top-2 inset-inline-start-2 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
             {{ __('ecommerce.flash_sale_badge') }}
+        </span>
+    @elseif($isOffer)
+        <span class="absolute top-2 inset-inline-start-2 z-10 bg-amber-700 text-white text-xs font-bold px-2 py-1 rounded">
+            {{ $activeOfferEntry->offer?->plansLabel() }}
         </span>
     @endif
 
