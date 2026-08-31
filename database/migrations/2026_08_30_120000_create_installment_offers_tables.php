@@ -78,20 +78,38 @@ return new class extends Migration
 
         if (Schema::hasTable('cart_items') && ! Schema::hasColumn('cart_items', 'offer_product_id')) {
             Schema::table('cart_items', function (Blueprint $table) {
-                if (Schema::hasIndex('cart_items', 'cart_item_unique')) {
-                    $table->dropUnique('cart_item_unique');
-                }
                 $table->foreignId('offer_product_id')->nullable()->after('product_bundle_id')->constrained()->nullOnDelete();
+            });
+        }
+
+        if (
+            Schema::hasTable('cart_items')
+            && Schema::hasColumn('cart_items', 'offer_product_id')
+            && ! Schema::hasIndex('cart_items', 'cart_items_offer_lookup')
+        ) {
+            Schema::table('cart_items', function (Blueprint $table) {
                 $table->index(['cart_id', 'product_id', 'product_variant_id', 'offer_product_id'], 'cart_items_offer_lookup');
             });
         }
 
-        if (Schema::hasTable('order_items') && ! Schema::hasColumn('order_items', 'offer_product_id')) {
-            Schema::table('order_items', function (Blueprint $table) {
-                $table->foreignId('offer_id')->nullable()->after('product_variant_id')->constrained()->nullOnDelete();
-                $table->foreignId('offer_product_id')->nullable()->after('offer_id')->constrained()->nullOnDelete();
-                $table->json('offer_snapshot')->nullable()->after('variant_snapshot');
-            });
+        if (Schema::hasTable('order_items')) {
+            if (! Schema::hasColumn('order_items', 'offer_id')) {
+                Schema::table('order_items', function (Blueprint $table) {
+                    $table->foreignId('offer_id')->nullable()->after('product_variant_id')->constrained()->nullOnDelete();
+                });
+            }
+
+            if (! Schema::hasColumn('order_items', 'offer_product_id')) {
+                Schema::table('order_items', function (Blueprint $table) {
+                    $table->foreignId('offer_product_id')->nullable()->after('offer_id')->constrained()->nullOnDelete();
+                });
+            }
+
+            if (! Schema::hasColumn('order_items', 'offer_snapshot')) {
+                Schema::table('order_items', function (Blueprint $table) {
+                    $table->json('offer_snapshot')->nullable()->after('variant_snapshot');
+                });
+            }
         }
 
         if (Schema::hasTable('payments') && ! Schema::hasColumn('payments', 'installment_payment_id')) {
