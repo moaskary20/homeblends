@@ -9,30 +9,44 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('offers', function (Blueprint $table) {
-            $table->json('installment_plans')->nullable()->after('installment_months');
-        });
+        if (Schema::hasTable('offers') && ! Schema::hasColumn('offers', 'installment_plans')) {
+            Schema::table('offers', function (Blueprint $table) {
+                $table->json('installment_plans')->nullable()->after('installment_months');
+            });
+        }
 
-        Offer::query()->each(function (Offer $offer): void {
-            $months = max(2, (int) $offer->installment_months);
-            $offer->forceFill([
-                'installment_plans' => [$months],
-            ])->saveQuietly();
-        });
+        if (Schema::hasTable('offers') && Schema::hasColumn('offers', 'installment_plans')) {
+            Offer::query()->each(function (Offer $offer): void {
+                if (is_array($offer->installment_plans) && $offer->installment_plans !== []) {
+                    return;
+                }
 
-        Schema::table('carts', function (Blueprint $table) {
-            $table->unsignedTinyInteger('installment_months')->nullable()->after('coupon_code');
-        });
+                $months = max(2, (int) $offer->installment_months);
+                $offer->forceFill([
+                    'installment_plans' => [$months],
+                ])->saveQuietly();
+            });
+        }
+
+        if (Schema::hasTable('carts') && ! Schema::hasColumn('carts', 'installment_months')) {
+            Schema::table('carts', function (Blueprint $table) {
+                $table->unsignedTinyInteger('installment_months')->nullable()->after('coupon_code');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('carts', function (Blueprint $table) {
-            $table->dropColumn('installment_months');
-        });
+        if (Schema::hasTable('carts') && Schema::hasColumn('carts', 'installment_months')) {
+            Schema::table('carts', function (Blueprint $table) {
+                $table->dropColumn('installment_months');
+            });
+        }
 
-        Schema::table('offers', function (Blueprint $table) {
-            $table->dropColumn('installment_plans');
-        });
+        if (Schema::hasTable('offers') && Schema::hasColumn('offers', 'installment_plans')) {
+            Schema::table('offers', function (Blueprint $table) {
+                $table->dropColumn('installment_plans');
+            });
+        }
     }
 };
