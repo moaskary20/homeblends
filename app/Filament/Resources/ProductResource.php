@@ -59,9 +59,11 @@ class ProductResource extends Resource
                 Forms\Components\Section::make(__('ecommerce.basic_info'))->schema([
                     Forms\Components\Select::make('category_id')
                         ->label(__('ecommerce.categories'))
-                        ->relationship('category', 'name')
+                        ->options(fn (): array => static::categoryFilterOptions())
                         ->required()
-                        ->searchable(),
+                        ->searchable()
+                        ->preload()
+                        ->native(false),
                     Forms\Components\TextInput::make('name')
                         ->label(__('ecommerce.name'))
                         ->required()
