@@ -85,9 +85,22 @@ trait HasOfferProductForm
             ])
             ->columns(2)
             ->collapsible()
-            ->itemLabel(fn (array $state): ?string => isset($state['product_id'])
-                ? Product::find($state['product_id'])?->name
-                : null)
+            ->itemLabel(function (array $state): ?string {
+                if (! isset($state['product_id'])) {
+                    return null;
+                }
+
+                $name = Product::find($state['product_id'])?->name;
+                if (! $name) {
+                    return null;
+                }
+
+                if (! isset($state['offer_price']) || $state['offer_price'] === '' || $state['offer_price'] === null) {
+                    return $name;
+                }
+
+                return sprintf('%s — %s ج.م', $name, number_format((float) $state['offer_price'], 2));
+            })
             ->addActionLabel(__('ecommerce.offer_add_product'))
             ->defaultItems(0)
             ->reorderable()

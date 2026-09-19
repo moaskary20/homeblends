@@ -17,6 +17,12 @@
                 <span class="hb-offer-product__placeholder">{{ __('No image') }}</span>
             @endif
         </a>
+        <div class="hb-offer-product__price-badge" aria-hidden="true">
+            <span class="hb-offer-product__price-badge-amount">{{ number_format($offerPrice, 2) }} {{ __('EGP') }}</span>
+            @if($showCompare)
+                <span class="hb-offer-product__price-badge-compare">{{ number_format($comparePrice, 2) }} {{ __('EGP') }}</span>
+            @endif
+        </div>
         @if(! $inStock)
             <span class="hb-offer-product__sold">{{ __('ecommerce.offer_sold_out') }}</span>
         @endif

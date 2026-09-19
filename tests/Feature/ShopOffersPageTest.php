@@ -76,6 +76,8 @@ class ShopOffersPageTest extends TestCase
             ->assertOk()
             ->assertSee('كرسي سمارتي')
             ->assertSee('تابوريه سمارتي')
+            ->assertSee('2,160.00')
+            ->assertSee('1,800.00')
             ->assertSee('اشترِ العرض كاملاً')
             ->assertSee('3,960.00')
             ->assertSee('تقسيط 6 شهر')
