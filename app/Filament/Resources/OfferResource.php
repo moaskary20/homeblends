@@ -76,11 +76,19 @@ class OfferResource extends Resource
                         ->label(__('ecommerce.installment_plans'))
                         ->options(fn (?Offer $record) => Offer::planFormOptions($record))
                         ->required()
-                        ->columns(3)
+                        ->columns(4)
                         ->default([6])
                         ->columnSpanFull()
                         ->dehydrateStateUsing(fn ($state) => Offer::normalizePlanMonths($state))
                         ->helperText(__('ecommerce.installment_plans_help')),
+                    Forms\Components\TextInput::make('down_payment_amount')
+                        ->label(__('ecommerce.offer_down_payment'))
+                        ->numeric()
+                        ->minValue(0)
+                        ->default(0)
+                        ->prefix('ج.م')
+                        ->helperText(__('ecommerce.offer_down_payment_help'))
+                        ->columnSpanFull(),
                     Forms\Components\Toggle::make('is_active')
                         ->label(__('ecommerce.is_active'))
                         ->default(true),
@@ -120,6 +128,10 @@ class OfferResource extends Resource
                 Tables\Columns\TextColumn::make('installment_plans')
                     ->label(__('ecommerce.installment_plans'))
                     ->state(fn (Offer $record): string => $record->plansLabel()),
+                Tables\Columns\TextColumn::make('down_payment_amount')
+                    ->label(__('ecommerce.offer_down_payment'))
+                    ->money('EGP')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('starts_at')
                     ->label(__('ecommerce.starts_at'))
                     ->dateTime('d/m/Y H:i')

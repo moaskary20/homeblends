@@ -12,13 +12,14 @@ class InstallmentContract extends Model
 {
     protected $fillable = [
         'order_id', 'user_id', 'offer_id', 'months', 'total_amount',
-        'monthly_amount', 'currency', 'status', 'offer_snapshot',
+        'down_payment_amount', 'monthly_amount', 'currency', 'status', 'offer_snapshot',
     ];
 
     protected function casts(): array
     {
         return [
             'total_amount' => 'decimal:2',
+            'down_payment_amount' => 'decimal:2',
             'monthly_amount' => 'decimal:2',
             'status' => InstallmentContractStatus::class,
             'offer_snapshot' => 'array',

@@ -98,6 +98,7 @@ class OfferProduct extends Model
             'offer_slug' => $this->offer?->slug,
             'installment_months' => $this->offer?->defaultPlanMonths(),
             'installment_plans' => $this->offer?->planMonths(),
+            'down_payment_amount' => $this->offer?->downPaymentAmount(),
             'offer_price' => (float) $this->offer_price,
         ];
     }

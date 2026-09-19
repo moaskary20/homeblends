@@ -20,7 +20,9 @@ class InstallmentScheduler
         $total = round($cart->items->sum(fn ($item) => $item->subtotal), 2);
         $selected = (int) ($cart->installment_months ?? 0);
         $months = max(2, $offer->hasPlan($selected) ? $selected : $offer->defaultPlanMonths());
-        $amounts = $this->splitAmounts($total, $months);
+        $down = min($offer->downPaymentAmount(), $total);
+        $financed = max(0, round($total - $down, 2));
+        $amounts = $this->splitAmounts($financed, $months);
 
         $contract = InstallmentContract::create([
             'order_id' => $order->id,
@@ -28,7 +30,8 @@ class InstallmentScheduler
             'offer_id' => $offer->id,
             'months' => $months,
             'total_amount' => $total,
-            'monthly_amount' => $amounts[0],
+            'down_payment_amount' => $down,
+            'monthly_amount' => $amounts[0] ?? 0,
             'currency' => $order->currency ?? 'EGP',
             'status' => InstallmentContractStatus::Active,
             'offer_snapshot' => [
@@ -36,6 +39,7 @@ class InstallmentScheduler
                 'name' => $offer->name,
                 'slug' => $offer->slug,
                 'installment_months' => $months,
+                'down_payment_amount' => $down,
             ],
         ]);
 

@@ -15,6 +15,7 @@ class InstallmentContractResource extends JsonResource
             'offer_name' => $this->offer?->name ?? ($this->offer_snapshot['name'] ?? null),
             'months' => $this->months,
             'total_amount' => $this->total_amount,
+            'down_payment_amount' => $this->down_payment_amount,
             'monthly_amount' => $this->monthly_amount,
             'remaining_total' => $this->remainingTotal(),
             'currency' => $this->currency,

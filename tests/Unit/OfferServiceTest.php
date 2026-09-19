@@ -46,14 +46,38 @@ class OfferServiceTest extends TestCase
             'starts_at' => now()->subHour(),
             'ends_at' => now()->addWeek(),
             'is_active' => true,
-            'installment_plans' => [12, 6, 12, 40],
+            'installment_plans' => [12, 6, 12, 40, 10],
         ]);
 
-        $this->assertSame([6, 12], $offer->planMonths());
+        $this->assertSame([6, 10, 12], $offer->planMonths());
         $this->assertSame(6, $offer->defaultPlanMonths());
         $this->assertTrue($offer->hasPlan(12));
+        $this->assertTrue($offer->hasPlan(10));
         $this->assertFalse($offer->hasPlan(18));
         $this->assertSame(1000.0, $offer->monthlyAmountFor(12000, 12));
+        $this->assertContains(10, Offer::PLAN_OPTIONS);
+    }
+
+    public function test_offer_monthly_amount_subtracts_down_payment(): void
+    {
+        $offer = Offer::create([
+            'name' => 'عرض دفعة',
+            'slug' => 'down-payment-offer',
+            'starts_at' => now()->subHour(),
+            'ends_at' => now()->addWeek(),
+            'is_active' => true,
+            'installment_plans' => [10],
+            'down_payment_amount' => 2000,
+        ]);
+
+        $this->assertSame(2000.0, $offer->downPaymentAmount());
+        $this->assertSame(10000.0, $offer->financedAmountFor(12000));
+        $this->assertSame(1000.0, $offer->monthlyAmountFor(12000, 10));
+
+        $plans = $offer->plansForTotal(12000);
+        $this->assertSame(10, $plans[0]['months']);
+        $this->assertSame(1000.0, $plans[0]['monthly_amount']);
+        $this->assertSame(2000.0, $plans[0]['down_payment_amount']);
     }
 
     public function test_ended_offer_is_not_active(): void

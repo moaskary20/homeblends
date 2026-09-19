@@ -96,6 +96,8 @@ class OfferService
      *     offer: ?Offer,
      *     months: int,
      *     products_total: float,
+     *     down_payment_amount: float,
+     *     financed_amount: float,
      *     monthly_amount: float,
      *     schedule: list<array{sequence: int, amount: float, due_date: string}>,
      *     reason: ?string
@@ -110,6 +112,8 @@ class OfferService
             'offer' => null,
             'months' => 0,
             'products_total' => 0.0,
+            'down_payment_amount' => 0.0,
+            'financed_amount' => 0.0,
             'monthly_amount' => 0.0,
             'schedule' => [],
             'reason' => null,
@@ -129,7 +133,9 @@ class OfferService
 
         $productsTotal = round($cart->items->sum(fn (CartItem $item) => $item->subtotal), 2);
         $months = $this->resolveCartPlanMonths($cart, $offer);
-        $amounts = app(InstallmentScheduler::class)->splitAmounts($productsTotal, $months);
+        $down = min($offer->downPaymentAmount(), $productsTotal);
+        $financed = max(0, round($productsTotal - $down, 2));
+        $amounts = app(InstallmentScheduler::class)->splitAmounts($financed, $months);
         $start = now()->startOfDay();
 
         $schedule = [];
@@ -146,6 +152,8 @@ class OfferService
             'offer' => $offer,
             'months' => $months,
             'products_total' => $productsTotal,
+            'down_payment_amount' => $down,
+            'financed_amount' => $financed,
             'monthly_amount' => $amounts[0] ?? 0.0,
             'schedule' => $schedule,
             'reason' => null,

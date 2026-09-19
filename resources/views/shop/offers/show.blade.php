@@ -60,6 +60,11 @@
                 @endif
                 <div class="hb-offer-buy__plan">
                     <p class="hb-offer-buy__label">{{ __('ecommerce.installment_choose_plan') }}</p>
+                    @if($offer->downPaymentAmount() > 0)
+                        <p class="hb-offer-buy__down">
+                            {{ __('ecommerce.offer_down_payment_display', ['amount' => number_format($offer->downPaymentAmount(), 2)]) }}
+                        </p>
+                    @endif
                     <div class="hb-offer-plans" role="radiogroup" aria-label="{{ __('ecommerce.installment_choose_plan') }}">
                         @foreach($installmentPlans as $index => $plan)
                             <label class="hb-offer-plan">

@@ -27,6 +27,8 @@ class OfferResource extends JsonResource
             'ends_at' => $this->ends_at?->toIso8601String(),
             'installment_months' => $this->defaultPlanMonths(),
             'installment_plans' => $plans,
+            'down_payment_amount' => $this->downPaymentAmount(),
+            'financed_amount' => $this->financedAmountFor($total),
             'offer_total' => $total,
             'compare_total' => $this->compareTotal(),
             'monthly_amount' => $plans[0]['monthly_amount'] ?? $this->monthlyAmountFor($total),

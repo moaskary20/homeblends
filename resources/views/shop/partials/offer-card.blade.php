@@ -26,6 +26,10 @@
             {{ number_format($offerTotal, 2) }} {{ __('EGP') }}
         </p>
         <p class="text-sm font-semibold text-amber-900 mt-1">
+            @if($offer->downPaymentAmount() > 0)
+                {{ __('ecommerce.offer_down_payment_display', ['amount' => number_format($offer->downPaymentAmount(), 2)]) }}
+                <span class="text-gray-400 mx-1">·</span>
+            @endif
             @if(count($plans) > 1)
                 {{ __('ecommerce.installment_from_monthly', ['amount' => number_format($monthly, 2)]) }}
             @else

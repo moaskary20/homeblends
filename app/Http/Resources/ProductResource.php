@@ -47,6 +47,7 @@ class ProductResource extends JsonResource
                     'offer_price' => $this->activeOfferEntry->offer_price,
                     'installment_months' => $this->activeOfferEntry->offer?->defaultPlanMonths(),
                     'installment_plans' => $this->activeOfferEntry->offer?->planMonths(),
+                    'down_payment_amount' => $this->activeOfferEntry->offer?->downPaymentAmount(),
                     'monthly_amount' => $this->activeOfferEntry->monthlyAmount(),
                     'offer_slug' => $this->activeOfferEntry->offer?->slug,
                     'offer_name' => $this->activeOfferEntry->offer?->name,

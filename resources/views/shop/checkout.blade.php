@@ -145,6 +145,13 @@
                                     'amount' => number_format($installmentPreview['monthly_amount'], 2),
                                 ]) }}
                             </span>
+                            @if(($installmentPreview['down_payment_amount'] ?? 0) > 0)
+                                <span class="block text-sm text-amber-900 mt-1">
+                                    {{ __('ecommerce.offer_down_payment_display', [
+                                        'amount' => number_format($installmentPreview['down_payment_amount'], 2),
+                                    ]) }}
+                                </span>
+                            @endif
                             @if($installmentPreview['offer']?->name)
                                 <span class="block text-xs text-gray-600 mt-1">{{ $installmentPreview['offer']->name }}</span>
                             @endif

@@ -11,11 +11,12 @@ class Offer extends Model
     use HasSlug;
 
     /** @var list<int> */
-    public const PLAN_OPTIONS = [3, 6, 9, 12, 18, 24, 36];
+    public const PLAN_OPTIONS = [3, 6, 9, 10, 12, 18, 24, 36];
 
     protected $fillable = [
         'name', 'slug', 'description', 'banner_image', 'gallery',
-        'starts_at', 'ends_at', 'is_active', 'installment_months', 'installment_plans', 'sort_order',
+        'starts_at', 'ends_at', 'is_active', 'installment_months', 'installment_plans',
+        'down_payment_amount', 'sort_order',
     ];
 
     protected function casts(): array
@@ -27,6 +28,7 @@ class Offer extends Model
             'gallery' => 'array',
             'installment_months' => 'integer',
             'installment_plans' => 'array',
+            'down_payment_amount' => 'decimal:2',
         ];
     }
 
@@ -139,17 +141,33 @@ class Offer extends Model
         return in_array($months, $this->planMonths(), true);
     }
 
+    public function downPaymentAmount(): float
+    {
+        return max(0, round((float) ($this->down_payment_amount ?? 0), 2));
+    }
+
+    public function financedAmountFor(float $total): float
+    {
+        $down = min($this->downPaymentAmount(), max(0, $total));
+
+        return max(0, round($total - $down, 2));
+    }
+
     /**
-     * @return list<array{months: int, monthly_amount: float}>
+     * @return list<array{months: int, monthly_amount: float, down_payment_amount: float, financed_amount: float}>
      */
     public function plansForTotal(?float $total = null): array
     {
         $total ??= $this->offerTotal();
+        $down = min($this->downPaymentAmount(), max(0, $total));
+        $financed = $this->financedAmountFor($total);
 
         return array_map(
             fn (int $months) => [
                 'months' => $months,
                 'monthly_amount' => $this->monthlyAmountFor($total, $months),
+                'down_payment_amount' => $down,
+                'financed_amount' => $financed,
             ],
             $this->planMonths()
         );
@@ -170,7 +188,7 @@ class Offer extends Model
     {
         $months = max(1, $months ?? $this->defaultPlanMonths());
 
-        return round($total / $months, 2);
+        return round($this->financedAmountFor($total) / $months, 2);
     }
 
     public function lowestMonthlyAmount(?float $total = null): float
