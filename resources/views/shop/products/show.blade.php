@@ -128,15 +128,6 @@
                 @if(!empty($offerEntry) && $offerEntry->offer)
                     <div class="mt-4 mb-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
                         <p class="font-semibold text-amber-900">{{ __('ecommerce.installment_available') }}</p>
-                        <p class="text-lg font-extrabold text-amber-800 mt-2">
-                            {{ __('ecommerce.offer_price') }}:
-                            {{ number_format((float) $offerEntry->offer_price, 2) }} {{ __('EGP') }}
-                        </p>
-                        @if((float) $offerEntry->comparePrice() > (float) $offerEntry->offer_price)
-                            <p class="text-sm text-amber-700/80 line-through mt-0.5">
-                                {{ number_format((float) $offerEntry->comparePrice(), 2) }} {{ __('EGP') }}
-                            </p>
-                        @endif
                         <p class="text-sm text-amber-800 mt-1">{{ __('ecommerce.offer_set_hint') }}</p>
                         <a href="{{ route('shop.offers.show', $offerEntry->offer->slug) }}"
                            class="mt-3 inline-flex w-full items-center justify-center bg-amber-700 text-white py-2 rounded-lg font-semibold">
