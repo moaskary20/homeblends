@@ -43,14 +43,14 @@ class AdminProductCreateRelationsTest extends TestCase
 
         Livewire::test(EditProduct::class, ['record' => $product->getRouteKey()])
             ->assertSuccessful()
-            ->assertSee(__('ecommerce.product_details_tab'))
+            ->assertDontSee(__('ecommerce.product_details_tab'))
             ->assertSee(__('ecommerce.gallery'))
             ->assertSee(__('ecommerce.variants'))
             ->assertSee(__('ecommerce.flash_sales'))
             ->assertSee(__('ecommerce.related_products'));
     }
 
-    public function test_edit_product_uses_combined_relation_manager_tabs(): void
+    public function test_edit_product_keeps_form_above_relation_tabs(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $product = Product::factory()->create();
@@ -59,8 +59,7 @@ class AdminProductCreateRelationsTest extends TestCase
 
         $component = Livewire::test(EditProduct::class, ['record' => $product->getRouteKey()]);
 
-        $this->assertTrue($component->instance()->hasCombinedRelationManagerTabsWithContent());
-        $this->assertSame(__('ecommerce.product_details_tab'), $component->instance()->getContentTabLabel());
+        $this->assertFalse($component->instance()->hasCombinedRelationManagerTabsWithContent());
         $this->assertContains(ImagesRelationManager::class, ProductResource::getRelations());
         $this->assertContains(VariantsRelationManager::class, ProductResource::getRelations());
         $this->assertContains(FlashSalesRelationManager::class, ProductResource::getRelations());

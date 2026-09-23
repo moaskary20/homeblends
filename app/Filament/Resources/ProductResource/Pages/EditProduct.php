@@ -16,16 +16,6 @@ class EditProduct extends EditRecord
         return [Actions\DeleteAction::make()];
     }
 
-    public function hasCombinedRelationManagerTabsWithContent(): bool
-    {
-        return true;
-    }
-
-    public function getContentTabLabel(): ?string
-    {
-        return __('ecommerce.product_details_tab');
-    }
-
     protected function getSaveFormAction(): Action
     {
         return parent::getSaveFormAction()
