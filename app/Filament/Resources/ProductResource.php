@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Enums\ProductStatus;
-use App\Filament\Resources\ProductResource\Concerns\HasProductCreateRelationSections;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers\FlashSalesRelationManager;
 use App\Filament\Resources\ProductResource\RelationManagers\ImagesRelationManager;
@@ -22,7 +21,6 @@ use Illuminate\Support\Collection;
 
 class ProductResource extends Resource
 {
-    use HasProductCreateRelationSections;
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
@@ -147,7 +145,6 @@ class ProductResource extends Resource
                     Forms\Components\TextInput::make('dimensions')->label(__('ecommerce.dimensions')),
                 ]),
             ])->columnSpan(['lg' => 1]),
-            ...static::createRelationSections(),
         ])->columns(3);
     }
 
