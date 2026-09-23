@@ -83,6 +83,13 @@ return [
     'compare_price' => 'سعر المقارنة',
     'is_default_variant' => 'افتراضي',
     'related_products' => 'منتجات ذات صلة',
+    'add_gallery_image' => 'إضافة صورة للمعرض',
+    'add_variant' => 'إضافة متغير',
+    'flash_add_to_sale' => 'إضافة لعرض فلاش',
+    'product_create_gallery_help' => 'أضف صور المعرض عند إنشاء المنتج (يمكنك تعديلها لاحقاً من صفحة التعديل).',
+    'product_create_variants_help' => 'أضف متغيرات المنتج (مقاس، لون، …) مباشرة عند الإنشاء.',
+    'product_create_flash_help' => 'اربط المنتج بعرض فلاش موجود وحدّد سعر الفلاش.',
+    'product_create_related_help' => 'اختر منتجات ذات صلة تظهر مع هذا المنتج.',
 
     'coupons' => 'الكوبونات',
     'coupon' => 'كوبون',
