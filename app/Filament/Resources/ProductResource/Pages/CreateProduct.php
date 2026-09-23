@@ -40,6 +40,6 @@ class CreateProduct extends CreateRecord
             'is_featured' => false,
         ]);
 
-        $this->redirect(ProductResource::getUrl('edit', ['record' => $product]));
+        $this->redirect(ProductResource::getUrl('edit', ['record' => $product]).'?new=1');
     }
 }

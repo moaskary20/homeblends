@@ -41,13 +41,32 @@ class AdminProductCreateRelationsTest extends TestCase
             url()->to(ProductResource::getUrl('edit', ['record' => $product]))
         );
 
-        Livewire::test(EditProduct::class, ['record' => $product->getRouteKey()])
+        Livewire::withQueryParams(['new' => '1'])
+            ->test(EditProduct::class, ['record' => $product->getRouteKey()])
             ->assertSuccessful()
+            ->assertSee(__('ecommerce.add_new_product'))
             ->assertDontSee(__('ecommerce.product_details_tab'))
             ->assertSee(__('ecommerce.gallery'))
             ->assertSee(__('ecommerce.variants'))
             ->assertSee(__('ecommerce.flash_sales'))
             ->assertSee(__('ecommerce.related_products'));
+    }
+
+    public function test_edit_product_shows_edit_title_for_existing_products(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $product = Product::factory()->create([
+            'name' => 'منتج منشور',
+            'status' => ProductStatus::Published,
+            'sku' => 'PUB-100',
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(EditProduct::class, ['record' => $product->getRouteKey()])
+            ->assertSuccessful()
+            ->assertSet('isCreating', false)
+            ->assertDontSee(__('ecommerce.add_new_product'));
     }
 
     public function test_edit_product_keeps_form_above_relation_tabs(): void

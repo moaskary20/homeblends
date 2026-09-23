@@ -560,6 +560,7 @@ return [
     'email' => 'البريد الإلكتروني',
     'unit_price' => 'سعر الوحدة',
     'add_product' => 'إضافة منتج',
+    'add_new_product' => 'إضافة منتج جديد',
     'confirm_create_product_heading' => 'تأكيد إضافة المنتج',
     'confirm_create_product_description' => 'هل أنت متأكد من إضافة هذا المنتج؟',
     'confirm_create_product_submit' => 'نعم، أضف المنتج',
