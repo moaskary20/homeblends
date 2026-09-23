@@ -17,6 +17,16 @@ class RelatedProductsRelationManager extends RelationManager
         return __('ecommerce.related_products');
     }
 
+    public static function getModelLabel(): string
+    {
+        return __('ecommerce.related_product');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ecommerce.related_products');
+    }
+
     public function form(Form $form): Form
     {
         return $form->schema([]);

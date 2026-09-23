@@ -15,6 +15,16 @@ class FlashSalesRelationManager extends RelationManager
         return __('ecommerce.flash_sales');
     }
 
+    public static function getModelLabel(): string
+    {
+        return __('ecommerce.flash_sale');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ecommerce.flash_sales');
+    }
+
     public function table(Table $table): Table
     {
         return $table

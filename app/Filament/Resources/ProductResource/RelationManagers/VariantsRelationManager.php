@@ -17,6 +17,16 @@ class VariantsRelationManager extends RelationManager
         return __('ecommerce.variants');
     }
 
+    public static function getModelLabel(): string
+    {
+        return __('ecommerce.variant');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ecommerce.variants');
+    }
+
     public function form(Form $form): Form
     {
         return $form->schema([
