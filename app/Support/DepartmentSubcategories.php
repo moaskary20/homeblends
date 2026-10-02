@@ -46,7 +46,7 @@ class DepartmentSubcategories
 
     public static function ariikaSubcategorySlug(string $handle): string
     {
-        return self::mappedSubcategorySlug('product-scraper.ariika.collection_subcategories', $handle, 'living-room');
+        return self::mappedSubcategorySlug('product-scraper.ariika.collection_subcategories', $handle, 'anterehat');
     }
 
     public static function gemmaCeramicsSubcategorySlug(string $handle): string

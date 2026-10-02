@@ -32,22 +32,22 @@ class SetupDepartmentSubcategoriesCommandTest extends TestCase
 
         $this->artisan('categories:setup-subcategories')->assertSuccessful();
 
-        $livingRoom = Category::query()->where('slug', 'living-room')->first();
+        $anterehat = Category::query()->where('slug', 'anterehat')->first();
 
-        $this->assertNotNull($livingRoom);
-        $this->assertSame('ليفينج روم', $livingRoom->name);
-        $this->assertSame('images/categories/living-room.jpg', $livingRoom->image);
+        $this->assertNotNull($anterehat);
+        $this->assertSame('أنتريهات', $anterehat->name);
+        $this->assertSame('images/categories/living-room.jpg', $anterehat->image);
         $this->assertSame(
             Category::query()->where('slug', 'athath')->value('id'),
-            $livingRoom->parent_id
+            $anterehat->parent_id
         );
 
         $legacy->refresh();
-        $this->assertSame($livingRoom->id, $legacy->parent_id);
+        $this->assertSame($anterehat->id, $legacy->parent_id);
 
         $this->assertDatabaseHas('categories', [
             'slug' => 'salons',
-            'name' => 'صلونات',
+            'name' => 'صالونات',
         ]);
         $this->assertDatabaseHas('categories', [
             'slug' => 'indoor-flooring',
@@ -128,9 +128,60 @@ class SetupDepartmentSubcategoriesCommandTest extends TestCase
         $response = $this->get(route('shop.categories.show', 'athath'));
 
         $response->assertOk();
-        $response->assertSee('ليفينج روم');
-        $response->assertSee('غرف نوم');
+        $response->assertSee('أنتريهات');
+        $response->assertSee('غرف نوم ماستر');
         $response->assertSee(__('ecommerce.choose_subcategory'));
+    }
+
+    public function test_furniture_department_gets_new_subcategories_and_retires_old_ones(): void
+    {
+        $athath = Category::create(['name' => 'أثاث', 'slug' => 'athath', 'is_active' => true, 'sort_order' => 1]);
+        $ceramics = Category::create(['name' => 'سيراميك', 'slug' => 'ceramics', 'is_active' => true, 'sort_order' => 2]);
+        $ceramicsExtra = Category::create([
+            'name' => 'Gemma — سيراميك أرضيات',
+            'slug' => 'gemma-floor-ceramic',
+            'parent_id' => $ceramics->id,
+            'is_active' => true,
+        ]);
+        $oldBedrooms = Category::create([
+            'name' => 'غرف نوم',
+            'slug' => 'bedrooms',
+            'parent_id' => $athath->id,
+            'is_active' => true,
+        ]);
+        $product = Product::create([
+            'category_id' => $oldBedrooms->id,
+            'name' => 'سرير قديم',
+            'slug' => 'old-bed',
+            'sku' => 'BED-OLD',
+            'regular_price' => 100,
+            'stock_quantity' => 1,
+            'status' => ProductStatus::Published,
+        ]);
+
+        $this->artisan('categories:setup-subcategories', ['--department' => 'athath'])->assertSuccessful();
+
+        $names = Category::query()
+            ->where('parent_id', $athath->id)
+            ->orderBy('sort_order')
+            ->pluck('name')
+            ->all();
+
+        $this->assertSame([
+            'أنتريهات', 'ركنات', 'كنب سرير', 'ريكلاينر', 'صالونات',
+            'غرف نوم ماستر', 'غرف نوم شبابي و أطفالي', 'دولايب', 'سراير', 'مكاتب',
+            'غرف سفرة', 'بوفيه', 'كراسى سفرة و سادات', 'ترابيزات - وسط', 'ترابيزات - جانبية',
+            'وحدات تلفزيون', 'خزانات أحذية', 'أثاث حدائق', 'إضاءة', 'إكسسوارات',
+        ], $names);
+
+        $this->assertSoftDeleted('categories', ['id' => $oldBedrooms->id]);
+        $this->assertSame(
+            Category::query()->where('slug', 'master-bedrooms')->value('id'),
+            $product->fresh()->category_id
+        );
+
+        $this->assertNotNull($ceramicsExtra->fresh());
+        $this->assertNull(Category::query()->where('slug', 'mixers')->first());
     }
 
     public function test_configured_subcategories_show_when_empty(): void

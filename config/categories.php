@@ -171,46 +171,42 @@ return [
     ],
 
     /**
+     * Old subcategories removed from a department: legacy_slug => replacement_slug.
+     * Products move to the replacement and the old category is soft-deleted.
+     */
+    'retired_subcategories' => [
+        'athath' => [
+            'living-room' => 'anterehat',
+            'bedrooms' => 'master-bedrooms',
+            'libraries' => 'desks',
+        ],
+    ],
+
+    /**
      * Storefront subcategories under أثاث / سيراميك.
      */
     'department_subcategories' => [
         'athath' => [
-            'living-room' => [
-                'name' => 'ليفينج روم',
-                'sort_order' => 1,
-                'description' => 'أثاث غرف المعيشة والجلوس',
-                'image' => 'images/categories/living-room.jpg',
-            ],
-            'bedrooms' => [
-                'name' => 'غرف نوم',
-                'sort_order' => 2,
-                'description' => 'أسرة وخزائن وغرف نوم كاملة',
-                'image' => 'images/categories/bedrooms.jpg',
-            ],
-            'dining-rooms' => [
-                'name' => 'غرف سفره',
-                'sort_order' => 3,
-                'description' => 'سفرة وكراسي وبوفيهات',
-                'image' => 'images/categories/dining-rooms.jpg',
-            ],
-            'salons' => [
-                'name' => 'صلونات',
-                'sort_order' => 4,
-                'description' => 'صالونات ومجالس ضيافة',
-                'image' => 'images/categories/salons.jpg',
-            ],
-            'outdoor' => [
-                'name' => 'اوت دور',
-                'sort_order' => 5,
-                'description' => 'أثاث خارجي للحدائق والتراس',
-                'image' => 'images/categories/outdoor.jpg',
-            ],
-            'libraries' => [
-                'name' => 'مكتبات',
-                'sort_order' => 6,
-                'description' => 'مكتبات ووحدات تخزين للكتب',
-                'image' => 'images/categories/libraries.jpg',
-            ],
+            'anterehat' => ['name' => 'أنتريهات', 'sort_order' => 1, 'image' => 'images/categories/living-room.jpg'],
+            'corner-sofas' => ['name' => 'ركنات', 'sort_order' => 2],
+            'sofa-beds' => ['name' => 'كنب سرير', 'sort_order' => 3],
+            'recliners' => ['name' => 'ريكلاينر', 'sort_order' => 4],
+            'salons' => ['name' => 'صالونات', 'sort_order' => 5, 'image' => 'images/categories/salons.jpg'],
+            'master-bedrooms' => ['name' => 'غرف نوم ماستر', 'sort_order' => 6, 'image' => 'images/categories/bedrooms.jpg'],
+            'kids-bedrooms' => ['name' => 'غرف نوم شبابي و أطفالي', 'sort_order' => 7],
+            'wardrobes' => ['name' => 'دولايب', 'sort_order' => 8],
+            'beds' => ['name' => 'سراير', 'sort_order' => 9],
+            'desks' => ['name' => 'مكاتب', 'sort_order' => 10, 'image' => 'images/categories/libraries.jpg'],
+            'dining-rooms' => ['name' => 'غرف سفرة', 'sort_order' => 11, 'image' => 'images/categories/dining-rooms.jpg'],
+            'buffets' => ['name' => 'بوفيه', 'sort_order' => 12],
+            'dining-chairs' => ['name' => 'كراسى سفرة و سادات', 'sort_order' => 13],
+            'center-tables' => ['name' => 'ترابيزات - وسط', 'sort_order' => 14],
+            'side-tables' => ['name' => 'ترابيزات - جانبية', 'sort_order' => 15],
+            'tv-units' => ['name' => 'وحدات تلفزيون', 'sort_order' => 16],
+            'shoe-cabinets' => ['name' => 'خزانات أحذية', 'sort_order' => 17],
+            'outdoor' => ['name' => 'أثاث حدائق', 'sort_order' => 18, 'image' => 'images/categories/outdoor.jpg'],
+            'athath-lighting' => ['name' => 'إضاءة', 'sort_order' => 19],
+            'athath-accessories' => ['name' => 'إكسسوارات', 'sort_order' => 20],
         ],
         'ceramics' => [
             'indoor-flooring' => [

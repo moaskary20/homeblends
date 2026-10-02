@@ -29,13 +29,13 @@ return [
          * Keys must match handles in furniture_collections.
          */
         'collection_subcategories' => [
-            'indoor-furniture' => 'living-room',
-            'furniture-1' => 'living-room',
-            'living-room-1' => 'living-room',
+            'indoor-furniture' => 'anterehat',
+            'furniture-1' => 'anterehat',
+            'living-room-1' => 'anterehat',
             'indoor-sofas' => 'salons',
-            'bedroom' => 'bedrooms',
+            'bedroom' => 'master-bedrooms',
             'dining-room' => 'dining-rooms',
-            'coffee-tables' => 'living-room',
+            'coffee-tables' => 'center-tables',
             'outdoor-1' => 'outdoor',
         ],
     ],

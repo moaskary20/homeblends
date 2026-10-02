@@ -95,8 +95,8 @@ class AriikaProductScrapeTest extends TestCase
         ]);
 
         $livingRoom = \App\Models\Category::create([
-            'name' => 'ليفينج روم',
-            'slug' => 'living-room',
+            'name' => 'أنتريهات',
+            'slug' => 'anterehat',
             'parent_id' => $parent->id,
             'is_active' => true,
         ]);

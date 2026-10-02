@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 class SetupDepartmentSubcategoriesCommand extends Command
 {
     protected $signature = 'categories:setup-subcategories
+                            {--department= : Only set up this department slug (e.g. athath)}
                             {--dry-run : Show changes without saving}';
 
     protected $description = 'Create department subcategories (أثاث / سيراميك / إكسسوارات / صحي) and re-parent legacy categories';
@@ -20,12 +21,18 @@ class SetupDepartmentSubcategoriesCommand extends Command
     public function handle(): int
     {
         $dryRun = (bool) $this->option('dry-run');
+        $onlyDepartment = $this->option('department') ?: null;
         $moved = 0;
         $deleted = 0;
         $created = 0;
         $images = app(CategoryImageResolver::class);
 
-        foreach (DepartmentSubcategories::grouped() as $departmentSlug => $subcategories) {
+        $groups = DepartmentSubcategories::grouped();
+        if ($onlyDepartment !== null) {
+            $groups = array_intersect_key($groups, [$onlyDepartment => true]);
+        }
+
+        foreach ($groups as $departmentSlug => $subcategories) {
             $department = Category::query()->where('slug', $departmentSlug)->first();
 
             if ($department === null) {
@@ -119,12 +126,16 @@ class SetupDepartmentSubcategoriesCommand extends Command
                 }
             }
 
+            $this->retireLegacySubcategories($department, $canonicalBySlug, $dryRun, $moved, $deleted);
+
             if ($department->slug === 'ceramics') {
                 $this->purgeCeramicsExtras($department, $canonicalBySlug, $dryRun, $moved, $deleted);
             }
         }
 
-        $created += $this->setupSanitaryTree($dryRun, $moved, $images);
+        if ($onlyDepartment === null || $onlyDepartment === 'sanitary') {
+            $created += $this->setupSanitaryTree($dryRun, $moved, $images);
+        }
 
         if ($dryRun) {
             $this->warn("Dry run — would create/update {$created} subcategories, move {$moved} categories, delete {$deleted} extras.");
@@ -227,6 +238,49 @@ class SetupDepartmentSubcategoriesCommand extends Command
             if ($strayDirectChildren->isNotEmpty()) {
                 $this->warn('Ceramics still has unexpected children: '.$strayDirectChildren->implode(', '));
             }
+        }
+    }
+
+    /**
+     * @param  array<string, Category|null>  $canonicalBySlug
+     */
+    protected function retireLegacySubcategories(
+        Category $department,
+        array $canonicalBySlug,
+        bool $dryRun,
+        int &$moved,
+        int &$deleted,
+    ): void {
+        $retired = config("categories.retired_subcategories.{$department->slug}", []);
+
+        foreach ($retired as $legacySlug => $replacementSlug) {
+            $legacy = Category::query()
+                ->where('slug', $legacySlug)
+                ->where('parent_id', $department->id)
+                ->first();
+            $replacement = $canonicalBySlug[$replacementSlug] ?? null;
+
+            if ($legacy === null || $replacement === null) {
+                continue;
+            }
+
+            $productCount = $legacy->products()->count();
+
+            if ($dryRun) {
+                $this->line("Would retire {$legacySlug} → {$replacementSlug} ({$productCount} product(s))");
+                $moved += $productCount;
+                $deleted++;
+
+                continue;
+            }
+
+            Product::query()->where('category_id', $legacy->id)->update(['category_id' => $replacement->id]);
+            Category::query()->where('parent_id', $legacy->id)->update(['parent_id' => $replacement->id]);
+            $legacy->delete();
+
+            $this->warn("Retired {$legacySlug} → {$replacementSlug} ({$productCount} product(s) moved)");
+            $moved += $productCount;
+            $deleted++;
         }
     }
 
