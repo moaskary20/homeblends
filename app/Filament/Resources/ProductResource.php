@@ -221,19 +221,29 @@ class ProductResource extends Resource
      */
     protected static function categoryFilterOptions(): array
     {
-        return Category::query()
-            ->with('parent:id,name')
-            ->orderBy('sort_order')
-            ->orderBy('name')
+        $childrenByParent = Category::query()
             ->get(['id', 'name', 'parent_id'])
-            ->mapWithKeys(function (Category $category) {
-                $label = $category->parent
-                    ? $category->parent->name.' › '.$category->name
-                    : $category->name;
+            ->groupBy(fn (Category $category) => (int) $category->parent_id);
 
-                return [$category->id => $label];
-            })
-            ->all();
+        $collator = class_exists(\Collator::class) ? new \Collator('ar') : null;
+        $sortByName = fn (Collection $categories): Collection => $categories->sort(
+            fn (Category $a, Category $b) => $collator
+                ? $collator->compare($a->name, $b->name)
+                : strcmp($a->name, $b->name)
+        );
+
+        $options = [];
+        $append = function (int $parentId, string $prefix) use (&$append, &$options, $childrenByParent, $sortByName): void {
+            foreach ($sortByName($childrenByParent->get($parentId, collect())) as $category) {
+                $label = $prefix === '' ? $category->name : $prefix.' › '.$category->name;
+                $options[$category->id] = $label;
+                $append((int) $category->id, $label);
+            }
+        };
+
+        $append(0, '');
+
+        return $options;
     }
 
     /**

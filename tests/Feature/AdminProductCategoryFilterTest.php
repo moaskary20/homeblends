@@ -85,4 +85,26 @@ class AdminProductCategoryFilterTest extends TestCase
         $this->assertSame('أثاث', $options[$parent->id]);
         $this->assertSame('أثاث › غرف نوم', $options[$child->id]);
     }
+
+    public function test_category_options_are_alphabetical_with_children_under_their_parent(): void
+    {
+        $ceramics = Category::create(['name' => 'سيراميك', 'slug' => 'ceramics-sort', 'is_active' => true, 'sort_order' => 1]);
+        $furniture = Category::create(['name' => 'أثاث', 'slug' => 'furniture-sort', 'is_active' => true, 'sort_order' => 2]);
+        Category::create(['parent_id' => $ceramics->id, 'name' => 'حوائط', 'slug' => 'walls-sort', 'is_active' => true]);
+        Category::create(['parent_id' => $furniture->id, 'name' => 'ركنات', 'slug' => 'corners-sort', 'is_active' => true, 'sort_order' => 1]);
+        $anterehat = Category::create(['parent_id' => $furniture->id, 'name' => 'أنتريهات', 'slug' => 'anterehat-sort', 'is_active' => true, 'sort_order' => 2]);
+        Category::create(['parent_id' => $anterehat->id, 'name' => 'مودرن', 'slug' => 'modern-sort', 'is_active' => true]);
+
+        $method = new \ReflectionMethod(ProductResource::class, 'categoryFilterOptions');
+        $method->setAccessible(true);
+
+        $this->assertSame([
+            'أثاث',
+            'أثاث › أنتريهات',
+            'أثاث › أنتريهات › مودرن',
+            'أثاث › ركنات',
+            'سيراميك',
+            'سيراميك › حوائط',
+        ], array_values($method->invoke(null)));
+    }
 }
