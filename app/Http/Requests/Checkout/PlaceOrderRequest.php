@@ -5,16 +5,19 @@ namespace App\Http\Requests\Checkout;
 use App\Services\Payment\PaymentGatewayService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class PlaceOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true;
     }
 
     public function rules(): array
     {
+        $isGuest = $this->user() === null;
+
         return [
             'shipping_address' => ['required', 'array'],
             'shipping_address.first_name' => ['required', 'string', 'max:100'],
@@ -43,6 +46,19 @@ class PlaceOrderRequest extends FormRequest
             'loyalty_points' => ['integer', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'pay_in_installments' => ['sometimes', 'boolean'],
+            'password' => array_values(array_filter([
+                $isGuest ? 'required' : 'nullable',
+                'string',
+                $isGuest ? Password::default() : null,
+            ])),
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'shipping_address.email.unique' => __('ecommerce.checkout_email_taken'),
+            'password.required' => __('ecommerce.checkout_password_required'),
         ];
     }
 }

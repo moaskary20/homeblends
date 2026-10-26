@@ -87,6 +87,20 @@ function redirectToLogin() {
     window.location.href = `${loginUrl}?redirect=${redirect}`;
 }
 
+function firstValidationMessage(data) {
+    if (data?.message) {
+        return data.message;
+    }
+
+    const errors = data?.errors;
+    if (!errors || typeof errors !== 'object') {
+        return null;
+    }
+
+    const first = Object.values(errors).flat()[0];
+    return typeof first === 'string' ? first : null;
+}
+
 if (form) {
     const token = localStorage.getItem('api_token');
     if (token) {
@@ -95,12 +109,6 @@ if (form) {
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        if (!isWebAuthenticated() && !localStorage.getItem('api_token')) {
-            alert(form.dataset.loginRequired || 'يجب تسجيل الدخول أولاً');
-            redirectToLogin();
-            return;
-        }
 
         const fd = new FormData(form);
         const shippingAddress = {
@@ -120,23 +128,28 @@ if (form) {
         const loyaltyPoints = parseInt(fd.get('loyalty_points') || '0', 10);
         const authToken = localStorage.getItem('api_token');
         const checkoutUrl = form.dataset.checkoutUrl || `${form.dataset.api}/checkout`;
+        const payload = {
+            shipping_address: shippingAddress,
+            billing_address: shippingAddress,
+            shipping_rate_id: parseInt(fd.get('shipping_rate_id'), 10),
+            payment_gateway: fd.get('payment_gateway'),
+            loyalty_points: loyaltyPoints,
+            notes: fd.get('notes'),
+            pay_in_installments: fd.get('pay_in_installments') === '1',
+        };
+
+        if (!isWebAuthenticated() && fd.get('password')) {
+            payload.password = fd.get('password');
+        }
 
         const res = await fetch(checkoutUrl, {
             method: 'POST',
             headers: buildHeaders(authToken),
             credentials: 'same-origin',
-            body: JSON.stringify({
-                shipping_address: shippingAddress,
-                billing_address: shippingAddress,
-                shipping_rate_id: parseInt(fd.get('shipping_rate_id'), 10),
-                payment_gateway: fd.get('payment_gateway'),
-                loyalty_points: loyaltyPoints,
-                notes: fd.get('notes'),
-                pay_in_installments: fd.get('pay_in_installments') === '1',
-            }),
+            body: JSON.stringify(payload),
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         const err = document.getElementById('checkout-error');
 
         if (res.status === 401) {
@@ -146,18 +159,21 @@ if (form) {
         }
 
         if (res.ok) {
-            const payload = data.data ?? data;
-            const earned = payload.loyalty_points_earned;
-            let msg = `تم إنشاء الطلب: ${payload.order_number || 'نجاح'}`;
+            if (document.body) {
+                document.body.dataset.userAuthenticated = '1';
+            }
+            const payloadData = data.data ?? data;
+            const earned = payloadData.loyalty_points_earned;
+            let msg = `تم إنشاء الطلب: ${payloadData.order_number || 'نجاح'}`;
             if (earned) {
                 msg += `\nستحصل على ${earned} نقطة ولاء`;
             }
             alert(msg);
-            window.location.href = payload.order_number && form.dataset.orderUrlTemplate
-                ? form.dataset.orderUrlTemplate.replace('__ORDER__', payload.order_number)
+            window.location.href = payloadData.order_number && form.dataset.orderUrlTemplate
+                ? form.dataset.orderUrlTemplate.replace('__ORDER__', payloadData.order_number)
                 : (form.dataset.ordersUrl || '/');
         } else {
-            err.textContent = data.message || 'فشل إتمام الطلب';
+            err.textContent = firstValidationMessage(data) || 'فشل إتمام الطلب';
             err.classList.remove('hidden');
         }
     });

@@ -32,8 +32,19 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.email') }}</label>
                 <input name="email" type="email" value="{{ $checkoutDefaults['email'] }}" required
-                       autocomplete="email" class="w-full border rounded-lg px-3 py-2">
+                       autocomplete="email" class="w-full border rounded-lg px-3 py-2"
+                       @readonly(auth()->check())>
             </div>
+
+            @guest
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('ecommerce.password') }}</label>
+                    <input name="password" type="password" required autocomplete="new-password"
+                           class="w-full border rounded-lg px-3 py-2"
+                           placeholder="{{ __('ecommerce.checkout_password_hint') }}">
+                    <p class="text-xs text-gray-500 mt-1">{{ __('ecommerce.checkout_password_help') }}</p>
+                </div>
+            @endguest
 
             <div class="grid sm:grid-cols-2 gap-4">
                 <div>

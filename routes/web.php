@@ -61,7 +61,7 @@ Route::group([
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('shop.products.show');
     Route::get('/cart', [CartController::class, 'index'])->name('shop.cart');
     Route::get('/checkout', [CheckoutController::class, 'show'])->name('shop.checkout');
-    Route::middleware('auth')->post('/checkout', [CheckoutController::class, 'store'])->name('shop.checkout.store');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('shop.checkout.store');
     Route::get('/orders', [ShopOrderController::class, 'index'])->name('shop.orders.index');
     Route::get('/orders/{orderNumber}', [ShopOrderController::class, 'show'])->name('shop.orders.show');
 
