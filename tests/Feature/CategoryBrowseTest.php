@@ -38,6 +38,19 @@ class CategoryBrowseTest extends TestCase
         $this->assertTrue($categories->contains('slug', 'ceramics'));
     }
 
+    public function test_main_nav_excludes_ceramics(): void
+    {
+        Category::create(['name' => 'أثاث', 'slug' => 'athath', 'is_active' => true, 'sort_order' => 1]);
+        Category::create(['name' => 'سيراميك', 'slug' => 'ceramics', 'is_active' => true, 'sort_order' => 2]);
+        Category::create(['name' => 'صحي', 'slug' => 'sanitary', 'is_active' => true, 'sort_order' => 3]);
+
+        $nav = app(\App\Services\Shop\CategoryBrowseService::class)->categoriesForNav();
+
+        $this->assertTrue($nav->contains('slug', 'athath'));
+        $this->assertTrue($nav->contains('slug', 'sanitary'));
+        $this->assertFalse($nav->contains('slug', 'ceramics'));
+    }
+
     public function test_category_page_filters_by_price(): void
     {
         $category = Category::create(['name' => 'قسم', 'slug' => 'cat-a', 'is_active' => true]);

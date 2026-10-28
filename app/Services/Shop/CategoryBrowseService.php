@@ -35,9 +35,15 @@ class CategoryBrowseService
      */
     public function categoriesForNav(): Collection
     {
+        $excluded = array_values(array_filter(
+            (array) config('categories.nav_excluded_slugs', []),
+            fn ($slug) => is_string($slug) && $slug !== ''
+        ));
+
         return Category::query()
             ->active()
             ->roots()
+            ->when($excluded !== [], fn ($q) => $q->whereNotIn('slug', $excluded))
             ->with([
                 'children' => fn ($q) => $this->subcategoriesQuery($q, includeEmpty: true),
             ])

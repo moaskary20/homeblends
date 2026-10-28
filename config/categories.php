@@ -2,6 +2,14 @@
 
 return [
     /**
+     * Root department slugs hidden from the main header/mobile nav.
+     * Categories stay browsable via /categories and direct URLs.
+     */
+    'nav_excluded_slugs' => [
+        'ceramics',
+    ],
+
+    /**
      * Main storefront departments (homepage circles + nav roots).
      */
     'main_departments' => [
