@@ -29,18 +29,22 @@ class GuestCheckoutCreatesAccountTest extends TestCase
         Notification::fake();
         [$rate] = $this->seedCheckoutCatalog();
 
-        $session = $this->app['session']->getId() ?: $this->startSession()->getId();
+        $this->startSession();
+        $session = $this->app['session']->getId();
+        $this->app['session']->put(\App\Services\Cart\CartService::GUEST_SESSION_ID_KEY, $session);
+
+        $product = Product::query()->first();
         $cart = Cart::create(['session_id' => $session, 'user_id' => null]);
         CartItem::create([
             'cart_id' => $cart->id,
-            'product_id' => Product::query()->first()->id,
+            'product_id' => $product->id,
             'quantity' => 1,
             'unit_price' => 100,
         ]);
 
         $payload = $this->checkoutPayload($rate->id, 'guest-checkout@example.com', 'SecretPass123!');
 
-        $response = $this->withSession([])->postJson(route('shop.checkout.store'), $payload);
+        $response = $this->postJson(route('shop.checkout.store'), $payload);
 
         $response->assertCreated();
         $this->assertAuthenticated();
@@ -49,15 +53,33 @@ class GuestCheckoutCreatesAccountTest extends TestCase
             'name' => 'أحمد محمد',
             'phone' => '01012345678',
         ]);
-        $this->assertDatabaseHas('orders', [
-            'user_id' => User::query()->where('email', 'guest-checkout@example.com')->value('id'),
-        ]);
-        $this->assertSame(1, Order::query()->count());
+        $order = Order::query()->with('items')->first();
+        $this->assertNotNull($order);
+        $this->assertSame(1, $order->items->count());
+        $this->assertSame($product->id, $order->items->first()->product_id);
+        $this->assertSame('100.00', (string) $order->subtotal);
+        $this->assertDatabaseMissing('cart_items', ['cart_id' => $cart->id]);
 
         Notification::assertSentTo(
             User::query()->where('email', 'guest-checkout@example.com')->first(),
             VerifyEmail::class,
         );
+    }
+
+    public function test_guest_checkout_rejects_empty_cart(): void
+    {
+        [$rate] = $this->seedCheckoutCatalog();
+        $this->startSession();
+
+        $response = $this->postJson(
+            route('shop.checkout.store'),
+            $this->checkoutPayload($rate->id, 'empty-cart@example.com', 'SecretPass123!')
+        );
+
+        $response->assertStatus(422);
+        $this->assertDatabaseMissing('orders', [
+            'user_id' => User::query()->where('email', 'empty-cart@example.com')->value('id'),
+        ]);
     }
 
     public function test_guest_checkout_requires_password(): void

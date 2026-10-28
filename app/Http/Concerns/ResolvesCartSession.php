@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 trait ResolvesCartSession
 {
+    public const GUEST_SESSION_ID_KEY = 'hb_guest_session_id';
+
     /**
      * Resolve the cart session key for API and web clients.
      *
@@ -28,10 +30,40 @@ trait ResolvesCartSession
         }
 
         if ($request->hasSession()) {
-            return $this->normalizeCartSessionId($request->session()->getId()) ?? $header;
+            $sessionId = $this->normalizeCartSessionId($request->session()->getId()) ?? $header;
+            $this->rememberGuestCartSessionId($request, $sessionId);
+
+            return $sessionId;
         }
 
         return $header;
+    }
+
+    /**
+     * Session regenerate on login changes the id, but session data is kept.
+     * Remember the pre-login id so guest cart/wishlist/compare can still merge.
+     */
+    protected function rememberGuestCartSessionId(Request $request, ?string $sessionId): void
+    {
+        if ($sessionId === null || ! $request->hasSession()) {
+            return;
+        }
+
+        if ($request->user() !== null || auth('web')->id() !== null) {
+            return;
+        }
+
+        $request->session()->put(self::GUEST_SESSION_ID_KEY, $sessionId);
+    }
+
+    protected function rememberedGuestCartSessionId(Request $request): ?string
+    {
+        if (! $request->hasSession()) {
+            return null;
+        }
+
+        return $this->normalizeCartSessionId($request->session()->get(self::GUEST_SESSION_ID_KEY))
+            ?? $this->normalizeCartSessionId($request->session()->getId());
     }
 
     protected function normalizeCartSessionId(mixed $value): ?string

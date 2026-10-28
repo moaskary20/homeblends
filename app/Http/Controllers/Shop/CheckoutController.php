@@ -70,11 +70,19 @@ class CheckoutController extends Controller
     public function store(PlaceOrderRequest $request): JsonResponse
     {
         $user = $request->user();
+        $guestSessionId = $request->hasSession()
+            ? ($request->session()->get(CartService::GUEST_SESSION_ID_KEY) ?? $request->session()->getId())
+            : null;
 
         if ($user === null) {
             $user = $this->registerGuestCustomer($request);
             Auth::login($user);
             $request->setUserResolver(fn () => $user);
+
+            // Session id changes on login; merge using the pre-login guest cart key.
+            if (is_string($guestSessionId) && $guestSessionId !== '') {
+                $this->cartService->mergeGuestCart($guestSessionId, $user->id);
+            }
         }
 
         $cart = $this->cartService->resolveForRequest($request);

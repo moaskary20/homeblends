@@ -66,6 +66,11 @@ class CheckoutService
             $shippingRateId, $couponCode, $gateway, $loyaltyPointsToRedeem, $notes, $payInInstallments
         ) {
             $cart->load(['items.product', 'items.variant', 'items.offerProduct.offer']);
+
+            if ($cart->items->isEmpty()) {
+                throw new \InvalidArgumentException(__('ecommerce.cart_empty'));
+            }
+
             $totals = $this->cartService->getTotals($cart);
             $inventory = app(InventoryService::class);
             $offerService = app(OfferService::class);

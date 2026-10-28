@@ -75,8 +75,15 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
-            $sessionId = request()->session()->getId();
+            // Auth::login() regenerates the session id before this event fires.
+            // Prefer the remembered pre-login id (session data survives regenerate).
+            $sessionId = request()->session()->get(CartService::GUEST_SESSION_ID_KEY)
+                ?? request()->session()->getId();
             $userId = $event->user->id;
+
+            if (! is_string($sessionId) || $sessionId === '') {
+                return;
+            }
 
             app(CartService::class)->mergeGuestCart($sessionId, $userId);
             app(WishlistService::class)->mergeGuestToUser($sessionId, $userId);
