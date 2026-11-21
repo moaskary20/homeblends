@@ -63,7 +63,6 @@ class HomeController extends Controller
             fn () => $customerReviewsService->cards()
         ));
         $customerReviewsTitle = $customerReviewsService->sectionTitle();
-        $contactStrip = $homepageService->resolveContactStrip();
         $comfortSpotlight = AppUrl::normalizeComfortSpotlight(Cache::remember(
             'shop.comfort_spotlight',
             3600,
@@ -88,7 +87,6 @@ class HomeController extends Controller
             'promoBanner',
             'customerReviewCards',
             'customerReviewsTitle',
-            'contactStrip',
             'comfortSpotlight',
             'homeCategories',
             'navCategories',

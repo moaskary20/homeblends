@@ -141,7 +141,5 @@
         'customerReviewsTitle' => $customerReviewsTitle ?? __('ecommerce.customer_reviews'),
     ])
 
-    @include('shop.partials.contact-strip', ['contactStrip' => $contactStrip ?? null])
-
     @include('shop.partials.policy-links-strip')
 @endsection
